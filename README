@@ -1,0 +1,52 @@
+i>clicker Moodle integrate
+==========================
+This is the Moodle i>clicker integrate plugin which integrates Moodle with iClicker (http://www.iclicker.com/dnn/) The plugin allows students to register their clickers with the Moodle installation. It provides an adminstrative interface for managing the registrations for Moodle admins. Instructors are provided with a reporting view which allows them to view a listing of the students in their courses which have and have not registered clickers. The plugin also provides integration with the i>clicker and i>grader desktop applications and allows direct grade import and export from the Moodle course gradebook.
+
+Moodle Compatibility
+--------------------
+This plugin will work with Moodle 1.9 or better. It is developed as a Moodle activity module.
+
+Download Binary
+---------------
+The plugin will be made available via the moodle plugins listing::
+
+    http://moodle.org/mod/data/view.php?id=6009
+
+Source
+------
+The source code for this plugin is located at: http://iclicker-moodle-integrate.googlecode.com/svn/trunk/
+
+Install
+-------
+See the Moodle docs for help installing modules::
+
+    http://docs.moodle.org/en/Installing_contributed_modules_or_plugins
+
+Configuration
+-------------
+See the Moodle docs on adminstration of modules::
+
+    http://docs.moodle.org/en/Activity_modules_administration
+
+Usage
+-----
+TODO
+
+REST data feeds
+---------------
+TODO
+
+Release Process
+---------------
+TODO
+
+Help
+----
+Send questions or comments to:
+http://www.iclicker.com/contact/
+
+This document is in `reST (reStructuredText) <http://docutils.sourceforge.net/rst.html>`_ format 
+and can be converted to html using the `online converter <http://www.tele3.cz/jbar/rest/rest.html>`_
+or the `rst2a converter api <http://rst2a.com/api/>`_ or a command line tool (rst2html.py README README.html)
+
+-Aaron Zeckoski (azeckoski @ vt.edu)
