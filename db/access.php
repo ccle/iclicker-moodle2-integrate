@@ -1,10 +1,10 @@
 <?php
 /* $Id $ */
 /* 
- * Capabilities (permissions) for simplehtml block
+ * Capabilities (permissions) for iclicker block
  */
-$block_simplehtml_capabilities = array(
-    'block/simplehtml:viewpages' => array(
+$block_iclicker_capabilities = array(
+    'block/iclicker:viewpages' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_COURSE,
         'legacy' => array(
@@ -16,7 +16,7 @@ $block_simplehtml_capabilities = array(
             'admin' => CAP_ALLOW
         	)
     	),
-    'block/simplehtml:managepages' => array(
+    'block/iclicker:managepages' => array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,
         'legacy' => array(

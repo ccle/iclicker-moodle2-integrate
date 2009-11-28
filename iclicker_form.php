@@ -2,75 +2,75 @@
 /* $Id $ */
 
 require_once ($CFG->libdir.'/formslib.php');
-require_once ($CFG->dirroot.'/blocks/simplehtml/lib.php');
+require_once ($CFG->dirroot.'/blocks/iclicker/lib.php');
 
-class simplehtml_form extends moodleform {
+class iclicker_form extends moodleform {
 
     function definition() {
 		global $CFG, $USER, $COURSE;
         
         $mform = &$this->_form;
 
-        $mform->addElement('header', 'displayinfo', get_string('textfields', 'block_simplehtml'));
+        $mform->addElement('header', 'displayinfo', get_string('textfields', 'block_iclicker'));
         
         // add page title element
-        $mform->addElement('text', 'pagetitle', get_string('pagetitle', 'block_simplehtml'));
+        $mform->addElement('text', 'pagetitle', get_string('pagetitle', 'block_iclicker'));
         $mform->addRule('pagetitle', null, 'required', null, 'client');
         
         // add display text field
-        $mform->addElement('htmleditor', 'displaytext', get_string('displayedhtml', 'block_simplehtml'));
+        $mform->addElement('htmleditor', 'displaytext', get_string('displayedhtml', 'block_iclicker'));
         $mform->setType('displaytexttext', PARAM_RAW);
         $mform->addRule('displaytext', null, 'required', null, 'client');
         
         // add filename selection
-        $mform->addElement('choosecoursefile', 'filename', get_string('displayfile', 'block_simplehtml'), array(
+        $mform->addElement('choosecoursefile', 'filename', get_string('displayfile', 'block_iclicker'), array(
             'courseid'=>$COURSE->id
         ));
         
         //add picturefields header
-        $mform->addElement('header', 'pictureinfo', get_string('picturefields', 'block_simplehtml'));
+        $mform->addElement('header', 'pictureinfo', get_string('picturefields', 'block_iclicker'));
         
         // add display picture yes/no option
-        $mform->addElement('selectyesno', 'displaypicture', get_string('displaypicture', 'block_simplehtml'));
+        $mform->addElement('selectyesno', 'displaypicture', get_string('displaypicture', 'block_iclicker'));
         $mform->setDefault('displaypicture', 1);
         
         // add image selector radio buttons
-        $images = block_simplehtml_images();
+        $images = block_iclicker_images();
         $radioarray = array();
         for ($i = 0; $i < count($images); $i++) {
             $radioarray[] = &$mform->createElement('radio', 'picture', '', $images[$i], $i);
         }
         
         $mform->addGroup($radioarray, 'radioar', 
-			get_string('pictureselect', 'block_simplehtml'), 
+			get_string('pictureselect', 'block_iclicker'), 
 			array(' '), false);
 
         // add description field
         $attributes = array(
             'size'=>'50', 'maxlength'=>'100'
         );
-        $mform->addElement('text', 'description', get_string('picturedesc', 'block_simplehtml'), $attributes);
+        $mform->addElement('text', 'description', get_string('picturedesc', 'block_iclicker'), $attributes);
         $mform->setType('description', PARAM_TEXT);
 
         // add animal grouping
-        $mform->addElement('header', 'animal_group', get_string('animal_group', 'block_simplehtml'), null, false);
+        $mform->addElement('header', 'animal_group', get_string('animal_group', 'block_iclicker'), null, false);
 
 		// radio buttons
-        $animals = block_simplehtml_animals();
+        $animals = block_iclicker_animals();
         $animalsRadio = array();
         for ($i = 0; $i < count($animals); $i++) {
             $animalsRadio[] = &MoodleQuickForm::createElement('radio', 'animal', '', $animals[$i], $i);
         }
         $mform->addGroup($animalsRadio, 
 			'animalsRadio', 
-			get_string('animals', 'block_simplehtml'), 
+			get_string('animals', 'block_iclicker'), 
 			array(' '), 
 			false
 		);
         $mform->setType('animal', PARAM_TEXT);
 
 		// normal text box
-        $mform->addElement('text', 'animal_location', get_string('animals_location', 'block_simplehtml'), 'size="80"');
+        $mform->addElement('text', 'animal_location', get_string('animals_location', 'block_iclicker'), 'size="80"');
         $mform->setType('animal_location', PARAM_TEXT);
         
         
@@ -78,7 +78,7 @@ class simplehtml_form extends moodleform {
         $mform->addElement('header', 'optional', get_string('optional', 'form'), null, false);
 
         // add date_time selector in optional area
-        $mform->addElement('date_time_selector', 'displaydate', get_string('displaydate', 'block_simplehtml'), array(
+        $mform->addElement('date_time_selector', 'displaydate', get_string('displaydate', 'block_iclicker'), array(
             'optional'=>true
         	)
 		);
@@ -89,7 +89,7 @@ class simplehtml_form extends moodleform {
 		 * Before the display function in view.php (or whatever) add:
 		 * $toform['blockid'] = $blockid;
 		 * $toform['courseid'] = $courseid;
-		 * $simplehtml->set_data($toform);
+		 * $iclicker->set_data($toform);
 		 */ 
         $mform->addElement('hidden','blockid');
         $mform->addElement('hidden','courseid');

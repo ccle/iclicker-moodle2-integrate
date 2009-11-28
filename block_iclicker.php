@@ -1,5 +1,5 @@
 <?php /* $Id $ */
-class block_simplehtml extends block_base {
+class block_iclicker extends block_base {
 
 	/**
 	 * Executed on block startup for setting up these variables:
@@ -21,7 +21,7 @@ class block_simplehtml extends block_base {
 	 * uses it to incrementally upgrade an "old" version of the block's data to the latest.
 	 */
     function init() {
-        $this->title = get_string('simplehtml', 'block_simplehtml');
+        $this->title = get_string('iclicker', 'block_iclicker');
         $this->version = 2009112700;
     }
 
@@ -79,24 +79,24 @@ class block_simplehtml extends block_base {
         $this->content->text = $this->config->text;
 
 		// show the links to view/edit/delete the existing pages
-        if ($simplehtmlpages = get_records('simplehtml', 'blockid', $this->instance->id)) {
+        if ($iclickerpages = get_records('iclicker', 'blockid', $this->instance->id)) {
         	$can_control = true; // allow all for now
-            $this->content->text .= '<ul class="block-simplehtml-pagelist">';
-            foreach ($simplehtmlpages as $simplehtmlpage) {
+            $this->content->text .= '<ul class="block-iclicker-pagelist">';
+            foreach ($iclickerpages as $iclickerpage) {
                 if ($can_control) {
-                    $edit = '<a href="'.$CFG->wwwroot.'/blocks/simplehtml/page.php?id='.$simplehtmlpage->id.'&blockid='.$this->instance->id.'&courseid='.$COURSE->id.'"><img src="'.$CFG->pixpath.'/t/edit.gif" alt="'.get_string('editpage', 'block_simplehtml').'" /></a>';
-                    $delete = '<a href="'.$CFG->wwwroot.'/blocks/simplehtml/delete.php?id='.$simplehtmlpage->id.'&courseid='.$COURSE->id.'"><img src="'.$CFG->pixpath.'/t/delete.gif" alt="'.get_string('deletepage', 'block_simplehtml').'" /></a>';
+                    $edit = '<a href="'.$CFG->wwwroot.'/blocks/iclicker/page.php?id='.$iclickerpage->id.'&blockid='.$this->instance->id.'&courseid='.$COURSE->id.'"><img src="'.$CFG->pixpath.'/t/edit.gif" alt="'.get_string('editpage', 'block_iclicker').'" /></a>';
+                    $delete = '<a href="'.$CFG->wwwroot.'/blocks/iclicker/delete.php?id='.$iclickerpage->id.'&courseid='.$COURSE->id.'"><img src="'.$CFG->pixpath.'/t/delete.gif" alt="'.get_string('deletepage', 'block_iclicker').'" /></a>';
                 } else {
                     $edit = '';
                     $delete = '';
                 }
-                $this->content->text .= '<li><a href="'.$CFG->wwwroot.'/blocks/simplehtml/view.php?id='.$simplehtmlpage->id.'&courseid='.$COURSE->id.'">'.$simplehtmlpage->pagetitle.'</a>'.$edit.$delete.'</li>';
+                $this->content->text .= '<li><a href="'.$CFG->wwwroot.'/blocks/iclicker/view.php?id='.$iclickerpage->id.'&courseid='.$COURSE->id.'">'.$iclickerpage->pagetitle.'</a>'.$edit.$delete.'</li>';
             }
             $this->content->text .= '</ul>';
         }
 
 		// show the add new page link
-        $this->content->footer = '<a href="'.$CFG->wwwroot.'/blocks/simplehtml/page.php?blockid='.$this->instance->id.'&courseid='.$COURSE->id.'">'.get_string('addpage', 'block_simplehtml').'</a>';
+        $this->content->footer = '<a href="'.$CFG->wwwroot.'/blocks/iclicker/page.php?blockid='.$this->instance->id.'&courseid='.$COURSE->id.'">'.get_string('addpage', 'block_iclicker').'</a>';
         //$this->content->footer = '';
 
 		// Sample list items
@@ -131,7 +131,7 @@ class block_simplehtml extends block_base {
 	 * Cleanup of the block instance data when the instance is removed
 	 */
     function instance_delete() {
-        delete_records('simplehtml', 'blockid', $this->instance->id);
+        delete_records('iclicker', 'blockid', $this->instance->id);
     }
 
 	/**

@@ -1,8 +1,8 @@
 <?php 
 /**
- * Unit tests for some grade stuff as part of the moodle course
+ * Unit tests for some grade stuff to make sure it is working
  * Execute tests at:
- * moodle/admin/report/unittest/index.php?path=blocks%2Fsimplehtml
+ * moodle/admin/report/unittest/index.php?path=blocks%2Ficlicker
  *
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
  * @package question
@@ -17,7 +17,7 @@ global $CFG,$USER,$COURSE;
 
 // link in external libraries
 require_once ($CFG->libdir.'/gradelib.php');
-//require_once ($CFG->dirroot.'/blocks/simplehtml/lib.php');
+//require_once ($CFG->dirroot.'/blocks/iclicker/lib.php');
 // grade perm: moodle/grade:manage
 
 /** This class contains the test cases for the functions in editlib.php. */
@@ -116,8 +116,8 @@ class gradebook_test extends UnitTestCase {
         $grade_item->categoryid = $grade_category->id;
         $grade_item->itemname = $this->item_name;
         $grade_item->itemtype = 'blocks';
-        $grade_item->itemmodule = 'simplehtml';
-        $grade_item->iteminfo = 'blocks/simplehtml for unit testing';
+        $grade_item->itemmodule = 'iclicker';
+        $grade_item->iteminfo = 'blocks/iclicker for unit testing';
 
         $grade_item->insert($location_str);
 

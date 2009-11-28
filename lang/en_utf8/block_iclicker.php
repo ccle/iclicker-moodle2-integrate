@@ -1,6 +1,6 @@
 <?php /* $Id $ */
 // i18n file
-$string['simplehtml'] 		= 'Simple Html';
+$string['iclicker'] 		= 'Simple Html';
 
 // Config
 $string['donotallowhtml'] 	= 'Disable use of HTML';
@@ -13,8 +13,8 @@ $string['invalidcourse'] 	= 'Invalid CourseID: ';
 $string['addpage'] 			= 'Add a Page';
 
 // Permissions and capabilities
-$string['simplehtml:viewpages'] 	= 'View Simple HTML Pages';
-$string['simplehtml:managepages'] 	= 'Manage Simple HTML Pages';
+$string['iclicker:viewpages'] 	= 'View Simple HTML Pages';
+$string['iclicker:managepages'] 	= 'Manage Simple HTML Pages';
 
 // Form
 $string['formtitle'] 		= 'Simple HTML Page';

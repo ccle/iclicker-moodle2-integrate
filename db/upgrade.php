@@ -17,7 +17,7 @@
  * The commands in here will all be database-neutral,
  * using the functions defined in lib/ddllib.php
  */
-function xmldb_block_simplehtml_upgrade($oldversion = 0) {
+function xmldb_block_iclicker_upgrade($oldversion = 0) {
     global $CFG,$THEME,$db;
     $result = true;
     /* 
@@ -25,8 +25,8 @@ function xmldb_block_simplehtml_upgrade($oldversion = 0) {
      * block of code similar to the next one.
      */
     if ($result && $oldversion < 2009112600) {
-        // Define index index_blockid (not unique) to be added to block_simplehtml
-        $table = new XMLDBTable('simplehtml');
+        // Define index index_blockid (not unique) to be added to block_iclicker
+        $table = new XMLDBTable('iclicker');
         $index = new XMLDBIndex('index_blockid');
         $index->setAttributes(XMLDB_INDEX_NOTUNIQUE, array(
             'blockid'
@@ -37,9 +37,9 @@ function xmldb_block_simplehtml_upgrade($oldversion = 0) {
     }
 
     if ($result && $oldversion < 2009112700) {
-        $table = new XMLDBTable('simplehtml');
+        $table = new XMLDBTable('iclicker');
 
-	    /// Define field animal to be added to simplehtml
+	    /// Define field animal to be added to iclicker
         $field = new XMLDBField('animal');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '2', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'displaydate');
 
