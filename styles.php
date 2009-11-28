@@ -1,4 +1,4 @@
-/* $Id $
+/* $Id$
  * This is automatically processed as if it were a css file
  */
 .iclicker.displaydate {
