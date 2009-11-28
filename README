@@ -1,10 +1,10 @@
 i>clicker Moodle integrate
 ==========================
-This is the Moodle i>clicker integrate plugin which integrates Moodle with iClicker (http://www.iclicker.com/dnn/) The plugin allows students to register their clickers with the Moodle installation. It provides an adminstrative interface for managing the registrations for Moodle admins. Instructors are provided with a reporting view which allows them to view a listing of the students in their courses which have and have not registered clickers. The plugin also provides integration with the i>clicker and i>grader desktop applications and allows direct grade import and export from the Moodle course gradebook.
+This is the Moodle i>clicker integrate plugin which integrates Moodle with iClicker (http://www.iclicker.com/dnn/) The plugin (block) allows students to register their clickers with the Moodle installation. It provides an adminstrative interface for managing the registrations for Moodle admins. Instructors are provided with a reporting view which allows them to view a listing of the students in their courses which have and have not registered clickers. The plugin also provides integration with the i>clicker and i>grader desktop applications and allows direct grade import and export from the Moodle course gradebook.
 
 Moodle Compatibility
 --------------------
-This plugin will work with Moodle 1.9 or better. It is developed as a Moodle activity module.
+This plugin will work with Moodle 1.9.x. It is developed as a Moodle plugin/block.
 
 Download Binary
 ---------------
@@ -18,15 +18,17 @@ The source code for this plugin is located at: http://iclicker-moodle-integrate.
 
 Install
 -------
-See the Moodle docs for help installing modules::
+To install this plugin just extract the contents into MOODLE_HOME/blocks/iclicker.
+
+See the Moodle docs for help installing plugins/blocks::
 
     http://docs.moodle.org/en/Installing_contributed_modules_or_plugins
 
 Configuration
 -------------
-See the Moodle docs on adminstration of modules::
+The configuration of the block is handled in the typical Moodle way. You must login as an administrator and then go to::
 
-    http://docs.moodle.org/en/Activity_modules_administration
+    Site Administration > Modules > Blocks > Manage blocks > iclicker > Settings
 
 Usage
 -----
