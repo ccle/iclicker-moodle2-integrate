@@ -19,327 +19,414 @@
  */
 /* $Id$ */
 
+require_once (dirname(__FILE__).'/../../config.php');
+global $CFG,$USER,$COURSE;
+// link in external libraries
+require_once ($CFG->libdir.'/gradelib.php');
+require_once ($CFG->libdir.'/dmllib.php');
+require_once ($CFG->libdir.'/accesslib.php');
+
 /**
- * An abstract object that holds methods and attributes common to all grade_* objects defined here.
- * @abstract
+ * Defines an exception which can occur when validating clicker ids
+ * Valid types are: 
+ * empty - the clickerId is null or empty string
+ * length - the clickerId length is not 8 chars (too long), shorter clickerIds are padded out to 8
+ * chars - the clickerId contains invalid characters
+ * checksum - the clickerId did not validate using the checksum method
+ * sample - the clickerId matches the sample one and cannot be used
  */
-class grade_object {
+class ClickerIdInvalidException extends Exception {
+	const F_EMPTY = 'EMPTY';
+	const F_LENGTH = 'LENGTH';
+	const F_CHARS = 'CHARS';
+	const F_CHECKSUM = 'CHECKSUM';
+	const F_SAMPLE = 'SAMPLE';
+    public $type = "UNKNOWN";
+    public $clicker_id = null;
     /**
-     * Array of required table fields, must start with 'id'.
-     * @var array $required_fields
+     * @param string $message the error message
+     * @param string $type [optional] Valid types are: 
+	 * empty - the clickerId is null or empty string
+	 * length - the clickerId length is not 8 chars (too long), shorter clickerIds are padded out to 8
+	 * chars - the clickerId contains invalid characters
+	 * checksum - the clickerId did not validate using the checksum method
+	 * sample - the clickerId matches the sample one and cannot be used
+     * @param string $clicker_id [optional] the clicker id
      */
-    var $required_fields = array('id', 'timecreated', 'timemodified');
+	function __construct($message, $type = null, $clicker_id = null) {
+        parent::__construct($message);
+        $this->type = $type;
+        $this->clicker_id = $clicker_id;
+    }
+    function ClickerIdInvalidException($message, $type = null, $clicker_id = null) {
+    	$this->__construct($message, $type, $clicker_id);
+    }
+    public function errorMessage() {
+        $errorMsg = 'Error on line '.$this->getLine().' in '.$this->getFile().': '.$this->getMessage().' : type='.$this->type.' : clicker_id='.$this->clicker_id;
+        return $errorMsg;
+    }
+}
 
-    /**
-     * Array of optional fields with default values - usually long text information that is not always needed.
-     * If you want to create an instance without optional fields use: new grade_object($only_required_fields, false);
-     * @var array $optional_fields
-     */
-    var $optional_fields = array();
+class ClickerRegisteredException extends Exception {
+    public $owner_id;
+    public $clicker_id;
+    public $registered_owner_id;
+	function __construct($message, $owner_id, $clicker_id, $registered_owner_id) {
+        parent::__construct($message);
+		$this->owner_id = $owner_id;
+		$this->clicker_id = $clicker_id;
+		$this->registered_owner_id = $registered_owner_id;
+    }
+    function ClickerRegisteredException($message, $owner_id, $clicker_id, $registered_owner_id) {
+    	$this->__construct($message, $owner_id, $clicker_id, $registered_owner_id);
+    }
+    public function errorMessage() {
+        $errorMsg = 'Error on line '.$this->getLine().' in '.$this->getFile().': '.$this->getMessage().' : cannot register to '.$this->owner_id.', clicker already registered to owner='.$this->registered_owner_id.' : clicker_id='.$this->clicker_id;
+        return $errorMsg;
+    }
+}
 
-    /**
-     * The PK.
-     * @var int $id
-     */
-    var $id;
+/**
+ * This marks an exception as being related to an authn or authz failure
+ */
+class SecurityException extends Exception {}
 
-    /**
-     * The first time this grade_object was created.
-     * @var int $timecreated
-     */
-    var $timecreated;
+/**
+ * This holds all the service logic for the iclicker integrate plugin
+ */
+class iclicker_service {
 
-    /**
-     * The last time this grade_object was modified.
-     * @var int $timemodified
+	// CONSTANTS
+	const BLOCK_NAME = 'block_iclicker';
+	const REG_TABLENAME = 'iclicker_registration';
+    const DEFAULT_SYNC_HOUR = 3;
+    const DEFAULT_SERVER_URL = "http://moodle.org/"; // "http://epicurus.learningmate.com/";
+    const NATIONAL_WS_URL = "https://webservices.iclicker.com/iclicker_gbsync_registrations/service.asmx";
+    /*
+     * iclicker_gbsync_reg / #8d7608e1e7f4@
+     * 'Basic ' + base64(username + ":" + password)
      */
-    var $timemodified;
+    const NATIONAL_WS_BASIC_AUTH_HEADER = "Basic aWNsaWNrZXJfZ2JzeW5jX3JlZzojOGQ3NjA4ZTFlN2Y0QA==";
 
+	// CLASS VARIABLES
+
+    // CONFIG
+    var $server_id = "UNKNOWN_SERVER_ID";
+    var $server_URL = self::DEFAULT_SERVER_URL;
+    var $domain_URL = self::DEFAULT_SERVER_URL;
+    var $use_national_webservices = false;
+    var $webservices_URL = self::NATIONAL_WS_URL;
+    var $webservices_use_basic_auth = true;
+    var $webservices_basic_auth_header = self::NATIONAL_WS_BASIC_AUTH_HEADER;
+    var $disable_sync_with_national = false;
+    var $webservices_national_sync_hour = self::DEFAULT_SYNC_HOUR;
+    var $notify_emails_string = null;
+    var $notify_emails = array();
+
+	// STATIC METHODS
+
+	/**
+	 * i18n message handling
+	 * 
+	 * @param string $key i18 msg key
+	 * @param object $vars [optional] optional replacement variables
+	 * @return the translated string
+	 */
+	static function msg($key, $vars=null) {
+		return get_string($key, self::BLOCK_NAME, $vars);
+	}
+
+	/**
+	 * Ensure user is logged in and return the current user id
+	 * @return the current user id
+	 * @throws SecurityException if there is no current user
+	 * @static
+	 */
+	static function require_user() {
+		global $USER;
+		if (! $USER->id) {
+			throw new SecurityException('User must be logged in');
+		}
+		return $USER->id;
+	}
+
+	/**
+	 * Get user records for a set of user ids
+	 * @param array $user_ids and array of user ids
+	 * @return a map of user_id -> user data
+	 */
+	static function get_users($user_ids) {
+		// @todo make this do something
+		$results = array();
+		foreach ($user_ids as $user_id) {
+			$results[$user_id] = array('id'=>$user_id);
+		}
+		return $results;
+	}
+
+	/**
+	 * @param int $user_id [optional] the user id
+	 * @return true if this user is an admin OR false if not 
+	 * @static
+	 */
+	static function is_admin($user_id = null) {
+		if (! $user_id) {
+			try {
+				$user_id = self::require_user();
+			} catch (SecurityException $e) {
+				return false;
+			}
+		}
+		$result = is_siteadmin($user_id);
+		return $result;
+	}
+
+    const CLICKERID_SAMPLE = '11A4C277';
     /**
-     * Constructor. Optionally (and by default) attempts to fetch corresponding row from DB.
-     * @param array $params an array with required parameters for this grade object.
-     * @param boolean $fetch Whether to fetch corresponding row from DB or not,
-     *        optional fields might not be defined if false used
+     * Cleans up and validates a given clicker_id
+     * @param clicker_id a remote clicker ID
+     * @return the cleaned up and valid clicker ID
+     * @throws ClickerIdInvalidException if the id is invalid for some reason,
+     * the exception will indicate the type of validation failure
+     * @static
      */
-    function grade_object($params=NULL, $fetch=true) {
-        if (!empty($params) and (is_array($params) or is_object($params))) {
-            if ($fetch) {
-                if ($data = $this->fetch($params)) {
-                    grade_object::set_properties($this, $data);
-                } else {
-                    grade_object::set_properties($this, $this->optional_fields);//apply defaults for optional fields
-                    grade_object::set_properties($this, $params);
+    static function validate_clicker_id($clicker_id) {
+        if (! $clicker_id) {
+            throw new ClickerIdInvalidException("empty or null clicker_id", ClickerIdInvalidException::F_EMPTY, $clicker_id);
+        }
+        if (strlen($clicker_id) > 8) {
+            throw new ClickerIdInvalidException("clicker_id is an invalid length", ClickerIdInvalidException::F_LENGTH, $clicker_id);
+        }
+        $clicker_id = strtoupper(trim($clicker_id));
+        if (! preg_match('/[0-9A-F]+/', $clicker_id) ) {
+            throw new ClickerIdInvalidException("clicker_id can only contains A-F and 0-9", ClickerIdInvalidException::F_CHARS, $clicker_id);
+        }
+        while (strlen($clicker_id) < 8) {
+            $clicker_id = "0".$clicker_id;
+        }
+        if (self::CLICKERID_SAMPLE == $clicker_id) {
+            throw new ClickerIdInvalidException("clicker_id cannot match the sample ID", ClickerIdInvalidException::F_SAMPLE, $clicker_id);
+        }
+        $idArray = array();
+        $idArray[0] = substr($clicker_id, 0, 2);
+        $idArray[1] = substr($clicker_id, 2, 2);
+        $idArray[2] = substr($clicker_id, 4, 2);
+        $idArray[3] = substr($clicker_id, 6, 2);
+        $checksum = 0;
+        foreach ($idArray as $piece) {
+            $hex = hexdec($piece);
+            $checksum = $checksum ^ $hex;
+        }
+        if ($checksum != 0) {
+            throw new ClickerIdInvalidException("clicker_id checksum ("+$checksum+") validation failed", ClickerIdInvalidException::F_CHECKSUM, $clicker_id);
+        }
+        return $clicker_id;
+    }
+
+	/**
+	 * @param int $id the registration ID
+	 * @return the registration object OR false if none found
+	 * @static
+	 */
+	static function get_registration_by_id($reg_id) {
+		if (! $reg_id) {
+			throw new InvalidArgumentException("reg_id must be set");
+		}
+		$result = get_record(self::REG_TABLENAME,'id',$reg_id);
+		return $result;
+	}
+
+	/**
+	 * @param string $clicker_id the clicker id
+	 * @param int $user_id [optional] the user who registered the clicker (id)
+	 * @return the registration object OR false if none found
+	 * @static
+	 */
+	static function get_registration_by_clicker_id($clicker_id, $user_id=null) {
+		if (! $clicker_id) {
+			throw new InvalidArgumentException("clicker_id must be set");
+		}
+		$current_user_id = self::require_user();
+		if (! $user_id) {
+			$user_id = $current_user_id;
+		}
+        try {
+            $clicker_id = self::validate_clicker_id($clicker_id);
+        } catch (ClickerIdInvalidException $e) {
+            return false;
+        }
+		$result = get_record(self::REG_TABLENAME,'clicker_id',$id,'owner_id',$user_id);
+		if (! self::can_read_registration($result, $current_user_id)) {
+			throw new SecurityException("User ($current_user_id) not allowed to access registration ($result->id)");
+		}
+		return $result;
+	}
+
+	static function can_read_registration($clicker_registration, $user_id) {
+		$result = false;
+		if ($clicker_registration && $user_id) {
+			if ($clicker_registration->owner_id == $user_id) {
+				$result = true;
+			}
+			// @todo make this do a real check
+			$result = true;
+		} 
+		return $result;
+	}
+
+	static function can_write_registration($clicker_registration, $user_id) {
+		$result = false;
+		if ($clicker_registration && $user_id) {
+			if ($clicker_registration->owner_id == $user_id) {
+				$result = true;
+			}
+			// @todo make this do a real check
+			$result = true;
+		} 
+		return $result;
+	}
+
+	/**
+	 * @param int $user_id [optional] the user id OR current user id
+	 * @return the list of registrations for this user or empty array if none
+	 */
+	static function get_registrations_by_user($user_id=null) {
+		$current_user_id = self::require_user();
+		if (! $user_id) {
+			$user_id = $current_user_id;
+		}
+		$results = get_records(self::REG_TABLENAME, 'owner_id', $user_id);
+		if ($results) {
+			$results = array();
+		}
+		return $results;
+	}
+
+	/**
+	 * ADMIN ONLY
+	 * This is a method to get all the clickers for the clicker admin view
+	 * @param int $start [optional] start value for paging
+	 * @param int $max [optional] max value for paging
+	 * @param string $order [optional] the order by string
+	 * @param string $search [optional] search string for clickers
+	 * @return array of clicker registrations
+	 */
+	static function get_all_registrations($start=0, $max=0, $order='clicker_id', $search='') {
+		if (! self::is_admin()) {
+			throw new SecurityException("Only admins can use this function");
+		}
+		if ($max <= 0) {
+			$max = 10;
+		}
+		$query = '';
+		if ($search) {
+			// build a search query
+			$query = 'clicker_id '.sql_ilike().' '.addslashes($search).'%';
+		}
+		$results = get_records_select(self::REG_TABLENAME, $query, $order, '*', $start, $max);
+		if ($results) {
+			$results = array();
+		} else {
+			// @todo insert user display names
+		}
+		return $results;
+	}
+
+	/**
+	 * @return the count of the total number of registered clickers
+	 */
+	static function count_all_registrations() {
+		return count_records(self::REG_TABLENAME);
+	}
+
+	/**
+	 * ADMIN ONLY
+	 * @param int $reg_id id of the clicker registration
+	 * @return 
+	 */
+	static function remove_registration($reg_id) {
+		if (! self::is_admin()) {
+			throw new SecurityException("Only admins can use this function");
+		}
+		if ($reg_id) {
+			if (delete_records(self::REG_TABLENAME, 'id', $reg_id)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Create a registration
+	 * 
+	 * @param string $clicker_id
+	 * @param string $owner_id [optional]
+	 * @param boolean $local_only [optional]
+	 * @return 
+	 */
+    static function create_clicker_registration($clicker_id, $owner_id = null, $local_only = false) {
+        $clicker_id = validateClickerId($clicker_id);
+		$current_user_id = self::require_user();
+        $user_id = $owner_id;
+        if (! $owner_id) {
+            $user_id = $current_user_id;
+        }
+        $registration = self::get_registration_by_clicker_id($clicker_id, $user_id);
+        // NOTE: we probably want to check the national system here to see if this is already registered
+        if ($registration) {
+            throw new ClickerRegisteredException($user_id, $registration->clicker_id, $registration->owner_id);
+        } else {
+            $registration = array(
+				'clicker_id'=>$clicker_id,
+				'owner_id'=>$user_id
+			);
+            self::save_registration($registration);
+			if ($local_only) {
+	            // @todo syncClickerRegistrationWithNational(registration);
+			}
+        }
+        return $registration;
+    }
+
+	/**
+	 * Saves the clicker registration data (create or update)
+	 * @param array $data the registration data as a map
+	 * @return 
+	 */
+    static function save_registration(&$data) {
+        if (!$data || !$data['clicker_id']) {
+            throw new IllegalArgumentException("item cannot be empty and clicker_id, owner_id must be set");
+        }
+        $data['clicker_id'] = self::validate_clicker_id($data['clicker_id']);
+		$current_user_id = self::require_user();
+        // set the owner to current if not set
+        if (!$data['owner_id']) {
+            $data['owner_id'] = $current_user_id;
+        } else {
+            // check for valid user id
+            // @todo
+        }
+        $data['timemodified'] = time();
+        if (!$data['id']) {
+            // new item to save (no perms check)
+            $data['timecreated'] = time();
+            if (!insert_record(self::REG_TABLENAME, $data)) {
+                print_object($data);
+                error(self::msg('inserterror'));
+            }
+        } else {
+            // updating existing item
+            if (self::can_write_registration($data, $user_id)) {
+                if (!update_record(self::REG_TABLENAME, $data)) {
+                    print_object($data);
+                    error(self::msg('updateerror'));
                 }
-
             } else {
-                grade_object::set_properties($this, $params);
-            }
-
-        } else {
-            grade_object::set_properties($this, $this->optional_fields);//apply defaults for optional fields
-        }
-    }
-
-    /**
-     * Makes sure all the optional fields are loaded.
-     * If id present (==instance exists in db) fetches data from db.
-     * Defaults are used for new instances.
-     */
-    function load_optional_fields() {
-        foreach ($this->optional_fields as $field=>$default) {
-            if (array_key_exists($field, $this)) {
-                continue;
-            }
-            if (empty($this->id)) {
-                $this->$field = $default;
-            } else {
-                $this->$field = get_field($this->table, $field, 'id', $this->id);
+                throw new SecurityException("Current user cannot update item (".$data['id'].") because they do not have permission");
             }
         }
     }
 
-    /**
-     * Finds and returns a grade_object instance based on params.
-     * @static abstract
-     *
-     * @param array $params associative arrays varname=>value
-     * @return object grade_object instance or false if none found.
-     */
-    function fetch($params) {
-        error('Abstract method fetch() not overridden in '.get_class($this));
-    }
 
-    /**
-     * Finds and returns all grade_object instances based on params.
-     * @static abstract
-     *
-     * @param array $params associative arrays varname=>value
-     * @return array array of grade_object insatnces or false if none found.
-     */
-    function fetch_all($params) {
-        error('Abstract method fetch_all() not overridden in '.get_class($this));
-    }
-
-    /**
-     * Factory method - uses the parameters to retrieve matching instance from the DB.
-     * @static final protected
-     * @return mixed object instance or false if not found
-     */
-    function fetch_helper($table, $classname, $params) {
-        if ($instances = grade_object::fetch_all_helper($table, $classname, $params)) {
-            if (count($instances) > 1) {
-                // we should not tolerate any errors here - problems might appear later
-                error('Found more than one record in fetch() !');
-            }
-            return reset($instances);
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Factory method - uses the parameters to retrieve all matching instances from the DB.
-     * @static final protected
-     * @return mixed array of object instances or false if not found
-     */
-    function fetch_all_helper($table, $classname, $params) {
-        $instance = new $classname();
-
-        $classvars = (array)$instance;
-        $params    = (array)$params;
-
-        $wheresql = array();
-
-        // remove incorrect params
-        foreach ($params as $var=>$value) {
-            if (!in_array($var, $instance->required_fields) and !array_key_exists($var, $instance->optional_fields)) {
-                continue;
-            }
-            if (is_null($value)) {
-                $wheresql[] = " $var IS NULL ";
-            } else {
-                $value = addslashes($value);
-                $wheresql[] = " $var = '$value' ";
-            }
-        }
-
-        if (empty($wheresql)) {
-            $wheresql = '';
-        } else {
-            $wheresql = implode("AND", $wheresql);
-        }
-
-        if ($datas = get_records_select($table, $wheresql, 'id')) {
-            $result = array();
-            foreach($datas as $data) {
-                $instance = new $classname();
-                grade_object::set_properties($instance, $data);
-                $result[$instance->id] = $instance;
-            }
-            return $result;
-
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Updates this object in the Database, based on its object variables. ID must be set.
-     * @param string $source from where was the object updated (mod/forum, manual, etc.)
-     * @return boolean success
-     */
-    function update($source=null) {
-        global $USER, $CFG;
-
-        if (empty($this->id)) {
-            debugging('Can not update grade object, no id!');
-            return false;
-        }
-
-        $data = $this->get_record_data();
-
-        if (!update_record($this->table, addslashes_recursive($data))) {
-            return false;
-        }
-
-        if (empty($CFG->disablegradehistory)) {
-            unset($data->timecreated);
-            $data->action       = GRADE_HISTORY_UPDATE;
-            $data->oldid        = $this->id;
-            $data->source       = $source;
-            $data->timemodified = time();
-            $data->userlogged   = $USER->id;
-            insert_record($this->table.'_history', addslashes_recursive($data));
-        }
-
-        return true;
-    }
-
-    /**
-     * Deletes this object from the database.
-     * @param string $source from where was the object deleted (mod/forum, manual, etc.)
-     * @return boolean success
-     */
-    function delete($source=null) {
-        global $USER, $CFG;
-
-        if (empty($this->id)) {
-            debugging('Can not delete grade object, no id!');
-            return false;
-        }
-
-        $data = $this->get_record_data();
-
-        if (delete_records($this->table, 'id', $this->id)) {
-            if (empty($CFG->disablegradehistory)) {
-                unset($data->id);
-                unset($data->timecreated);
-                $data->action       = GRADE_HISTORY_DELETE;
-                $data->oldid        = $this->id;
-                $data->source       = $source;
-                $data->timemodified = time();
-                $data->userlogged   = $USER->id;
-                insert_record($this->table.'_history', addslashes_recursive($data));
-            }
-            return true;
-
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Returns object with fields and values that are defined in database
-     */
-    function get_record_data() {
-        $data = new object();
-        // we need to do this to prevent infinite loops in addslashes_recursive - grade_item -> category ->grade_item
-        foreach ($this as $var=>$value) {
-            if (in_array($var, $this->required_fields) or array_key_exists($var, $this->optional_fields)) {
-                if (is_object($value) or is_array($value)) {
-                    debugging("Incorrect property '$var' found when inserting grade object");
-                } else {
-                    $data->$var = $value;
-                }
-            }
-        }
-        return $data;
-    }
-
-    /**
-     * Records this object in the Database, sets its id to the returned value, and returns that value.
-     * If successful this function also fetches the new object data from database and stores it
-     * in object properties.
-     * @param string $source from where was the object inserted (mod/forum, manual, etc.)
-     * @return int PK ID if successful, false otherwise
-     */
-    function insert($source=null) {
-        global $USER, $CFG;
-
-        if (!empty($this->id)) {
-            debugging("Grade object already exists!");
-            return false;
-        }
-
-        $data = $this->get_record_data();
-
-        if (!$this->id = insert_record($this->table, addslashes_recursive($data))) {
-            debugging("Could not insert object into db");
-            return false;
-        }
-
-        // set all object properties from real db data
-        $this->update_from_db();
-
-        $data = $this->get_record_data();
-
-        if (empty($CFG->disablegradehistory)) {
-            unset($data->timecreated);
-            $data->action       = GRADE_HISTORY_INSERT;
-            $data->oldid        = $this->id;
-            $data->source       = $source;
-            $data->timemodified = time();
-            $data->userlogged   = $USER->id;
-            insert_record($this->table.'_history', addslashes_recursive($data));
-        }
-
-        return $this->id;
-    }
-
-    /**
-     * Using this object's id field, fetches the matching record in the DB, and looks at
-     * each variable in turn. If the DB has different data, the db's data is used to update
-     * the object. This is different from the update() function, which acts on the DB record
-     * based on the object.
-     */
-    function update_from_db() {
-        if (empty($this->id)) {
-            debugging("The object could not be used in its state to retrieve a matching record from the DB, because its id field is not set.");
-            return false;
-        }
-
-        if (!$params = get_record($this->table, 'id', $this->id)) {
-            debugging("Object with this id:{$this->id} does not exist in table:{$this->table}, can not update from db!");
-            return false;
-        }
-
-        grade_object::set_properties($this, $params);
-
-        return true;
-    }
-
-    /**
-     * Given an associated array or object, cycles through each key/variable
-     * and assigns the value to the corresponding variable in this object.
-     * @static final
-     */
-    function set_properties(&$instance, $params) {
-        $params = (array) $params;
-        foreach ($params as $var => $value) {
-            if (in_array($var, $instance->required_fields) or array_key_exists($var, $instance->optional_fields)) {
-                $instance->$var = $value;
-            }
-        }
-    }
 }
 ?>
