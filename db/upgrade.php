@@ -24,33 +24,9 @@ function xmldb_block_iclicker_upgrade($oldversion = 0) {
      * And upgrade begins here. For each one, you'll need one
      * block of code similar to the next one.
      */
-    if ($result && $oldversion < 2009112600) {
-        // Define index index_blockid (not unique) to be added to block_iclicker
-        $table = new XMLDBTable('iclicker');
-        $index = new XMLDBIndex('index_blockid');
-        $index->setAttributes(XMLDB_INDEX_NOTUNIQUE, array(
-            'blockid'
-        	)
-		);
-        // Launch add index index_blockid
-        $result = $result && add_index($table, $index);
-    }
-
     if ($result && $oldversion < 2009112700) {
         $table = new XMLDBTable('iclicker');
-
-	    /// Define field animal to be added to iclicker
-        $field = new XMLDBField('animal');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '2', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'displaydate');
-
-	    /// Launch add field animal
-        $result = $result && add_field($table, $field);        
-
-        $field = new XMLDBField('animal_location');
-        $field->setAttributes(XMLDB_TYPE_TEXT, 'small', null, null, null, null, null, null, 'animal');
-        
-        /// Launch add field animal_location
-        $result = $result && add_field($table, $field);
+		// Add stuff here if needed
     }
 
     return $result;

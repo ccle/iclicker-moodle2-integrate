@@ -69,6 +69,7 @@ class block_iclicker extends block_base {
 	 * @return the content to display in the block
 	 */
     function get_content() {
+    	// for iclicker we will just render links here and possibly an indicator to show if you have registered a clicker
     	global $CFG, $USER, $COURSE;
 
         if ($this->content !== NULL) {

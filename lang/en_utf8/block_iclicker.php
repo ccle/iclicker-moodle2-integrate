@@ -1,6 +1,6 @@
 <?php /* $Id $ */
 // i18n file
-$string['iclicker'] 		= 'Simple Html';
+$string['iclicker'] 		= 'i>clicker';
 
 // Config
 $string['donotallowhtml'] 	= 'Disable use of HTML';
@@ -11,10 +11,6 @@ $string['configcontent'] 	= 'Content';
 $string['leaveblanktohide'] = 'leave blank to hide';
 $string['invalidcourse'] 	= 'Invalid CourseID: ';
 $string['addpage'] 			= 'Add a Page';
-
-// Permissions and capabilities
-$string['iclicker:viewpages'] 	= 'View Simple HTML Pages';
-$string['iclicker:managepages'] 	= 'Manage Simple HTML Pages';
 
 // Form
 $string['formtitle'] 		= 'Simple HTML Page';
