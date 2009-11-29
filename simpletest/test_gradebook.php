@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Copyright (c) 2009 i>clicker (R) <http://www.iclicker.com/dnn/>
  *
@@ -16,29 +16,23 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
- */
-/* $Id$ */
-
- /**
- * Unit tests for some grade stuff to make sure it is working
- * Execute tests at:
- * moodle/admin/report/unittest/index.php?path=blocks%2Ficlicker
- *
+ * 
  * @package iclicker
  */
-
+/* $Id$ */
+ 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.'); //  It must be included from a Moodle page
 }
 
 require_once (dirname(__FILE__).'/../../../config.php');
 global $CFG,$USER,$COURSE;
-
 // link in external libraries
 require_once ($CFG->libdir.'/gradelib.php');
-//require_once ($CFG->dirroot.'/blocks/iclicker/lib.php');
+//require_once ($CFG->dirroot.'/blocks/simplehtml/lib.php');
 // grade perm: moodle/grade:manage
 
+/** This class contains the test cases for the functions in iclicker_service.php. */
 class gradebook_test extends UnitTestCase {
 
 	var $courseid = 1;
@@ -134,8 +128,8 @@ class gradebook_test extends UnitTestCase {
         $grade_item->categoryid = $grade_category->id;
         $grade_item->itemname = $this->item_name;
         $grade_item->itemtype = 'blocks';
-        $grade_item->itemmodule = 'iclicker';
-        $grade_item->iteminfo = 'blocks/iclicker for unit testing';
+        $grade_item->itemmodule = 'simplehtml';
+        $grade_item->iteminfo = 'blocks/simplehtml for unit testing';
 
         $grade_item->insert($location_str);
 

@@ -19,6 +19,10 @@
  */
 /* $Id$ */
 
+global $CFG,$USER,$COURSE;
+// link in external libraries
+require_once ($CFG->dirroot.'/blocks/iclicker/iclicker_service.php');
+
 class block_iclicker extends block_base {
 
 	/**
@@ -41,7 +45,7 @@ class block_iclicker extends block_base {
 	 * uses it to incrementally upgrade an "old" version of the block's data to the latest.
 	 */
     function init() {
-        $this->title = get_string('iclicker', 'block_iclicker');
+        $this->title = get_string('iclicker', iclicker_service::BLOCK_NAME);
         $this->version = 2009112700;
     }
 
@@ -51,12 +55,6 @@ class block_iclicker extends block_base {
 	 * NOTE: we can use $this->config in all methods except init()
 	 */
     function specialization() {
-        if (! empty($this->config->title)) {
-            $this->title = $this->config->title;
-        }
-        if ( empty($this->config->text)) {
-            $this->config->text = '';
-        }
     }
 
 	/**
@@ -97,28 +95,30 @@ class block_iclicker extends block_base {
         }
         
         $this->content = new stdClass;
-        $this->content->text = $this->config->text;
+        $this->content->text = '';
 
-		// show the links to view/edit/delete the existing pages
-        if ($iclickerpages = get_records('iclicker', 'blockid', $this->instance->id)) {
-        	$can_control = true; // allow all for now
-            $this->content->text .= '<ul class="block-iclicker-pagelist">';
-            foreach ($iclickerpages as $iclickerpage) {
-                if ($can_control) {
-                    $edit = '<a href="'.$CFG->wwwroot.'/blocks/iclicker/page.php?id='.$iclickerpage->id.'&blockid='.$this->instance->id.'&courseid='.$COURSE->id.'"><img src="'.$CFG->pixpath.'/t/edit.gif" alt="'.get_string('editpage', 'block_iclicker').'" /></a>';
-                    $delete = '<a href="'.$CFG->wwwroot.'/blocks/iclicker/delete.php?id='.$iclickerpage->id.'&courseid='.$COURSE->id.'"><img src="'.$CFG->pixpath.'/t/delete.gif" alt="'.get_string('deletepage', 'block_iclicker').'" /></a>';
-                } else {
-                    $edit = '';
-                    $delete = '';
+        if (iclicker_service::get_current_user_id()) {
+            $this->content->text = "<div class='iclicker_nav_items'>\n";
+            $reg_link = '<a href="'.iclicker_service::block_url('registration.php').'">'.iclicker_service::msg('registration.title').'</a>';
+            $this->content->text .= "  ".$reg_link."\n";
+            // also show the list of currently registered clickers
+            $clicker_list_html = '';
+            if ($clickers = iclicker_service::get_registrations_by_user()) {
+                $clicker_list_html .= "  <ul class='iclicker_clickerids'>\n";
+                foreach ($clickers as $clicker) {
+                    $clicker_list_html .= "    <li class='iclicker_clickerid'>$clicker->clicker_id</li>\n";
                 }
-                $this->content->text .= '<li><a href="'.$CFG->wwwroot.'/blocks/iclicker/view.php?id='.$iclickerpage->id.'&courseid='.$COURSE->id.'">'.$iclickerpage->pagetitle.'</a>'.$edit.$delete.'</li>';
+                $clicker_list_html .= "  </ul>\n";
             }
-            $this->content->text .= '</ul>';
+            $this->content->text .= $clicker_list_html;
+            // @todo the other links
+            // close out the html
+            $this->content->text .= "</div>\n";
         }
 
-		// show the add new page link
-        $this->content->footer = '<a href="'.$CFG->wwwroot.'/blocks/iclicker/page.php?blockid='.$this->instance->id.'&courseid='.$COURSE->id.'">'.get_string('addpage', 'block_iclicker').'</a>';
-        //$this->content->footer = '';
+		// FOOTER
+        //$this->content->footer = '<a href="'.$CFG->wwwroot.'/blocks/iclicker/page.php?blockid='.$this->instance->id.'&courseid='.$COURSE->id.'">'.get_string('addpage', 'block_iclicker').'</a>';
+        $this->content->footer = '';
 
 		// Sample list items
 		//$this->content->items[] = '<a href="some_file.php">Menu Option 1</a>';
@@ -136,7 +136,7 @@ class block_iclicker extends block_base {
 	 * @return true if this block has some persistent storage in the instance configuration
 	 */
     function instance_allow_config() {
-        return true;
+        return false;
     }
 
 /* DEFAULT instance config save
@@ -152,7 +152,7 @@ class block_iclicker extends block_base {
 	 * Cleanup of the block instance data when the instance is removed
 	 */
     function instance_delete() {
-        delete_records('iclicker', 'blockid', $this->instance->id);
+        //delete_records('iclicker', 'blockid', $this->instance->id);
     }
 
 	/**
