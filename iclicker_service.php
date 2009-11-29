@@ -42,7 +42,7 @@ class ClickerIdInvalidException extends Exception {
 	const F_CHECKSUM = 'CHECKSUM';
 	const F_SAMPLE = 'SAMPLE';
     public $type = "UNKNOWN";
-    public $clicker_id = null;
+    public $clicker_id = NULL;
     /**
      * @param string $message the error message
      * @param string $type [optional] Valid types are: 
@@ -53,13 +53,10 @@ class ClickerIdInvalidException extends Exception {
 	 * sample - the clickerId matches the sample one and cannot be used
      * @param string $clicker_id [optional] the clicker id
      */
-	function __construct($message, $type = null, $clicker_id = null) {
+	function __construct($message, $type = NULL, $clicker_id = NULL) {
         parent::__construct($message);
         $this->type = $type;
         $this->clicker_id = $clicker_id;
-    }
-    function ClickerIdInvalidException($message, $type = null, $clicker_id = null) {
-    	$this->__construct($message, $type, $clicker_id);
     }
     public function errorMessage() {
         $errorMsg = 'Error on line '.$this->getLine().' in '.$this->getFile().': '.$this->getMessage().' : type='.$this->type.' : clicker_id='.$this->clicker_id;
@@ -76,9 +73,6 @@ class ClickerRegisteredException extends Exception {
 		$this->owner_id = $owner_id;
 		$this->clicker_id = $clicker_id;
 		$this->registered_owner_id = $registered_owner_id;
-    }
-    function ClickerRegisteredException($message, $owner_id, $clicker_id, $registered_owner_id) {
-    	$this->__construct($message, $owner_id, $clicker_id, $registered_owner_id);
     }
     public function errorMessage() {
         $errorMsg = 'Error on line '.$this->getLine().' in '.$this->getFile().': '.$this->getMessage().' : cannot register to '.$this->owner_id.', clicker already registered to owner='.$this->registered_owner_id.' : clicker_id='.$this->clicker_id;
@@ -120,7 +114,7 @@ class iclicker_service {
     var $webservices_basic_auth_header = self::NATIONAL_WS_BASIC_AUTH_HEADER;
     var $disable_sync_with_national = false;
     var $webservices_national_sync_hour = self::DEFAULT_SYNC_HOUR;
-    var $notify_emails_string = null;
+    var $notify_emails_string = NULL;
     var $notify_emails = array();
 
 	// STATIC METHODS
@@ -132,7 +126,7 @@ class iclicker_service {
 	 * @param object $vars [optional] optional replacement variables
 	 * @return the translated string
 	 */
-	static function msg($key, $vars=null) {
+	static function msg($key, $vars=NULL) {
 		return get_string($key, self::BLOCK_NAME, $vars);
 	}
 
@@ -169,8 +163,8 @@ class iclicker_service {
 	 * @return true if this user is an admin OR false if not 
 	 * @static
 	 */
-	static function is_admin($user_id = null) {
-		if (! $user_id) {
+	static function is_admin($user_id = NULL) {
+		if (! isset($user_id)) {
 			try {
 				$user_id = self::require_user();
 			} catch (SecurityException $e) {
@@ -192,13 +186,13 @@ class iclicker_service {
      */
     static function validate_clicker_id($clicker_id) {
         if (! $clicker_id) {
-            throw new ClickerIdInvalidException("empty or null clicker_id", ClickerIdInvalidException::F_EMPTY, $clicker_id);
+            throw new ClickerIdInvalidException("empty or NULL clicker_id", ClickerIdInvalidException::F_EMPTY, $clicker_id);
         }
         if (strlen($clicker_id) > 8) {
             throw new ClickerIdInvalidException("clicker_id is an invalid length", ClickerIdInvalidException::F_LENGTH, $clicker_id);
         }
         $clicker_id = strtoupper(trim($clicker_id));
-        if (! preg_match('/[0-9A-F]+/', $clicker_id) ) {
+        if (! preg_match('/^[0-9A-F]+$/', $clicker_id) ) {
             throw new ClickerIdInvalidException("clicker_id can only contains A-F and 0-9", ClickerIdInvalidException::F_CHARS, $clicker_id);
         }
         while (strlen($clicker_id) < 8) {
@@ -229,7 +223,7 @@ class iclicker_service {
 	 * @static
 	 */
 	static function get_registration_by_id($reg_id) {
-		if (! $reg_id) {
+		if (! isset($reg_id)) {
 			throw new InvalidArgumentException("reg_id must be set");
 		}
 		$result = get_record(self::REG_TABLENAME,'id',$reg_id);
@@ -242,47 +236,57 @@ class iclicker_service {
 	 * @return the registration object OR false if none found
 	 * @static
 	 */
-	static function get_registration_by_clicker_id($clicker_id, $user_id=null) {
-		if (! $clicker_id) {
-			throw new InvalidArgumentException("clicker_id must be set");
-		}
-		$current_user_id = self::require_user();
-		if (! $user_id) {
-			$user_id = $current_user_id;
-		}
+    static function get_registration_by_clicker_id($clicker_id, $user_id = NULL) {
+        if (!$clicker_id) {
+            throw new InvalidArgumentException("clicker_id must be set");
+        }
+        $current_user_id = self::require_user();
+        if (!isset($user_id)) {
+            $user_id = $current_user_id;
+        }
         try {
             $clicker_id = self::validate_clicker_id($clicker_id);
         } catch (ClickerIdInvalidException $e) {
             return false;
         }
-		$result = get_record(self::REG_TABLENAME,'clicker_id',$id,'owner_id',$user_id);
-		if (! self::can_read_registration($result, $current_user_id)) {
-			throw new SecurityException("User ($current_user_id) not allowed to access registration ($result->id)");
-		}
-		return $result;
-	}
+        $result = get_record(self::REG_TABLENAME, 'clicker_id', $clicker_id, 'owner_id', $user_id);
+        if ($result) {
+            if (!self::can_read_registration($result, $current_user_id)) {
+                throw new SecurityException("User ($current_user_id) not allowed to access registration ($result->id)");
+            }
+        }
+        return $result;
+    }
 
 	static function can_read_registration($clicker_registration, $user_id) {
+		if (! isset($clicker_registration)) {
+			throw new InvalidArgumentException("clicker_registration must be set");
+		}
+		if (! isset($user_id)) {
+			throw new InvalidArgumentException("user_id must be set");
+		}
 		$result = false;
-		if ($clicker_registration && $user_id) {
-			if ($clicker_registration->owner_id == $user_id) {
-				$result = true;
-			}
-			// @todo make this do a real check
+		if ($clicker_registration->owner_id == $user_id) {
 			$result = true;
-		} 
+		}
+		// @todo make this do a real check
+		$result = true;
 		return $result;
 	}
 
 	static function can_write_registration($clicker_registration, $user_id) {
+		if (! isset($clicker_registration)) {
+			throw new InvalidArgumentException("clicker_registration must be set");
+		}
+		if (! isset($user_id)) {
+			throw new InvalidArgumentException("user_id must be set");
+		}
 		$result = false;
-		if ($clicker_registration && $user_id) {
-			if ($clicker_registration->owner_id == $user_id) {
-				$result = true;
-			}
-			// @todo make this do a real check
+		if ($clicker_registration->owner_id == $user_id) {
 			$result = true;
-		} 
+		}
+		// @todo make this do a real check
+		$result = true;
 		return $result;
 	}
 
@@ -290,13 +294,13 @@ class iclicker_service {
 	 * @param int $user_id [optional] the user id OR current user id
 	 * @return the list of registrations for this user or empty array if none
 	 */
-	static function get_registrations_by_user($user_id=null) {
+	static function get_registrations_by_user($user_id=NULL) {
 		$current_user_id = self::require_user();
-		if (! $user_id) {
+		if (! isset($user_id)) {
 			$user_id = $current_user_id;
 		}
 		$results = get_records(self::REG_TABLENAME, 'owner_id', $user_id);
-		if ($results) {
+		if (! $results) {
 			$results = array();
 		}
 		return $results;
@@ -324,7 +328,7 @@ class iclicker_service {
 			$query = 'clicker_id '.sql_ilike().' '.addslashes($search).'%';
 		}
 		$results = get_records_select(self::REG_TABLENAME, $query, $order, '*', $start, $max);
-		if ($results) {
+		if (! $results) {
 			$results = array();
 		} else {
 			// @todo insert user display names
@@ -341,14 +345,16 @@ class iclicker_service {
 
 	/**
 	 * ADMIN ONLY
+	 * Removes the registration from the database
+	 *  
 	 * @param int $reg_id id of the clicker registration
-	 * @return 
+	 * @return true if removed OR false if not found or not removed
 	 */
 	static function remove_registration($reg_id) {
 		if (! self::is_admin()) {
 			throw new SecurityException("Only admins can use this function");
 		}
-		if ($reg_id) {
+		if (isset($reg_id)) {
 			if (delete_records(self::REG_TABLENAME, 'id', $reg_id)) {
 				return true;
 			}
@@ -359,16 +365,16 @@ class iclicker_service {
 	/**
 	 * Create a registration
 	 * 
-	 * @param string $clicker_id
-	 * @param string $owner_id [optional]
-	 * @param boolean $local_only [optional]
-	 * @return 
+	 * @param string $clicker_id the clickerID (e.g. 11111111)
+	 * @param string $owner_id [optional] the user_id OR current user if not set
+	 * @param boolean $local_only [optional] create this clicker in the local system only if true, otherwise sync to national system as well
+	 * @return the clicker_registration object
 	 */
-    static function create_clicker_registration($clicker_id, $owner_id = null, $local_only = false) {
-        $clicker_id = validateClickerId($clicker_id);
+    static function create_clicker_registration($clicker_id, $owner_id = NULL, $local_only = false) {
+        $clicker_id = self::validate_clicker_id($clicker_id);
 		$current_user_id = self::require_user();
         $user_id = $owner_id;
-        if (! $owner_id) {
+        if (! isset($owner_id)) {
             $user_id = $current_user_id;
         }
         $registration = self::get_registration_by_clicker_id($clicker_id, $user_id);
@@ -376,11 +382,11 @@ class iclicker_service {
         if ($registration) {
             throw new ClickerRegisteredException($user_id, $registration->clicker_id, $registration->owner_id);
         } else {
-            $registration = array(
-				'clicker_id'=>$clicker_id,
-				'owner_id'=>$user_id
-			);
-            self::save_registration($registration);
+            $clicker_registration = new stdClass;
+			$clicker_registration->clicker_id = $clicker_id;
+			$clicker_registration->owner_id = $user_id;
+            $reg_id = self::save_registration($clicker_registration);
+			$registration = self::get_registration_by_id($reg_id);
 			if ($local_only) {
 	            // @todo syncClickerRegistrationWithNational(registration);
 			}
@@ -390,41 +396,44 @@ class iclicker_service {
 
 	/**
 	 * Saves the clicker registration data (create or update)
-	 * @param array $data the registration data as a map
-	 * @return 
+	 * @param object $clicker_registration the registration data as an object
+	 * @return the id of the saved registration
 	 */
-    static function save_registration(&$data) {
-        if (!$data || !$data['clicker_id']) {
-            throw new IllegalArgumentException("item cannot be empty and clicker_id, owner_id must be set");
+    static function save_registration(&$clicker_registration) {
+        if (! $clicker_registration || ! isset($clicker_registration->clicker_id)) {
+            throw new InvalidArgumentException("clicker_registration cannot be empty and clicker_id must be set");
         }
-        $data['clicker_id'] = self::validate_clicker_id($data['clicker_id']);
+        $clicker_registration->clicker_id = self::validate_clicker_id($clicker_registration->clicker_id);
 		$current_user_id = self::require_user();
         // set the owner to current if not set
-        if (!$data['owner_id']) {
-            $data['owner_id'] = $current_user_id;
+        if (! isset($clicker_registration->owner_id)) {
+            $clicker_registration->owner_id = $current_user_id;
         } else {
             // check for valid user id
             // @todo
         }
-        $data['timemodified'] = time();
-        if (!$data['id']) {
+        $clicker_registration->timemodified = time();
+		$reg_id = -1;
+        if (! isset($clicker_registration->id)) {
             // new item to save (no perms check)
-            $data['timecreated'] = time();
-            if (!insert_record(self::REG_TABLENAME, $data)) {
-                print_object($data);
+            $clicker_registration->timecreated = time();
+            if (!$reg_id = insert_record(self::REG_TABLENAME, $clicker_registration, true)) {
+                print_object($clicker_registration);
                 error(self::msg('inserterror'));
             }
         } else {
             // updating existing item
-            if (self::can_write_registration($data, $user_id)) {
-                if (!update_record(self::REG_TABLENAME, $data)) {
-                    print_object($data);
+            if (self::can_write_registration($clicker_registration, $current_user_id)) {
+                if (!update_record(self::REG_TABLENAME, $clicker_registration)) {
+                    print_object($clicker_registration);
                     error(self::msg('updateerror'));
                 }
+				$reg_id = $clicker_registration->id;
             } else {
-                throw new SecurityException("Current user cannot update item (".$data['id'].") because they do not have permission");
+                throw new SecurityException("Current user cannot update item ($clicker_registration->id) because they do not have permission");
             }
         }
+		return $reg_id;
     }
 
 

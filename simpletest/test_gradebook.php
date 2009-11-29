@@ -19,15 +19,14 @@
  */
 /* $Id$ */
 
-/**
+ /**
  * Unit tests for some grade stuff to make sure it is working
  * Execute tests at:
  * moodle/admin/report/unittest/index.php?path=blocks%2Ficlicker
  *
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package question
+ * @package iclicker
  */
- 
+
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.'); //  It must be included from a Moodle page
 }
@@ -40,7 +39,6 @@ require_once ($CFG->libdir.'/gradelib.php');
 //require_once ($CFG->dirroot.'/blocks/iclicker/lib.php');
 // grade perm: moodle/grade:manage
 
-/** This class contains the test cases for the functions in editlib.php. */
 class gradebook_test extends UnitTestCase {
 
 	var $courseid = 1;
