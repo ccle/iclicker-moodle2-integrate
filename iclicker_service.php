@@ -161,6 +161,26 @@ class iclicker_service {
     // USERS
 
     /**
+     * 
+     * @param string $username
+     * @param string $password
+     * @return true if the authentication is successful
+     */
+    static function authenticate_user($username, $password) {
+        global $USER;
+        // @todo make this do a real authn check
+        if (! isset($USER->id)) {
+            $USER->id = 1; // FIXME
+            $USER->username = $username;
+            $USER->secret = $password;
+            if (! isset($USER->id)) {
+                throw new SecurityException('Could not authenticate username ('.$username.')');
+            }
+        }
+        return true;
+    }
+
+    /**
      * Ensure user is logged in and return the current user id
      * @return the current user id
      * @throws SecurityException if there is no current user
@@ -168,7 +188,7 @@ class iclicker_service {
      */
     static function require_user() {
         global $USER;
-        if (! $USER->id) {
+        if (! isset($USER->id)) {
             throw new SecurityException('User must be logged in');
         }
         return $USER->id;

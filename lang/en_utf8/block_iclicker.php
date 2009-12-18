@@ -20,7 +20,87 @@
 /* $Id$ */
 
 // i18n file
-$string['iclicker'] 		= 'i>clicker';
+$string['iclicker']             = 'i>clicker';
+$string['app.iclicker']         = 'i>clicker';
+$string['app.title']            = 'i>clicker Moodle integrate';
+
+// form controls
+$string['app.register']     = 'Register';
+$string['app.activate']     = 'Activate';
+$string['app.disable']      = 'Disable';
+$string['app.remove']       = 'Remove';
+
+// for the main registration page
+$string['reg.title'] = 'Remote Registration';
+$string['reg.remote.id.header'] = 'i>clicker Remote ID';
+$string['reg.registered.date.header'] = 'Registered';
+$string['reg.register.clickers'] = 'Register additional clickers';
+$string['reg.registration.table.summary'] = 'Lists the registered clickers for the current user; clickerId, date registered, and controls';
+$string['reg.iclicker.image.alt'] = 'I-clicker Sample Remote showing the back of the remote with the location of the ID';
+$string['reg.register.submit.alt'] = 'Register the clickerId';
+$string['reg.disable.submit.alt'] = 'Disable this registration';
+$string['reg.reactivate.submit.alt'] = 'Reactivate this registration';
+$string['reg.registration.instructions'] = 'To locate your clicker ID, see the back of your remote and enter the series of numbers (and perhaps letters) on the white sticker on the bottom of your clicker.';
+$string['reg.registered.instructions'] = 'You have successfully registered your i>clicker remote ID with the system. If you lose or need to tie a second clicker to your student/user ID, you can do so here by adding another clicker ID to your registration. As with your other registration, to locate your clicker ID, see the back of your remote and enter the series of numbers (and perhaps letters) on the white sticker on the bottom of your clicker.';
+$string['reg.registered.success'] = 'Registered a Clicker ID ($a)';
+$string['reg.registered.below.success'] = 'Congratulations; you\'ve successfully registered your i>clicker! All of your voting data (previously recorded and future votes) will now be tied to your ID.';
+$string['reg.registered.clickerId.empty'] = 'The clicker ID cannot be empty, please fill in the box and try again';
+$string['reg.registered.clickerId.duplicate'] = 'Clicker ID ($a) is already registered';
+$string['reg.registered.below.duplicate'] = 'You have already successfully registered this clicker ($a) and it is tied to your user ID.';
+$string['reg.registered.clickerId.duplicate.notowned'] = 'Your clicker ($a) has already been registered, but to another student. This could be a result of two possibilities: 1) You are sharing a clicker remote with another student in the same course. You may share your i>clicker remote with another student on campus as long as s/he is not in the same course. You cannot share i>clicker remotes with students in the same course/section. 2) You simply mis-entered your remote ID. Please try again. If you receive this message a second time, contact support@iclicker.com for additional help.';
+$string['reg.registered.clickerId.invalid'] = 'The clicker ID ($a) is invalid, please correct the entry and try again';
+$string['reg.activate.success.true'] = 'Reactivated clicker ($a) registration';
+$string['reg.activate.success.false'] = 'Disabled clicker ($a) registration';
+$string['reg.activate.registrationId.empty'] = 'The registrationId cannot be empty, internal error in the form';
+$string['reg.activate.registrationId.nonnumeric'] = 'The registrationId ($a) must be a number, internal error in the form';
+
+// for the instructor page
+$string['inst.title'] = 'Instructor Report';
+$string['inst.all.courses'] = 'All Courses';
+$string['inst.no.courses'] = 'No courses';
+$string['inst.courses.header'] = 'Courses Listing';
+$string['inst.courses.table.summary'] = 'Lists the courses taught by this instructor; title, link to students listing';
+$string['inst.course'] = 'Course';
+$string['inst.students'] = 'Students';
+$string['inst.students.table.summary'] = 'Lists the students in the selected course; name, email, registration status';
+$string['inst.student.name.header'] = 'Name';
+$string['inst.student.email.header'] = 'Email';
+$string['inst.student.status.header'] = 'Status';
+$string['inst.student.registered.true'] = 'Registered';
+$string['inst.student.registered.false'] = 'Not registered';
+$string['inst.course.view.students'] = 'View Students';
+
+// for the admin page
+$string['admin.title'] = 'Admin Control';
+$string['admin.process.header'] = 'Running process status:';
+$string['admin.process.add'] = 'Add i>clicker to all workspaces';
+$string['admin.process.remove'] = 'Remove i>clicker from all workspaces';
+$string['admin.process.sync'] = 'Sync with Webservices';
+$string['admin.process.type.add'] = 'Adding to workspaces';
+$string['admin.process.type.remove'] = 'Removing from workspaces';
+$string['admin.process.type.sync'] = 'Syncing with Webservices';
+$string['admin.process.message.add'] = 'Adding i>clicker tool to all workspaces';
+$string['admin.process.message.remove'] = 'Removing i>clicker tool from all workspaces';
+$string['admin.process.message.sync'] = 'Syncing all clicker registrations with Webservices';
+$string['admin.process.message.locked'] = 'Cannot start long running process ($a) because there is already one running on another server';
+$string['admin.process.message.inprogress'] = 'Cannot start long running process ($a) because there is already one running';
+$string['admin.paging'] = 'Paging:';
+$string['admin.no.regs'] = 'No registrations';
+$string['admin.regs.table.summary'] = 'Lists the registered clickers for all users for the admin; user name, clickerId, date registered, and controls';
+$string['admin.remove.submit.alt'] = 'Remove this registration permanently';
+$string['admin.username.header'] = 'User name';
+$string['admin.controls.header'] = 'Controls';
+$string['admin.activate.success.true'] = 'Reactivated clicker ($a[0]) registration for $a[1]';
+$string['admin.activate.success.false'] = 'Disabled clicker ($a[0]) registration for $a[1]';
+$string['admin.delete.success'] = 'Deleted clicker ($a[0]) registration ($a[1]) for $a[2]';
+$string['admin.config.header'] = 'i>clicker plugin configuration';
+$string['admin.config.usewebservices'] = 'Use National Webservices';
+$string['admin.config.domainurl'] = 'Domain URL';
+$string['admin.config.workspacepagetitle'] = 'Workspace Tool Title';
+$string['admin.config.syncenabled'] = 'National sync enabled';
+$string['admin.config.synchour'] = 'Sync runs at hour';
+$string['admin.errors.header'] = 'Most Recent Failures';
+
 
 // Config
 $string['donotallowhtml'] 	= 'Disable use of HTML';
@@ -31,40 +111,6 @@ $string['configcontent'] 	= 'Content';
 $string['leaveblanktohide'] = 'leave blank to hide';
 $string['invalidcourse'] 	= 'Invalid CourseID: ';
 $string['addpage'] 			= 'Add a Page';
-
-// Form
-$string['formtitle'] 		= 'Simple HTML Page';
-$string['textfields'] 		= 'Displayed on Page';
-$string['pagetitle'] 		= 'Title of Page';
-$string['displayedhtml'] 	= 'Displayed HTML';
-$string['displayfile'] 		= 'Display File';
-$string['picturefields'] 	= 'Picture Fields';
-$string['displaypicture'] 	= 'Display Picture';
-$string['pictureselect'] 	= 'Select a Picture to Display';
-$string['picturedesc'] 		= 'Describe the picture you selected';
-$string['displaydate'] 		= 'Display Date';
-$string['animal_group']		= 'Animals';
-$string['animals'] 			= 'Choose an animal';
-$string['animals_location'] = 'Enter a location for the chosen animal';
-// images
-$string['blue'] 			= 'Blue';
-$string['red'] 				= 'Red';
-$string['green'] 			= 'Green';
-// animals
-$string['animal0'] 			= 'Tiger';
-$string['animal1'] 			= 'Lion';
-$string['animal2'] 			= 'Bear';
-$string['animal3'] 			= 'Donkey';
-$string['animal4'] 			= 'Monkey';
-// msg
-$string['inserterror'] 		= 'Insert failed';
-$string['updateerror'] 		= 'Update failed';
-
-// View
-$string['invalidcourse'] 	= 'The courseid $a does not exist';
-$string['nopage'] 			= 'The simplepage corresponding to id: $a does not exist';
-$string['viewfile'] 		= 'View/Download File';
-
 $string['confirmdelete'] 	= 'Confirm Delete';
 $string['deletepage'] 		= 'Do you really want to delete \'$a\'';
 
