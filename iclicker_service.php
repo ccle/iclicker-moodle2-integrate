@@ -107,15 +107,16 @@ class iclicker_service {
     // CLASS VARIABLES
 
     // CONFIG
-    var $server_id = "UNKNOWN_SERVER_ID";
-    var $server_URL = self::DEFAULT_SERVER_URL;
-    var $domain_URL = self::DEFAULT_SERVER_URL;
-    var $use_national_webservices = false;
-    var $webservices_URL = self::NATIONAL_WS_URL;
-    var $webservices_use_basic_auth = true;
-    var $webservices_basic_auth_header = self::NATIONAL_WS_BASIC_AUTH_HEADER;
-    var $disable_sync_with_national = false;
-    var $webservices_national_sync_hour = self::DEFAULT_SYNC_HOUR;
+    public static $server_id = "UNKNOWN_SERVER_ID";
+    public static $server_URL = self::DEFAULT_SERVER_URL;
+    public static $domain_URL = self::DEFAULT_SERVER_URL;
+    public static $use_national_webservices = false;
+    public static $webservices_URL = self::NATIONAL_WS_URL;
+    public static $webservices_use_basic_auth = true;
+    public static $webservices_basic_auth_header = self::NATIONAL_WS_BASIC_AUTH_HEADER;
+    public static $disable_sync_with_national = false;
+    public static $webservices_national_sync_hour = self::DEFAULT_SYNC_HOUR;
+
     var $notify_emails_string = NULL;
     var $notify_emails = array();
 
@@ -227,6 +228,17 @@ class iclicker_service {
             $results[$user_id] = array('id'=>$user_id);
         }
         return $results;
+    }
+
+    /**
+     * Get a display name for a given user id
+     * @param int $user_id id for a user
+     * @return the display name
+     */
+    static function get_user_displayname($user_id) {
+        // @todo make this do something
+        $name = "UNKNOWN-".$user_id;
+        return $name;
     }
 
     /**

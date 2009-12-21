@@ -226,172 +226,141 @@ class iclicker_controller {
         $this->results['below_messages'] = $this->getMessages(self::KEY_BELOW);
     }
 
-/*
-    public function processInstructor(PageContext HttpServletRequest request) {
+    public function processInstructor() {
         // admin/instructor check
-        if (! this.isAdmin() && ! this.isInstructor()) {
+        if (! iclicker_service::is_admin() && ! iclicker_service::is_instructor()) {
             throw new SecurityException("Current user is not an instructor and cannot access the instructor view");
         }
-        String courseId = request.getParameter("courseId");
-        $this->results["courseId", courseId );
-        if (courseId != null) {
-            $this->results["courseTitle", this.getLogic().getCourseTitle(courseId) );
+        $course_id = optional_param('courseId', -1, PARAM_INT);
+        $this->results["courseId"] = $course_id;
+        if ($course_id) {
+            $course = iclicker_service::get_course($course_id);
+            $this->results["courseTitle"] = $course->title;
         }
-        List<Course> courses = logic.getCoursesForInstructorWithStudents(courseId);
-        $this->results["courses", courses );
-        $this->results["coursesCount", courses.size());
-        $this->results["showStudents", false );
-        if (courseId != null && courses.size() == 1) {
-            Course course = courses.get(0);
-            $this->results["showStudents", true );
-            $this->results["course", course );
-            $this->results["students", course.students );
-            $this->results["studentsCount", course.students.size() );
+        $courses = iclicker_service::get_courses_for_instructor($course_id);
+        $this->results["courses"] = $courses;
+        $this->results["coursesCount"] = count($courses);
+        $this->results["showStudents"] = false;
+        if ($course_id && count($courses) == 1) {
+            $course = $courses[0];
+            $this->results["showStudents"] = true;
+            $this->results["course"] = $course;
+            $this->results["students"] = $course->students;
+            $this->results["studentsCount"] = count($course->students);
         }
     }
 
-/*
-public void processAdmin(PageContext HttpServletRequest request) {
-    // admin check
-    if (! this.isAdmin()) {
-        throw new SecurityException("Current user is not an admin and cannot access the admin view");
-    }
-
-    int pageNum = 1;
-    int perPageNum = 20; // does not change
-    if ( (request.getParameter("page") != null) ) {
-        try {
-            pageNum = Integer.parseInt( request.getParameter("page") );
-            if (pageNum < 1) { pageNum = 1; }
-        } catch (NumberFormatException e) {
-            // nothing to do
-            System.err.println("WARN: invalid page number: " . request.getParameter("page") . ":" . e);
+    public function processAdmin() {
+        // admin check
+        if (! iclicker_service::is_admin() && ! iclicker_service::is_instructor()) {
+            throw new SecurityException("Current user is not an admin and cannot access the admin view");
         }
-    }
-    $this->results["page", pageNum);
-    $this->results["perPage", perPageNum);
-    String sort = "clickerId";
-    if ( (request.getParameter("sort") != null) ) {
-        sort = request.getParameter("sort");
-    }
-    $this->results["sort", sort);
 
-    if ( "POST".equalsIgnoreCase(request.getMethod()) ) {
-        if ( (request.getParameter("activate") != null) ) {
-            // First arrived at this page
-            boolean activate = Boolean.parseBoolean( request.getParameter("activate") );
-            if ( (request.getParameter("registrationId") == null) ) {
-                $this->addMessage(self::KEY_ERROR,
-                        "reg.activate.registrationId.empty", null);
-            } else {
-                try {
-                    Long registrationId = Long.parseLong( request.getParameter("registrationId") );
+        // get sorting params    
+        $pageNum = 1;
+        $perPageNum = 20; // does not change
+        if ( optional_param('page', NULL) != NULL ) {
+            $pageNum = required_param('page', PARAM_INT);
+            if ($pageNum < 1) { $pageNum = 1; }
+        }
+        $this->results["page"] = $pageNum;
+        $this->results["perPage"] = $perPageNum;
+        $sort = "clickerId";
+        if ( optional_param('sort', NULL) != NULL ) {
+            $sort = required_param("sort", PARAM_ALPHAEXT);
+        }
+        $this->results["sort"] =  $sort;
+
+        if ( "POST" == $this->method ) {
+            if ( optional_param('activate', NULL) != NULL ) {
+                // First arrived at this page
+                $activate = required_param('activate', PARAM_BOOL); // @todo use 0/1 on the view
+                if ( optional_param('registrationId', NULL) != NULL ) {
+                    $this->addMessage(self::KEY_ERROR,
+                            "reg.activate.registrationId.empty", null);
+                } else {
+                    $reg_id = required_param('registrationId', PARAM_INT);
                     // save a new clicker registration
-                    ClickerRegistration cr = this.getLogic().setRegistrationActive(registrationId, activate);
-                    if (cr != null) {
+                    $cr = iclicker_service::set_registration_active($reg_id, $activate);
+                    if ($cr) {
+                        $args = new stdClass;
+                        $args->cid = $cr->clicker_id;
+                        $args->user = iclicker_service::get_user_displayname($cr->owner_id);
                         $this->addMessage(self::KEY_INFO,
-                                "admin.activate.success.".cr.isActivated(), cr.getClickerId(),
-                                this.getLogic().getUserDisplayName(cr.getOwnerId()) );
+                                "admin.activate.success.".($cr->activated ? 'true' : 'false'), 
+                                $args);
                     }
-                } catch (NumberFormatException e) {
-                    $this->addMessage(self::KEY_ERROR,
-                            "reg.activate.registrationId.nonnumeric", 
-                            request.getParameter("registrationId") );
                 }
-            }
-        } else if ( (request.getParameter("remove") != null) ) {
-            if ( (request.getParameter("registrationId") == null) ) {
-                $this->addMessage(self::KEY_ERROR,
-                        "reg.activate.registrationId.empty", null);
-            } else {
-                try {
-                    Long registrationId = Long.parseLong( request.getParameter("registrationId") );
-                    ClickerRegistration cr = this.getLogic().getItemById(registrationId);
-                    if (cr != null) {
-                        this.getLogic().removeItem(cr);
+            } else if ( optional_param('remove', NULL) != NULL ) {
+                if ( optional_param('registrationId', NULL) == NULL ) {
+                    $this->addMessage(self::KEY_ERROR,
+                            "reg.activate.registrationId.empty", null);
+                } else {
+                    $reg_id = required_param('registrationId', PARAM_INT);
+                    $cr = iclicker_service::get_registration_by_id($reg_id);
+                    if ($cr) {
+                        iclicker_service::remove_registration($reg_id);
+                        $args = new stdClass;
+                        $args->cid = $cr->clicker_id;
+                        $args->rid = $cr->registration_id;
+                        $args->user = iclicker_service::get_user_displayname($cr->owner_id);
                         $this->addMessage(self::KEY_INFO,
-                                "admin.delete.success", cr.getClickerId(), registrationId, 
-                                this.getLogic().getUserDisplayName(cr.getOwnerId()) );
+                                "admin.delete.success", 
+                                $args );
                     }
-                } catch (NumberFormatException e) {
-                    $this->addMessage(self::KEY_ERROR,
-                            "reg.activate.registrationId.nonnumeric", 
-                            request.getParameter("registrationId") );
                 }
-            }
-        } else if ( (request.getParameter("runner") != null) ) {
-            // initiate the runner process
-            String runnerType;
-            if ( (request.getParameter("addAll") != null) ) {
-                runnerType = BigRunner.RUNNER_TYPE_ADD;
-            } else if ( (request.getParameter("removeAll") != null) ) {
-                runnerType = BigRunner.RUNNER_TYPE_REMOVE;
-            } else if ( (request.getParameter("syncAll") != null) ) {
-                runnerType = BigRunner.RUNNER_TYPE_SYNC;
+            } else if ( optional_param('runner', NULL) != NULL ) {
+                // initiate the runner process
+                throw new Exception("NOT IMPLEMENTED"); // @todo
             } else {
-                throw new IllegalArgumentException("Invalid request type: missing valid parameter");
-            }
-            try {
-                logic.startRunnerOperation(runnerType);
-                String msgKey = "admin.process.message." . runnerType;
-                $this->addMessage(self::KEY_INFO, msgKey, null );
-            } catch (ClickerLockException e) {
-                $this->addMessage(self::KEY_ERROR, "admin.process.message.locked", runnerType );
-            } catch (IllegalStateException e) {
-                $this->addMessage(self::KEY_ERROR, "admin.process.message.locked", runnerType );
-            }
-        } else {
-            // invalid POST
-            System.err.println("WARN: Invalid POST: does not contain runner, remove, or activate, nothing to do");
-        }
-    }
-
-    // put config data into page
-    $this->results["useNationalWebservices", logic.useNationalWebservices);
-    $this->results["domainURL", logic.domainURL);
-    $this->results["workspacePageTitle", logic.workspacePageTitle);
-    $this->results["disableSyncWithNational", logic.disableSyncWithNational);
-    $this->results["webservicesNationalSyncHour", logic.webservicesNationalSyncHour);
-
-    // put error data into page
-    $this->results["recentFailures", logic.getFailures());
-
-    // put runner status in page
-    makeRunnerStatus(true);
-
-    // handling the calcs for paging
-    int first = (pageNum - 1) * perPageNum;
-    int totalCount = this.getLogic().countAllItems();
-    int pageCount = (totalCount + perPageNum - 1) / perPageNum;
-    $this->results["totalCount", totalCount);
-    $this->results["pageCount", pageCount);
-    $this->results["registrations", this.getLogic().getAllItems(first, perPageNum, sort, null, true));
-
-    String pagerHTML = "";
-    if (totalCount > 0) {
-        StringBuilder sb = new StringBuilder();
-        Date d = new Date();
-        for (int i = 0; i < pageCount; i++) {
-            int currentPage = i + 1;
-            int currentStart = currentPage + (i * perPageNum);
-            int currentEnd = currentStart + perPageNum - 1;
-            if (currentEnd > totalCount) {
-                currentEnd = totalCount;
-            }
-            String marker = "[" . currentStart . ".." . currentEnd . "]";
-            if (currentPage == pageNum) {
-                // make it bold and not a link
-                sb.append("<span class=\"paging_current paging_item\">".marker."</span>\n");
-            } else {
-                // make it a link
-                sb.append("<a class=\"paging_link paging_item\" href=\"".pageContext.findAttribute("adminPath")."&page=".currentPage."&sort=".sort."&nc=".(d.getTime().currentPage)."\">".marker."</a>\n");
+                // invalid POST
+                error("WARN: Invalid POST: does not contain runner, remove, or activate, nothing to do");
             }
         }
-        pagerHTML = sb.toString();
-        $this->results["pagerHTML", pagerHTML);
+    
+        // put config data into page
+        $this->results["useNationalWebservices"]        = iclicker_service::$use_national_webservices;
+        $this->results["domainURL"]                     = iclicker_service::$domain_URL;
+        $this->results["disableSyncWithNational"]       = iclicker_service::$disable_sync_with_national;
+        $this->results["webservicesNationalSyncHour"]   = iclicker_service::$webservices_national_sync_hour;
+    
+        // put error data into page
+        $this->results["recentFailures"] = array(); // FIXME - not real yet
+    
+        // @todo put runner status in page
+    
+        // handling the calcs for paging
+        $first = ($pageNum - 1) * $perPageNum;
+        $totalCount = iclicker_service::count_all_registrations();
+        $pageCount = ($totalCount + $perPageNum - 1) / $perPageNum;
+        $this->results["totalCount"] = $totalCount;
+        $this->results["pageCount"] = $pageCount;
+        $this->results["registrations"] = iclicker_service::get_all_registrations($first, $perPageNum, $sort, NULL);
+    
+        $pagerHTML = "";
+        if ($totalCount > 0) {
+            $timestamp = microtime();
+            for ($i = 0; $i < $pageCount; $i++) {
+                $currentPage = i + 1;
+                $currentStart = $currentPage + ($i * $perPageNum);
+                $currentEnd = $currentStart + $perPageNum - 1;
+                if ($currentEnd > $totalCount) {
+                    $currentEnd = $totalCount;
+                }
+                $marker = "[" . $currentStart . ".." . $currentEnd . "]";
+                if ($currentPage == $pageNum) {
+                    // make it bold and not a link
+                    $pagerHTML .= "<span class=\"paging_current paging_item\">".$marker."</span>\n";
+                } else {
+                    // make it a link
+                    $adminPath = iclicker_service::block_url('admin.php');
+                    $pagerHTML .= "<a class=\"paging_link paging_item\" href=\"".$adminPath."&page=".$currentPage."&sort=".$sort."&nc=".($timestamp.$currentPage)."\">".$marker."</a>\n";
+                }
+            }
+            $this->results["pagerHTML"] = $pagerHTML;
+        }
     }
-}
-
+/*
 public void makeRunnerStatus(PageContext boolean clearOnComplete) {
     // check for running process and include the info in the page
     BigRunner runner = logic.getRunnerStatus();
@@ -412,7 +381,7 @@ public void makeRunnerStatus(PageContext boolean clearOnComplete) {
         $this->results["runnerError", false);
     }
 }
-
+/*
 public String getValidView(String viewParam) {
     String view = VIEW_REGISTRATION;
     if (viewParam != null && !"".equals(viewParam)) {
