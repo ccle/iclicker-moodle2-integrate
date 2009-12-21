@@ -105,7 +105,7 @@ UL.actionToolBar {
 }
 
 TD.style1 {
-    height: 25;
+    height: 25px;
     text-align: center;
     vertical-align: middle;
 }
@@ -165,6 +165,27 @@ UL.tight {
 
 .visibleFS legend {
     padding: 0.2em;
-    color: orange;
+    color: #F90;
     margin-left: 1em
+}
+
+/* message styles */
+.alert_message {
+    display: block;
+    border: 1px solid #F66;
+    clear: both;
+    color: #C33;
+    margin: 5px 0;
+    padding: 5px 5px 5px 25px;
+    width: 80%;
+}
+
+.info_message {
+    display: block;
+    border: 1px solid #66F;
+    clear: both;
+    color: #33C;
+    margin: 5px 0;
+    padding: 5px 5px 5px 25px;
+    width: 80%;
 }

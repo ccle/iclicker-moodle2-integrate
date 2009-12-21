@@ -99,7 +99,7 @@ class block_iclicker extends block_base {
 
         if (iclicker_service::get_current_user_id()) {
             $this->content->text = "<div class='iclicker_nav_items'>\n";
-            $reg_link = '<a href="'.iclicker_service::block_url('registration.php').'">'.iclicker_service::msg('registration.title').'</a>';
+            $reg_link = '<a href="'.iclicker_service::block_url('registration.php').'">'.iclicker_service::msg('reg.title').'</a>';
             $this->content->text .= "  ".$reg_link."\n";
             // also show the list of currently registered clickers
             $clicker_list_html = '';

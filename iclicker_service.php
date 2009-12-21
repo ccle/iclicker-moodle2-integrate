@@ -94,7 +94,7 @@ class iclicker_service {
     const BLOCK_NAME = 'block_iclicker';
     const BLOCK_PATH = '/blocks/iclicker';
     const REG_TABLENAME = 'iclicker_registration';
-    const REG_ORDER = 'timemodified desc';
+    const REG_ORDER = 'timecreated desc';
     const DEFAULT_SYNC_HOUR = 3;
     const DEFAULT_SERVER_URL = "http://moodle.org/"; // "http://epicurus.learningmate.com/";
     const NATIONAL_WS_URL = "https://webservices.iclicker.com/iclicker_gbsync_registrations/service.asmx";
@@ -157,7 +157,11 @@ class iclicker_service {
     static function msg($key, $vars=NULL) {
         return get_string($key, self::BLOCK_NAME, $vars);
     }
-    
+
+    static function df($time) {
+        return strftime('%Y/%m/%d', $time); //userdate($time, '%Y/%m/%d');
+    }
+
     static function sendEmail() {
         // @todo
         //email_to_user($user, $from, $subject, $messagetext, $messagehtml='', $attachment='', $attachname='', $usetrueaddress=true, $replyto='', $replytoname='', $wordwrapwidth=79);
@@ -265,7 +269,7 @@ class iclicker_service {
      * @static
      */
     static function validate_clicker_id($clicker_id) {
-        if (! $clicker_id) {
+        if (! isset($clicker_id) || strlen($clicker_id) == 0) {
             throw new ClickerIdInvalidException("empty or NULL clicker_id", ClickerIdInvalidException::F_EMPTY, $clicker_id);
         }
         if (strlen($clicker_id) > 8) {
@@ -309,6 +313,8 @@ class iclicker_service {
             throw new InvalidArgumentException("reg_id must be set");
         }
         $result = get_record(self::REG_TABLENAME,'id',$reg_id);
+        //$sql = "id = ".addslashes($reg_id);
+        //$result = get_record_select(self::REG_TABLENAME, $sql);
         return $result;
     }
 
@@ -332,6 +338,8 @@ class iclicker_service {
             return false;
         }
         $result = get_record(self::REG_TABLENAME, 'clicker_id', $clicker_id, 'owner_id', $user_id);
+        //$sql = "clicker_id = '".addslashes($clicker_id)."' and owner_id = '".addslashes($user_id)."'";
+        //$result = get_record_select(self::REG_TABLENAME, $sql);
         if ($result) {
             if (!self::can_read_registration($result, $current_user_id)) {
                 throw new SecurityException("User ($current_user_id) not allowed to access registration ($result->id)");

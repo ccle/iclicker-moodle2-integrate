@@ -52,7 +52,6 @@ $string['reg.registered.clickerId.invalid'] = 'The clicker ID ($a) is invalid, p
 $string['reg.activate.success.true'] = 'Reactivated clicker ($a) registration';
 $string['reg.activate.success.false'] = 'Disabled clicker ($a) registration';
 $string['reg.activate.registrationId.empty'] = 'The registrationId cannot be empty, internal error in the form';
-$string['reg.activate.registrationId.nonnumeric'] = 'The registrationId ($a) must be a number, internal error in the form';
 
 // for the instructor page
 $string['inst.title'] = 'Instructor Report';
@@ -90,9 +89,9 @@ $string['admin.regs.table.summary'] = 'Lists the registered clickers for all use
 $string['admin.remove.submit.alt'] = 'Remove this registration permanently';
 $string['admin.username.header'] = 'User name';
 $string['admin.controls.header'] = 'Controls';
-$string['admin.activate.success.true'] = 'Reactivated clicker ($a[0]) registration for $a[1]';
-$string['admin.activate.success.false'] = 'Disabled clicker ($a[0]) registration for $a[1]';
-$string['admin.delete.success'] = 'Deleted clicker ($a[0]) registration ($a[1]) for $a[2]';
+$string['admin.activate.success.true'] = 'Reactivated clicker ($a->cid) registration for $a->uid';
+$string['admin.activate.success.false'] = 'Disabled clicker ($a->cid) registration for $a->uid';
+$string['admin.delete.success'] = 'Deleted clicker ($a->cid) registration ($a->rid) for $a->uid';
 $string['admin.config.header'] = 'i>clicker plugin configuration';
 $string['admin.config.usewebservices'] = 'Use National Webservices';
 $string['admin.config.domainurl'] = 'Domain URL';
@@ -113,5 +112,7 @@ $string['invalidcourse'] 	= 'Invalid CourseID: ';
 $string['addpage'] 			= 'Add a Page';
 $string['confirmdelete'] 	= 'Confirm Delete';
 $string['deletepage'] 		= 'Do you really want to delete \'$a\'';
+$string['inserterror']      = 'Insert failed';
+$string['updateerror']      = 'Update failed';
 
 ?>

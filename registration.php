@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id: page.php 9 2009-11-28 17:10:13Z azeckoski $ */
+/* $Id: registration.php 9 2009-11-28 17:10:13Z azeckoski $ */
 
 /**
  * Handles rendering the form for creating new pages and the submission of the form as well
@@ -31,8 +31,9 @@ require_once ('controller.php');
 
 require_login();
 
-// process incoming data
+// activate the controller
 $cntlr = new iclicker_controller();
+$cntlr->processRegistration();
 extract($cntlr->results);
 
 // begin rendering
@@ -58,9 +59,10 @@ print_header(
 	"<meta name=\"description\" content=\"".s(strip_tags($site->summary))."\">\n<link rel=\"stylesheet\" type=\"text/css\" href=\"".iclicker_service::block_url('css/iclicker.css')."\" />", 
     false
 );
+
+// show messages if there are any to show
+require ('user_messages.php');
 ?>
-<!-- show messages if there are any to show -->
-<?php // @todo ?>
 
 <div class="main_content">
     <div style="float:left; width: 45%;">
@@ -85,7 +87,7 @@ print_header(
                 <?php foreach($regs as $reg) { ?>
                 <tr class="registration_row data_row style1 <?php echo ($reg->activated ? '' : 'disabled') ?>">
                     <td class="clicker_id" align="center"><?php echo $reg->clicker_id ?></td>
-                    <td class="date" align="center"><?php echo $reg->timecreated ?></td>
+                    <td class="date" align="center"><?php echo iclicker_service::df($reg->timecreated) ?></td>
                     <td class="controls" align="center">
                         <form method="post">
                             <input type="hidden" name="registrationId" value="<?php echo $reg->id ?>" />
