@@ -27,18 +27,13 @@
 require_once ('../../config.php');
 global $CFG, $USER, $COURSE;
 require_once ('iclicker_service.php');
-require_once ('iclicker_form.php');
+require_once ('controller.php');
 
 require_login();
 
-$clicker_id_val = optional_param('clickerId', '', PARAM_RAW);
-
 // process incoming data
-$new_reg = false;
-$below_messages = array(); // @todo
-
-// get regs for this user
-$registrations = iclicker_service::get_registrations_by_user();
+$cntlr = new iclicker_controller();
+extract($cntlr->results);
 
 // begin rendering
 $site = get_site();
@@ -87,7 +82,7 @@ print_header(
                 </tr>
             </thead>
             <tbody>
-                <?php foreach($registrations as $reg) { ?>
+                <?php foreach($regs as $reg) { ?>
                 <tr class="registration_row data_row style1 <?php echo ($reg->activated ? '' : 'disabled') ?>">
                     <td class="clicker_id" align="center"><?php echo $reg->clicker_id ?></td>
                     <td class="date" align="center"><?php echo $reg->timecreated ?></td>
