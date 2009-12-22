@@ -20,7 +20,6 @@
 /* $Id$ */
 
 // i18n file
-$string['iclicker']             = 'i>clicker';
 $string['app.iclicker']         = 'i>clicker';
 $string['app.title']            = 'i>clicker Moodle integrate';
 

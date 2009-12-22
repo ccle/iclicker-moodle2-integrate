@@ -5,3 +5,7 @@
     font-size: .8em; 
     text-align: center;
 }
+
+.iclicker_nav_items A {
+    display: block;
+}

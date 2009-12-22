@@ -45,7 +45,7 @@ class block_iclicker extends block_base {
 	 * uses it to incrementally upgrade an "old" version of the block's data to the latest.
 	 */
     function init() {
-        $this->title = get_string('iclicker', iclicker_service::BLOCK_NAME);
+        $this->title = get_string('app.iclicker', iclicker_service::BLOCK_NAME);
         $this->version = 2009112700;
     }
 
@@ -111,7 +111,17 @@ class block_iclicker extends block_base {
                 $clicker_list_html .= "  </ul>\n";
             }
             $this->content->text .= $clicker_list_html;
-            // @todo the other links
+            // the other links
+            if (iclicker_service::is_admin()) {
+                $link = '<a href="'.iclicker_service::block_url('admin.php').'">'.iclicker_service::msg('admin.title').'</a>';
+                $this->content->text .= "  ".$link."\n";
+                // FIXME remove inst link after testing complete
+                $link = '<a href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('inst.title').'</a>';
+                $this->content->text .= "  ".$link."\n";
+            } else if (iclicker_service::is_instructor()) {
+                $link = '<a href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('instructor.title').'</a>';
+                $this->content->text .= "  ".$link."\n";
+            }
             // close out the html
             $this->content->text .= "</div>\n";
         }
