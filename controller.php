@@ -165,7 +165,7 @@ class iclicker_controller {
             $this->results['course_title'] = $course->fullname;
             $courses[] = $course;
         } else {
-            $courses = iclicker_service::get_courses_for_instructor($course_id);
+            $courses = iclicker_service::get_courses_for_instructor();
         }
         $this->results['courses'] = $courses;
         $this->results['courses_count'] = count($courses);

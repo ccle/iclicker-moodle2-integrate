@@ -166,7 +166,7 @@ class iclicker_service {
     }
     
     static function sendEmail() {
-        // @todo
+        // FIXME
         //email_to_user($user, $from, $subject, $messagetext, $messagehtml='', $attachment='', $attachname='', $usetrueaddress=true, $replyto='', $replytoname='', $wordwrapwidth=79);
     }
     
@@ -180,7 +180,7 @@ class iclicker_service {
      */
     static function authenticate_user($username, $password) {
         global $USER;
-        // @todo make this do a real authn check
+        // FIXME make this do a real authn check
         if (!isset($USER->id)) {
             $u = authenticate_user_login($username, $password);
             if ($u === false) {
@@ -211,9 +211,8 @@ class iclicker_service {
     static function get_current_user_id() {
         $current_user = null;
         try {
-            $current_user = iclicker_service::require_user();
-        }
-        catch (SecurityException $e) {
+            $current_user = self::require_user();
+        } catch (SecurityException $e) {
             $current_user = false;
         }
         return $current_user;
@@ -225,7 +224,7 @@ class iclicker_service {
      * @return a map of user_id -> user data
      */
     static function get_users($user_ids) {
-        // @todo make this do something
+        // FIXME make this do something
         $results = array(
         );
         foreach ($user_ids as $user_id) {
@@ -242,7 +241,7 @@ class iclicker_service {
      * @return the display name
      */
     static function get_user_displayname($user_id) {
-        // @todo make this do something
+        // FIXME make this do something
         $name = "UNKNOWN-".$user_id;
         return $name;
     }
@@ -264,7 +263,14 @@ class iclicker_service {
         $result = is_siteadmin($user_id);
         return $result;
     }
-    
+
+    /**
+     * Check if a user is an instructor in moodle
+     * 
+     * @param int $user_id [optional] the user id to check (default to current user)
+     * @return true if an instructor or false otherwise
+     * @static
+     */
     static function is_instructor($user_id = NULL) {
         if (!isset($user_id)) {
             try {
@@ -274,8 +280,16 @@ class iclicker_service {
                 return false;
             }
         }
-        // @todo make this work for instructor check
-        $result = is_siteadmin($user_id);
+        // sadly this is the only way to do this check: http://moodle.org/mod/forum/discuss.php?d=140383
+        $accessinfo = $USER->access;
+        if ($user_id === $USER->id && isset($USER->access)) {
+            $accessinfo = $USER->access;
+        } else {
+            $accessinfo = get_user_access_sitewide($user_id);
+        }
+        $results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false,
+            'c.sortorder', array(), 1);
+        $result = count($results) > 0;
         return $result;
     }
     
@@ -381,7 +395,7 @@ class iclicker_service {
         if ($clicker_registration->owner_id == $user_id) {
             $result = true;
         }
-        // @todo make this do a real check
+        // FIXME make this do a real check
         $result = true;
         return $result;
     }
@@ -397,7 +411,7 @@ class iclicker_service {
         if ($clicker_registration->owner_id == $user_id) {
             $result = true;
         }
-        // @todo make this do a real check
+        // FIXME make this do a real check
         $result = true;
         return $result;
     }
@@ -451,7 +465,7 @@ class iclicker_service {
             $results = array(
             );
         } else {
-            // @todo insert user display names
+            // FIXME insert user display names
             foreach ($results as $reg) {
                 $reg->user_display_name = "TODO:".$reg->owner_id;
             }
@@ -511,7 +525,7 @@ class iclicker_service {
             $reg_id = self::save_registration($clicker_registration);
             $registration = self::get_registration_by_id($reg_id);
             if ($local_only) {
-                // @todo syncClickerRegistrationWithNational(registration);
+                // FIXME syncClickerRegistrationWithNational(registration);
             }
         }
         return $registration;
@@ -584,20 +598,50 @@ class iclicker_service {
     }
     
     // COURSES METHODS
-    
-    static function get_students_for_course_with_regs($course_id) {
-        // FIXME
+
+    /**
+     * Get all the students for a course with their clicker registrations
+     * @param int $course_id the course to get the students for
+     * @param boolean $include_regs [optional]
+     * @return the list of user objects for the students in the course
+     */
+    static function get_students_for_course_with_regs($course_id, $include_regs=true) {
         // get_users_by_capability - accesslib - moodle/grade:view
         // search_users - datalib
-        return array(
-        );
+        $context = get_context_instance(CONTEXT_MODULE, $course_id);
+        $results = get_users_by_capability($context, 'moodle/grade:view', 'u.id, u.username, u.firstname, u.lastname, u.email', 'u.lastname');
+        foreach ($results as $user) {
+            $user->name = $user->firstname.' '.$user->lastname;
+            if ($include_regs) {
+                // FIXME add in registrations
+                $user->clicker_registered = 'TODO';
+            }
+        }
+        return $results;
     }
-    
+
+    /**
+     * 
+     * @param object $user_id [optional]
+     * @return 
+     */    
     static function get_courses_for_instructor($user_id = NULL) {
-        // FIXME - make this only get courses for this instructor
+        global $USER;
+        // make this only get courses for this instructor
         // get_user_courses_bycap? - accesslib
         // http://docs.moodle.org/en/Category:Capabilities - moodle/course:update
-        $results = get_records('course', 'category', 1, 'id'); // get_records_sql("SELECT * FROM mdl_course where category = 1");
+        //$results = get_records('course', 'category', 1, 'id'); // get_records_sql("SELECT * FROM mdl_course where category = 1");
+        if (! isset($user_id)) {
+            $user_id = self::get_current_user_id();
+        }
+        $accessinfo = $USER->access;
+        if ($user_id === $USER->id && isset($USER->access)) {
+            $accessinfo = $USER->access;
+        } else {
+            $accessinfo = get_user_access_sitewide($user_id);
+        }
+        $results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false,
+            'c.sortorder', array('fullname','summary'), 50);
         return $results;
     }
     
