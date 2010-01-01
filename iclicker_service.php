@@ -587,7 +587,7 @@ class iclicker_service {
     
     static function get_students_for_course_with_regs($course_id) {
         // FIXME
-        // get_users_by_capability - accesslib
+        // get_users_by_capability - accesslib - moodle/grade:view
         // search_users - datalib
         return array(
         );
@@ -596,12 +596,13 @@ class iclicker_service {
     static function get_courses_for_instructor($user_id = NULL) {
         // FIXME - make this only get courses for this instructor
         // get_user_courses_bycap? - accesslib
+        // http://docs.moodle.org/en/Category:Capabilities - moodle/course:update
         $results = get_records('course', 'category', 1, 'id'); // get_records_sql("SELECT * FROM mdl_course where category = 1");
         return $results;
     }
     
     static function get_course($course_id) {
-        $course = get_record(self::REG_TABLENAME, 'id', $course_id);
+        $course = get_record('course', 'id', $course_id);
         return $course;
     }
     

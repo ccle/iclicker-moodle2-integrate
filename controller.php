@@ -158,21 +158,25 @@ class iclicker_controller {
             throw new SecurityException("Current user is not an instructor and cannot access the instructor view");
         }
         $course_id = optional_param('courseId', false, PARAM_INT);
-        $this->results['courseId'] = $course_id;
+        $this->results['course_id'] = $course_id;
+        $courses = array();
         if ($course_id) {
             $course = iclicker_service::get_course($course_id);
-            $this->results['courseTitle'] = $course->title;
+            $this->results['course_title'] = $course->fullname;
+            $courses[] = $course;
+        } else {
+            $courses = iclicker_service::get_courses_for_instructor($course_id);
         }
-        $courses = iclicker_service::get_courses_for_instructor($course_id);
         $this->results['courses'] = $courses;
-        $this->results['coursesCount'] = count($courses);
-        $this->results['showStudents'] = false;
+        $this->results['courses_count'] = count($courses);
+        $this->results['show_students'] = false;
         if ($course_id && count($courses) == 1) {
             $course = $courses[0];
-            $this->results['showStudents'] = true;
+            $this->results['show_students'] = true;
             $this->results['course'] = $course;
-            $this->results['students'] = $course->students;
-            $this->results['studentsCount'] = count($course->students);
+            $students = iclicker_service::get_students_for_course_with_regs($course_id);
+            $this->results['students'] = $students;
+            $this->results['students_count'] = count($students);
         }
     }
     

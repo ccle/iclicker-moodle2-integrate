@@ -171,10 +171,10 @@ require ('user_messages.php');
             <?php echo iclicker_service::msg('admin.config.header') ?>
         </legend>
         <ul class="tight admin_config_list">
-            <li class="admin_config_list_item"><?php echo iclicker_service::msg('admin.config.usewebservices') ?>: <?php echo $useNationalWebservices ?></li>
+            <li class="admin_config_list_item"><?php echo iclicker_service::msg('admin.config.usewebservices') ?>: <?php echo $useNationalWebservices ? 'true':'false' ?></li>
             <li class="admin_config_list_item"><?php echo iclicker_service::msg('admin.config.domainurl') ?>: <?php echo $domainURL ?></li>
             <?php if ($useNationalWebservices) { ?>
-            <li class="admin_config_list_item"><?php echo iclicker_service::msg('admin.config.syncenabled') ?>: <?php echo ! $disableSyncWithNational ?></li>
+            <li class="admin_config_list_item"><?php echo iclicker_service::msg('admin.config.syncenabled') ?>: <?php echo !$disableSyncWithNational ? 'true':'false' ?></li>
             <li class="admin_config_list_item"><?php echo iclicker_service::msg('admin.config.synchour') ?>: <?php echo $webservicesNationalSyncHour ?></li>
             <?php } ?>
         </ul>

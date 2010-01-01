@@ -34,6 +34,9 @@ require_login();
 // activate the controller
 $cntlr = new iclicker_controller();
 $cntlr->processInstructor();
+echo '<pre>';
+var_export($cntlr->results);
+echo '</pre>';
 extract($cntlr->results);
 
 // begin rendering
@@ -68,10 +71,10 @@ require ('user_messages.php');
 <?php if (count($courses) == 0) { ?>
     <span class="no_items"><?php echo iclicker_service::msg('inst.no.courses') ?></span>
 <?php } else if ($show_students) { ?>
-    <div class="title"><?php echo iclicker_service::msg('inst.course') ?>: <?php echo $course->title ?></div>
-    <div class="description"><?php echo $course->description ?></div>
+    <div class="title"><?php echo iclicker_service::msg('inst.course') ?>: <?php echo $course->fullname ?></div>
+    <div class="description"><?php echo $course->summary ?></div>
     <!-- clicker registration listing -->
-    <div><?php echo iclicker_service::msg('inst.students') ?> (<?php echo $studentsCount ?>):</div>
+    <div><?php echo iclicker_service::msg('inst.students') ?> (<?php echo $students_count ?>):</div>
     <table width="80%" border="1" cellspacing="0" cellpadding="0" class="students_list"
         summary="<?php echo iclicker_service::msg('inst.students.table.summary') ?>">
         <thead>
@@ -98,7 +101,7 @@ require ('user_messages.php');
         </tbody>
     </table>
 <?php } else { ?>
-    <div class="title"><?php echo iclicker_service::msg('inst.courses.header') ?> (<?php echo coursesCount ?>):</div>
+    <div class="title"><?php echo iclicker_service::msg('inst.courses.header') ?> (<?php echo $courses_count ?>):</div>
     <!-- course listing -->
     <table width="90%" border="1" cellspacing="0" cellpadding="0" 
         summary="<?php echo iclicker_service::msg('inst.courses.table.summary') ?>">
@@ -113,8 +116,8 @@ require ('user_messages.php');
         <tbody>
         <?php foreach($courses as $course) { ?>
             <tr class="courses_row data_row style1">
-                <td align="center"><?php echo $course->title ?></td>
-                <td align="center"><a href="<?php echo $instPath.'&courseId='.$course->id ?>"><?php echo iclicker_service::msg('inst.course.view.students') ?></a></td>
+                <td align="center"><?php echo $course->fullname ?></td>
+                <td align="center"><a href="<?php echo $instPath.'?courseId='.$course->id ?>"><?php echo iclicker_service::msg('inst.course.view.students') ?></a></td>
             </tr>
         <?php } ?>
         </tbody>
