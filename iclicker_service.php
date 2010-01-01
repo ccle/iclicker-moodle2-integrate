@@ -272,6 +272,7 @@ class iclicker_service {
      * @static
      */
     static function is_instructor($user_id = NULL) {
+        global $USER;
         if (!isset($user_id)) {
             try {
                 $user_id = self::require_user();

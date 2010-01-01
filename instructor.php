@@ -34,13 +34,17 @@ require_login();
 // activate the controller
 $cntlr = new iclicker_controller();
 $cntlr->processInstructor();
-echo '<pre>';
-var_export($cntlr->results);
-echo '</pre>';
 extract($cntlr->results);
 
 // begin rendering
 $site = get_site();
+$navigation = iclicker_service::msg('inst.title');
+if ($show_students && $course) {
+    $navigation = array(
+        array('name' => iclicker_service::msg('inst.title'), 'link' => $instPath),
+        array('name' => $course->fullname)
+    );
+}
 /*
 param: string  $title Appears at the top of the window
 param: string  $heading Appears at the top of the page
@@ -57,7 +61,7 @@ param: bool    $return If true, return the visible elements of the header instea
 print_header(
     strip_tags($site->fullname).':'.iclicker_service::msg('app.iclicker').':'.iclicker_service::msg('inst.title'), 
     iclicker_service::msg('app.iclicker').' '.iclicker_service::msg('inst.title'),
-    build_navigation(iclicker_service::msg('inst.title')), // '<a href="'.$CFG->wwwroot.'/course/view.php?id='.$COURSE->id.'">'.$COURSE->shortname.'</a> ->'.get_string('formtitle', 'block_iclicker'),
+    build_navigation($navigation), // '<a href="'.$CFG->wwwroot.'/course/view.php?id='.$COURSE->id.'">'.$COURSE->shortname.'</a> ->'.get_string('formtitle', 'block_iclicker'),
     '', 
     "<meta name=\"description\" content=\"".s(strip_tags($site->summary))."\">\n<link rel=\"stylesheet\" type=\"text/css\" href=\"".iclicker_service::block_url('css/iclicker.css')."\" />", 
     false
