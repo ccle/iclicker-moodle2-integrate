@@ -127,7 +127,7 @@ class iclicker_service {
     /**
      * @return the path for this block
      */
-    static function block_path($added = NULL) {
+    public static function block_path($added = NULL) {
         global $CFG;
         if (isset($added)) {
             $added = '/'.$added;
@@ -140,7 +140,7 @@ class iclicker_service {
     /**
      * @return the url for this block
      */
-    static function block_url($added = NULL) {
+    public static function block_url($added = NULL) {
         global $CFG;
         if (isset($added)) {
             $added = '/'.$added;
@@ -157,30 +157,30 @@ class iclicker_service {
      * @param object $vars [optional] optional replacement variables
      * @return the translated string
      */
-    static function msg($key, $vars = NULL) {
+    public static function msg($key, $vars = NULL) {
         return get_string($key, self::BLOCK_NAME, $vars);
     }
     
-    static function df($time) {
+    public static function df($time) {
         return strftime('%Y/%m/%d', $time); //userdate($time, '%Y/%m/%d');
     }
     
-    static function sendEmail() {
-        // FIXME
+    public static function sendEmail() {
+        // FIXME LOW not implemented
         //email_to_user($user, $from, $subject, $messagetext, $messagehtml='', $attachment='', $attachname='', $usetrueaddress=true, $replyto='', $replytoname='', $wordwrapwidth=79);
     }
     
     // USERS
     
     /**
-     *
+     * Authenticate a user by username and password
      * @param string $username
      * @param string $password
      * @return true if the authentication is successful
+     * @throw SecurityException if auth invalid
      */
-    static function authenticate_user($username, $password) {
+    public static function authenticate_user($username, $password) {
         global $USER;
-        // FIXME make this do a real authn check
         if (!isset($USER->id)) {
             $u = authenticate_user_login($username, $password);
             if ($u === false) {
@@ -197,7 +197,7 @@ class iclicker_service {
      * @throws SecurityException if there is no current user
      * @static
      */
-    static function require_user() {
+    public static function require_user() {
         global $USER;
         if (!isset($USER->id)) {
             throw new SecurityException('User must be logged in');
@@ -208,7 +208,7 @@ class iclicker_service {
     /**
      * @return the current user id OR null/false if no user
      */
-    static function get_current_user_id() {
+    public static function get_current_user_id() {
         $current_user = null;
         try {
             $current_user = self::require_user();
@@ -220,17 +220,29 @@ class iclicker_service {
     
     /**
      * Get user records for a set of user ids
-     * @param array $user_ids and array of user ids
-     * @return a map of user_id -> user data
+     * @param array $user_ids an array of user ids OR a single user_id
+     * @return a map of user_id -> user data (empty if no matches)
      */
-    static function get_users($user_ids) {
-        // FIXME make this do something
+    public static function get_users($user_ids) {
         $results = array(
         );
-        foreach ($user_ids as $user_id) {
-            $results[$user_id] = array(
-                'id'=>$user_id
-            );
+        if (isset($user_ids)) {
+            if (is_array($user_ids)) {
+                if (!empty($user_ids)) {
+                    $users = get_records('user', 'id', $user_ids, 'id');
+                }
+                foreach ($users as $user) {
+                    self::makeUserDisplayName($user);
+                    $results[$user->id] = $user;
+                }
+            } else {
+                // single user id
+                $user = get_record('user', 'id', $user_ids);
+                self::makeUserDisplayName($user);
+                if ($user) {
+                    $results[$user->id] = $user;
+                }
+            }
         }
         return $results;
     }
@@ -240,18 +252,28 @@ class iclicker_service {
      * @param int $user_id id for a user
      * @return the display name
      */
-    static function get_user_displayname($user_id) {
-        // FIXME make this do something
+    public static function get_user_displayname($user_id) {
         $name = "UNKNOWN-".$user_id;
+        $users = self::get_users($user_id);
+        if ($users && array_key_exists($user_id, $users)) {
+            $name = self::makeUserDisplayName($users[$user_id]);
+        }
         return $name;
     }
-    
+
+    private static function makeUserDisplayName(&$user) {
+        $display_name = fullname($user);
+        $user->name = $display_name;
+        $user->display_name = $display_name;
+        return $display_name;
+    }
+
     /**
      * @param int $user_id [optional] the user id
      * @return true if this user is an admin OR false if not
      * @static
      */
-    static function is_admin($user_id = NULL) {
+    public static function is_admin($user_id = NULL) {
         if (!isset($user_id)) {
             try {
                 $user_id = self::require_user();
@@ -271,7 +293,7 @@ class iclicker_service {
      * @return true if an instructor or false otherwise
      * @static
      */
-    static function is_instructor($user_id = NULL) {
+    public static function is_instructor($user_id = NULL) {
         global $USER;
         if (!isset($user_id)) {
             try {
@@ -303,7 +325,7 @@ class iclicker_service {
      * the exception will indicate the type of validation failure
      * @static
      */
-    static function validate_clicker_id($clicker_id) {
+    public static function validate_clicker_id($clicker_id) {
         if (!isset($clicker_id) || strlen($clicker_id) == 0) {
             throw new ClickerIdInvalidException("empty or NULL clicker_id", ClickerIdInvalidException::F_EMPTY, $clicker_id);
         }
@@ -344,7 +366,7 @@ class iclicker_service {
      * @return the registration object OR false if none found
      * @static
      */
-    static function get_registration_by_id($reg_id) {
+    public static function get_registration_by_id($reg_id) {
         if (!isset($reg_id)) {
             throw new InvalidArgumentException("reg_id must be set");
         }
@@ -360,7 +382,7 @@ class iclicker_service {
      * @return the registration object OR false if none found
      * @static
      */
-    static function get_registration_by_clicker_id($clicker_id, $user_id = NULL) {
+    public static function get_registration_by_clicker_id($clicker_id, $user_id = NULL) {
         if (!$clicker_id) {
             throw new InvalidArgumentException("clicker_id must be set");
         }
@@ -374,6 +396,7 @@ class iclicker_service {
         catch (ClickerIdInvalidException $e) {
             return false;
         }
+        // NOTE: also returns disabled registrations
         $result = get_record(self::REG_TABLENAME, 'clicker_id', $clicker_id, 'owner_id', $user_id);
         //$sql = "clicker_id = '".addslashes($clicker_id)."' and owner_id = '".addslashes($user_id)."'";
         //$result = get_record_select(self::REG_TABLENAME, $sql);
@@ -385,7 +408,7 @@ class iclicker_service {
         return $result;
     }
     
-    static function can_read_registration($clicker_registration, $user_id) {
+    public static function can_read_registration($clicker_registration, $user_id) {
         if (!isset($clicker_registration)) {
             throw new InvalidArgumentException("clicker_registration must be set");
         }
@@ -401,7 +424,7 @@ class iclicker_service {
         return $result;
     }
     
-    static function can_write_registration($clicker_registration, $user_id) {
+    public static function can_write_registration($clicker_registration, $user_id) {
         if (!isset($clicker_registration)) {
             throw new InvalidArgumentException("clicker_registration must be set");
         }
@@ -423,7 +446,7 @@ class iclicker_service {
      * if true then return active only, if false then return inactive only
      * @return the list of registrations for this user or empty array if none
      */
-    static function get_registrations_by_user($user_id = NULL, $activated = NULL) {
+    public static function get_registrations_by_user($user_id = NULL, $activated = NULL) {
         $current_user_id = self::require_user();
         if (!isset($user_id)) {
             $user_id = $current_user_id;
@@ -449,7 +472,7 @@ class iclicker_service {
      * @param string $search [optional] search string for clickers
      * @return array of clicker registrations
      */
-    static function get_all_registrations($start = 0, $max = 0, $order = 'clicker_id', $search = '') {
+    public static function get_all_registrations($start = 0, $max = 0, $order = 'clicker_id', $search = '') {
         if (!self::is_admin()) {
             throw new SecurityException("Only admins can use this function");
         }
@@ -466,9 +489,19 @@ class iclicker_service {
             $results = array(
             );
         } else {
-            // FIXME insert user display names
+            // insert user display names
+            $user_ids = array();
             foreach ($results as $reg) {
-                $reg->user_display_name = "TODO:".$reg->owner_id;
+                $user_ids[] = $reg->owner_id;
+            }
+            $user_ids = array_unique($user_ids);
+            $users = self::get_users($user_ids);
+            foreach ($results as $reg) {
+                $name = 'UNKNOWN-'.$reg->owner_id;
+                if (array_key_exists($reg->owner_id, $users)) {
+                    $name = $users[$reg->owner_id]->name;
+                }
+                $reg->user_display_name = $name;
             }
         }
         return $results;
@@ -477,7 +510,7 @@ class iclicker_service {
     /**
      * @return the count of the total number of registered clickers
      */
-    static function count_all_registrations() {
+    public static function count_all_registrations() {
         return count_records(self::REG_TABLENAME);
     }
     
@@ -488,7 +521,7 @@ class iclicker_service {
      * @param int $reg_id id of the clicker registration
      * @return true if removed OR false if not found or not removed
      */
-    static function remove_registration($reg_id) {
+    public static function remove_registration($reg_id) {
         if (!self::is_admin()) {
             throw new SecurityException("Only admins can use this function");
         }
@@ -508,7 +541,7 @@ class iclicker_service {
      * @param boolean $local_only [optional] create this clicker in the local system only if true, otherwise sync to national system as well
      * @return the clicker_registration object
      */
-    static function create_clicker_registration($clicker_id, $owner_id = NULL, $local_only = false) {
+    public static function create_clicker_registration($clicker_id, $owner_id = NULL, $local_only = false) {
         $clicker_id = self::validate_clicker_id($clicker_id);
         $current_user_id = self::require_user();
         $user_id = $owner_id;
@@ -539,7 +572,7 @@ class iclicker_service {
      * @param boolean $activated true to enable, false to disable
      * @return the clicker_registration object
      */
-    static function set_registration_active($reg_id, $activated) {
+    public static function set_registration_active($reg_id, $activated) {
         if (!isset($reg_id)) {
             throw new InvalidArgumentException("reg_id must be set");
         }
@@ -561,7 +594,7 @@ class iclicker_service {
      * @param object $clicker_registration the registration data as an object
      * @return the id of the saved registration
      */
-    static function save_registration(&$clicker_registration) {
+    public static function save_registration(&$clicker_registration) {
         if (!$clicker_registration || !isset($clicker_registration->clicker_id)) {
             throw new InvalidArgumentException("clicker_registration cannot be empty and clicker_id must be set");
         }
@@ -606,27 +639,68 @@ class iclicker_service {
      * @param boolean $include_regs [optional]
      * @return the list of user objects for the students in the course
      */
-    static function get_students_for_course_with_regs($course_id, $include_regs=true) {
+    public static function get_students_for_course_with_regs($course_id, $include_regs=true) {
         // get_users_by_capability - accesslib - moodle/grade:view
         // search_users - datalib
-        $context = get_context_instance(CONTEXT_MODULE, $course_id);
-        $results = get_users_by_capability($context, 'moodle/grade:view', 'u.id, u.username, u.firstname, u.lastname, u.email', 'u.lastname');
-        foreach ($results as $user) {
-            $user->name = $user->firstname.' '.$user->lastname;
+        $context = get_context_instance(CONTEXT_COURSE, $course_id);
+        $results = get_users_by_capability($context, 'moodle/grade:view', 'u.id, u.username, u.firstname, u.lastname, u.email', 'u.lastname', '', '', '', '', FALSE);
+        if (isset($results) && !empty($results)) {
+            // get the registrations related to these students
+            $user_regs = array();
             if ($include_regs) {
-                // FIXME add in registrations
-                $user->clicker_registered = 'TODO';
+                $query = 'activated = 1';
+                if (count($results) > 500) {
+                    // just return them all since the in query would be super slow anyway
+                } else {
+                    $query .= ' AND owner_id in (';
+                    $first = true;
+                    foreach ($results as $student) {
+                        if ($first) {
+                            $first = false;
+                        } else {
+                            $query .= ',';
+                        }
+                        $query .= $student->id;
+                    }
+                    $query .= ')';
+                }
+                $regs = get_records_select(self::REG_TABLENAME, $query);
+                if ($regs) {
+                    // now put these into a map
+                    foreach ($regs as $reg) {
+                        if (! array_key_exists($reg->owner_id, $user_regs)) {
+                            $user_regs[$reg->owner_id] = array();
+                        }
+                        $user_regs[$reg->owner_id][] = $reg;
+                    }
+                }
             }
+            foreach ($results as $user) {
+                // setup display name
+                self::makeUserDisplayName($user);
+                if ($include_regs) {
+                    // add in registrations
+                    $user->clicker_registered = false;
+                    $user->clickers = array();
+                    if (array_key_exists($user->id, $user_regs)) {
+                        $user->clicker_registered = true;
+                        $user->clickers = $user_regs[$user->id];
+                    }
+                }
+            }
+        } else {
+            // NO matches
+            $results = array();
         }
         return $results;
     }
 
     /**
-     * 
-     * @param object $user_id [optional]
-     * @return 
+     * Get the listing of all courses for an instructor
+     * @param int $user_id [optional] the unique user id for an instructor (default to current user)
+     * @return the list of courses (maybe be emtpy array)
      */    
-    static function get_courses_for_instructor($user_id = NULL) {
+    public static function get_courses_for_instructor($user_id = NULL) {
         global $USER;
         // make this only get courses for this instructor
         // get_user_courses_bycap? - accesslib
@@ -643,21 +717,32 @@ class iclicker_service {
         }
         $results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false,
             'c.sortorder', array('fullname','summary'), 50);
+        if (!$results) {
+            $results = array();
+        }
         return $results;
     }
-    
-    static function get_course($course_id) {
+
+    /**
+     * Retrieve a single course by unique id
+     * @param int $course_id the course
+     * @return the course object or FALSE
+     */
+    public static function get_course($course_id) {
         $course = get_record('course', 'id', $course_id);
+        if (!$course) {
+            $course = FALSE;
+        }
         return $course;
     }
     
-    static function get_course_grade_item($course_id, $grade_item_id) {
+    public static function get_course_grade_item($course_id, $grade_item_id) {
         // FIXME
         return array(
         );
     }
     
-    static function save_grade_item($grade_item) {
+    public static function save_grade_item($grade_item) {
         // FIXME
         return array(
         );
@@ -665,25 +750,25 @@ class iclicker_service {
     
     // NATIONAL WEBSERVICES
     
-    static function ws_sync_clicker($clicker_registration) {
+    public static function ws_sync_clicker($clicker_registration) {
         // FIXME
         return array(
         );
     }
     
-    static function ws_get_students() {
+    public static function ws_get_students() {
         // FIXME
         return array(
         );
     }
     
-    static function ws_get_student($user_name) {
+    public static function ws_get_student($user_name) {
         // FIXME
         return array(
         );
     }
     
-    static function ws_save_clicker($user_name) {
+    public static function ws_save_clicker($user_name) {
         // FIXME
         return array(
         );
@@ -691,43 +776,43 @@ class iclicker_service {
     
     // DATA ENCODING METHODS
     
-    static function encode_registration($clicker_registration) {
+    public static function encode_registration($clicker_registration) {
         // FIXME
         return '<xml/>';
     }
     
-    static function encode_registration_result($registrations, $status, $message) {
+    public static function encode_registration_result($registrations, $status, $message) {
         // FIXME
         return '<xml/>';
     }
     
-    static function encode_courses($instructor_id, $courses) {
+    public static function encode_courses($instructor_id, $courses) {
         // FIXME
         return '<xml/>';
     }
     
-    static function encode_enrollments($course_id) {
+    public static function encode_enrollments($course_id) {
         // FIXME
         return '<xml/>';
     }
     
-    static function encode_gradebook_result($course_id, $grade_items) {
+    public static function encode_gradebook_result($course_id, $grade_items) {
         // FIXME
         return '<xml/>';
     }
     
-    static function decode_registration($xml) {
+    public static function decode_registration($xml) {
         // FIXME
         return $clicker_registration;
     }
     
-    static function decode_gradebook($xml) {
+    public static function decode_gradebook($xml) {
         // FIXME
         return array(
         );
     }
     
-    static function decode_ws_xml($xml) {
+    public static function decode_ws_xml($xml) {
         // FIXME
         return array(
         ); // $clicker_registration
@@ -746,7 +831,7 @@ class iclicker_service {
      *
      * @return an array which contains the elements from the xml input
      */
-    static function xml2array($xml, $get_attributes = 1, $priority = 'tag') {
+    public static function xml2array($xml, $get_attributes = 1, $priority = 'tag') {
         $contents = $xml;
         if (!function_exists('xml_parser_create')) {
             return array(

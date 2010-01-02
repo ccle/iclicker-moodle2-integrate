@@ -34,6 +34,9 @@ require_login();
 // activate the controller
 $cntlr = new iclicker_controller();
 $cntlr->processInstructor();
+//echo '<pre>';
+//var_export($cntlr->results);
+//echo '</pre>';
 extract($cntlr->results);
 
 // begin rendering
@@ -99,7 +102,7 @@ require ('user_messages.php');
             <tr class="<?php echo ($student->clicker_registered ? 'registered' : 'unregistered') ?> students_row data_row style1">
                 <td align="center" class="user_name"><?php echo $student->name ?></td>
                 <td align="center" class="user_email"><?php echo $student->email ?></td>
-                <td align="center" class="clicker_status"><?php echo iclicker_service::msg('inst.student.registered.'.$student->clicker_registered) ?></td>
+                <td align="center" class="clicker_status"><?php echo iclicker_service::msg('inst.student.registered.'.($student->clicker_registered ? 'true':'false')) ?></td>
             </tr>
         <?php } ?>
         </tbody>
