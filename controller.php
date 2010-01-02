@@ -29,65 +29,98 @@ require_once ('iclicker_service.php');
 
 class iclicker_controller {
 
+    // constants
     const TYPE_HTML = 'html';
     const TYPE_XML = 'xml';
     const TYPE_TEXT = 'txt';
-    
+
+    const PASSWORD = "_password";
+    const LOGIN = "_login";
+    const SEPARATOR = '/';
+    const PERIOD = '.';
+    const XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
+    const SESSION_ID = "_sessionId";
+
+    // class vars
+
+    // REQUEST
     public $method = 'GET';
+    public $path = '';
     public $body = NULL;
-    public $headers = NULL;
-    public $response = NULL;
+
+    // RESPONSE
+    public $status = 200;
+    public $message = '';
+    public $headers = array();
+
     public $results = array(
     );
     
-    var $TIME_START = 0;
-    
     public function __construct($getBody = false) {
-        $this->TIME_START = microtime(true);
-        $this->headers = array(
-        );
         // set some headers
         $this->headers['Content-Encoding'] = 'UTF8';
         //header('Content-type: text/plain');
         //header('Cache-Control: no-cache, must-revalidate');
-        $response_data = array(
-            'code'=>200, 'type'=>self::TYPE_HTML, 'message'=>''
-        );
+        // get the rest path
+        $full_path = me();
+        if (!$full_path) {
+            $full_path = '';
+        } else {
+            $pos = strripos($full_path, '.php');
+            if ($pos > 1) {
+                $path = substr($full_path, $pos+4);
+                $path = trim($path, '/ '); // trim whitespace and slashes
+            }
+            $this->path = $path;
+        }
+        // get the body
         if ($getBody) {
             $this->body = @file_get_contents('php://input');
         }
         $this->method = $_SERVER['REQUEST_METHOD'];
-        $this->response = $response_data;
     }
-    
+
+    public function setStatus($status) {
+        if ($status) {
+            $this->status = $status;
+        }
+    }
+
+    public function setMessage($msg) {
+        $this->message = $msg;
+    }
+
+    public function setContentType($mime_type) {
+        $this->headers['Content-Type'] = $mime_type;
+    }
+
+    public function setHeader($name, $value) {
+        $this->headers[$name] = $value;
+    }
+
     /**
      * Send the response
      *
+     * @param string $content [optional] the content to send
      * @param string $message [optional] the message to send, defaults to "Invalid request"
-     * @param int    $code    [optional] the status code, defaults to 400
-     * @param array  $headers [optional] any headers to include when sending the response
      */
-    public function sendResponse($message = "Invalid request parameters", $code = 400, $headers = array(
-    )) {
+    public function sendResponse($content = NULL, $message = "Invalid request parameters") {
+        $code = $this->status;
         header("HTTP/1.0 $code ".str_replace("\n", "", $message));
         if ($code >= 400) {
             // force plain text encoding when errors occur
-            header('Content-type: text/plain');
+            $this->setContentType('text/plain');
         }
-        if (isset($headers) and ! empty($headers)) {
+        $headers = $this->headers;
+        if (isset($headers) && ! empty($headers)) {
             foreach ($headers as $key=> & $value) {
                 header($key.': '.$value, false);
             }
             unset($value);
         }
-        if (! empty($message)) {
-            if ($code >= 400) {
-                // include the helpful message
-                $message .= "\n POST requests are required\n The request must be formed in one of 3 ways:\n "." 1) Including the fields of the post as http form params (required: post_title, post_content)\n "." 2) Including a field 'data' which contains xml with the post data, \n"."     Example: <post><post_title>TITLE</post_title><post_content>CONTENT</post_content></post>\n "." 3) Including the data for multiple posts in the body of the request (similar xml format to above but with <posts>...</posts>), \n"."     Example: <posts><post><post_title>TITLE1</post_title><post_content>CONTENT</post_content></post><post><post_title>TITLE2</post_title><post_content>CONTENT</post_content></post></posts> \n";
-            }
-            $time = microtime(true) - $this->TIME_START;
-            $message .= "\nTotal processing time: ".round($time, 4)." seconds at ".date("H:i:s")."\n";
-            die($code." ".$message);
+        // dump the body content
+        if (isset($content)) {
+            echo $content;
         }
     }
 

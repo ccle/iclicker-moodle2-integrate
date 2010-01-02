@@ -206,6 +206,7 @@ class iclicker_service {
     }
     
     /**
+     * Gets the current user_id, return FALSE if none can be found
      * @return the current user id OR null/false if no user
      */
     public static function get_current_user_id() {
@@ -796,31 +797,33 @@ class iclicker_service {
         return '<xml/>';
     }
     
-    public static function encode_gradebook_result($course_id, $grade_items) {
+    public static function encode_grade_item_results($course_id, $results) {
         // FIXME
         return '<xml/>';
     }
     
     public static function decode_registration($xml) {
         // FIXME
-        return $clicker_registration;
+        throw new InvalidArgumentException("Not implemented - XML invalid");
+        // return $clicker_registration;
     }
     
-    public static function decode_gradebook($xml) {
+    public static function decode_grade_item($xml) {
         // FIXME
-        return array(
-        );
+        throw new InvalidArgumentException("Not implemented - XML invalid");
+        // return new stdClass();
     }
     
     public static function decode_ws_xml($xml) {
         // FIXME
-        return array(
-        ); // $clicker_registration
+        throw new InvalidArgumentException("Not implemented - XML invalid");
+        // new stdClass();
+        // array( $clicker_registration )
     }
     
     /**
      * XML to array converter function
-     * This will convert xml into a an array which contains the xml data
+     * This will convert xml into an array which contains the xml data
      *
      * @param object $xml            incoming xml string
      * @param object $get_attributes [optional] if this evaluates to true (1) then
