@@ -33,7 +33,7 @@ require_once ($CFG->libdir.'/gradelib.php');
 // grade perm: moodle/grade:manage
 
 /** This class contains the test cases for the functions in iclicker_service.php. */
-class gradebook_test extends UnitTestCase {
+class iclicker_gradebook_test extends UnitTestCase {
 
 	var $courseid = 1;
 

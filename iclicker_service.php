@@ -233,14 +233,26 @@ class iclicker_service {
     public static function get_users($user_ids) {
         $results = array(
         );
+        echo "1";
         if (isset($user_ids)) {
+        echo "2";
             if (is_array($user_ids)) {
-                if (!empty($user_ids)) {
+        echo "3";
+                $users = false;
+                if (! empty($user_ids)) {
+        echo "4<pre>";
                     $users = get_records('user', 'id', $user_ids, 'id');
                 }
-                foreach ($users as $user) {
-                    self::makeUserDisplayName($user);
-                    $results[$user->id] = $user;
+        var_dump($user_ids);
+        var_dump($users);
+        echo "</pre>";
+                if ($users) {
+        echo "5";
+                    foreach ($users as $user) {
+        echo "($user)";
+                        self::makeUserDisplayName($user);
+                        $results[$user->id] = $user;
+                    }
                 }
             } else {
                 // single user id
@@ -1012,7 +1024,7 @@ format.
     public static function decode_registration($xml) {
         /*
 <Register>
-<S DisplayName="DisplayName-azeckoski-123456" FirstName="First" LastName="Lastazeckoski-123456" 
+  <S DisplayName="DisplayName-azeckoski-123456" FirstName="First" LastName="Lastazeckoski-123456" 
     StudentID="eid-azeckoski-123456" Email="azeckoski-123456@email.com" URL="http://sakaiproject.org"; ClickerID="11111111"></S>
 </Register>
          */
@@ -1145,10 +1157,85 @@ format.
     }
     
     public static function decode_ws_xml($xml) {
-        // FIXME
-        throw new InvalidArgumentException("Not implemented - XML invalid");
-        // new stdClass();
-        // array( $clicker_registration )
+        /*
+<StudentRoster>
+    <S StudentID="student01" FirstName="student01" LastName="student01" URL="https://www.iclicker.com/" CourseName="">
+        <Registration ClickerId="12CE32EE" WhenAdded="2009-01-27" Enabled="True" />
+    </S>
+</StudentRoster>
+         */
+        if (!xml) {
+            throw new InvalidArgumentException("xml must be set");
+        }
+        // read the xml (try to anyway)
+        $doc = new DOMDocument();
+        $doc->preserveWhiteSpace = false;
+        if (! $doc->loadXML($xml, LIBXML_NOWARNING) ) {
+            throw new Exception("XML read and parse failure: $xml");
+        }
+        $doc->normalizeDocument();
+        $regs = array();
+        try {
+            $users = $doc->getElementsByTagName("S");
+            if ($users->length > 0) {
+                foreach ($users as $user_node) {
+                    if ($user_node->nodeType == XML_ELEMENT_NODE) {
+                        $student_id = $user_node->getAttribute("StudentID"); // this is the user eid
+                        if (! isset($student_id) || '' == $student_id) {
+                            throw new InvalidArgumentException("Invalid XML for registration, no id in the StudentID element (Cannot process)");
+                        }
+                        $student_id = strtolower($student_id);
+                        $user = self::get_users($student_id);
+                        if (! $user) {
+                            //log.warn("Cannot identify user (id="+studentId+") in the national webservices feed, skipping this user");
+                            continue;
+                        }
+                        $user_id = $user->id;
+                        $reg_nodes = $user_node->getElementsByTagName("Registration");
+                        if ($reg_nodes->length > 0) {
+                            foreach ($reg_nodes as $reg_node) {
+                                if ($reg_node->nodeType == XML_ELEMENT_NODE) {
+                                    $clicker_id = $reg_node->getAttribute("ClickerId");
+                                    if (! $clicker_id) {
+                                        //log.warn("Missing clickerId in webservices registration XML line, skipping this registration for user: $user_id");
+                                        continue;
+                                    }
+                                    $when_added = $reg_node->getAttribute("WhenAdded"); // "yyyy-MM-dd"
+                                    $date_created = time();
+                                    if (isset($when_added)) {
+                                        $time = strtotime($when_added);
+                                        if ($time) {
+                                            $date_created = $time;
+                                        }
+                                    }
+                                    $enabled = $reg_node->getAttribute("Enabled");
+                                    $activated = true;
+                                    if (isset($enabled)) {
+                                        $activated = (boolean) $enabled;
+                                    }
+                                    $clicker_reg = new stdClass();
+                                    $clicker_reg->clicker_id = $clicker_id;
+                                    $clicker_reg->user_id = $user_id;
+                                    $clicker_reg->timecreated = $date_created;
+                                    $clicker_reg->date_created = $date_created;
+                                    $clicker_reg->activated = $activated;
+                                    $regs[] = $clicker_reg;
+                                } else {
+                                    // only skipping invalid ones
+                                    //log.warn("Invalid registration node in XML (skipping this one): $reg_node");
+                                }
+                            }
+                        }
+                    } else {
+                        // only skipping invalid ones
+                        //throw new InvalidArgumentException("Invalid user node in XML: $user_node");
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            throw new Exception("XML DOM parsing failure: $e :: $xml");
+        }
+        return $regs;
     }
 
     
@@ -1190,134 +1277,6 @@ format.
             return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
         }
         return '';
-    }
-    
-    /**
-     * XML to array converter function
-     * This will convert xml into an array which contains the xml data
-     *
-     * @param object $xml            incoming xml string
-     * @param object $get_attributes [optional] if this evaluates to true (1) then
-     *     the attributes are included in the array (default),
-     *     otherwise they are left out
-     * @param object $priority       [optional] not totally sure what this is,
-     *     the default works
-     *
-     * @return an array which contains the elements from the xml input
-     */
-    private static function xml2array($xml, $get_attributes = 1, $priority = 'tag') {
-        $contents = $xml;
-        if (!function_exists('xml_parser_create')) {
-            return array(
-            );
-        }
-        $parser = xml_parser_create('');
-        xml_parser_set_option($parser, XML_OPTION_TARGET_ENCODING, "UTF-8");
-        xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
-        xml_parser_set_option($parser, XML_OPTION_SKIP_WHITE, 1);
-        xml_parse_into_struct($parser, trim($contents), $xml_values);
-        xml_parser_free($parser);
-        if (!$xml_values) {
-            return; //Hmm...
-        }
-        $xml_array = array(
-        );
-        $parents = array(
-        );
-        $opened_tags = array(
-        );
-        $arr = array(
-        );
-        $current = &$xml_array;
-        $repeated_tag_index = array(
-        );
-        foreach ($xml_values as $data) {
-            unset($attributes, $value);
-            extract($data);
-            $result = array(
-            );
-            $attributes_data = array(
-            );
-            if (isset($value)) {
-                if ($priority == 'tag') {
-                    $result = $value;
-                } else {
-                    $result['value'] = $value;
-                }
-            }
-            if (isset($attributes) and $get_attributes) {
-                foreach ($attributes as $attr=>$val) {
-                    if ($priority == 'tag') {
-                        $attributes_data[$attr] = $val;
-                    } else {
-                        //Set all the attributes in a array called 'attr'
-                        $result['attr'][$attr] = $val;
-                    }
-                }
-            }
-            if ($type == "open") {
-                $parent[$level - 1] = &$current;
-                if (!is_array($current) or (!in_array($tag, array_keys($current)))) {
-                    $current[$tag] = $result;
-                    if ($attributes_data) {
-                        $current[$tag.'_attr'] = $attributes_data;
-                    }
-                    $repeated_tag_index[$tag.'_'.$level] = 1;
-                    $current = &$current[$tag];
-                } else {
-                    if (isset($current[$tag][0])) {
-                        $current[$tag][$repeated_tag_index[$tag.'_'.$level]] = $result;
-                        $repeated_tag_index[$tag.'_'.$level]++;
-                    } else {
-                        $current[$tag] = array(
-                            $current[$tag], $result
-                        );
-                        $repeated_tag_index[$tag.'_'.$level] = 2;
-                        if (isset($current[$tag.'_attr'])) {
-                            $current[$tag]['0_attr'] = $current[$tag.'_attr'];
-                            unset($current[$tag.'_attr']);
-                        }
-                    }
-                    $last_item_index = $repeated_tag_index[$tag.'_'.$level] - 1;
-                    $current = &$current[$tag][$last_item_index];
-                }
-            } elseif ($type == "complete") {
-                if (!isset($current[$tag])) {
-                    $current[$tag] = $result;
-                    $repeated_tag_index[$tag.'_'.$level] = 1;
-                    if ($priority == 'tag' and $attributes_data) {
-                        $current[$tag.'_attr'] = $attributes_data;
-                    }
-                } else {
-                    if (isset($current[$tag][0]) and is_array($current[$tag])) {
-                        $current[$tag][$repeated_tag_index[$tag.'_'.$level]] = $result;
-                        if ($priority == 'tag' and $get_attributes and $attributes_data) {
-                            $current[$tag][$repeated_tag_index[$tag.'_'.$level].'_attr'] = $attributes_data;
-                        }
-                        $repeated_tag_index[$tag.'_'.$level]++;
-                    } else {
-                        $current[$tag] = array(
-                            $current[$tag], $result
-                        );
-                        $repeated_tag_index[$tag.'_'.$level] = 1;
-                        if ($priority == 'tag' and $get_attributes) {
-                            if (isset($current[$tag.'_attr'])) {
-                                $current[$tag]['0_attr'] = $current[$tag.'_attr'];
-                                unset($current[$tag.'_attr']);
-                            }
-                            if ($attributes_data) {
-                                $current[$tag][$repeated_tag_index[$tag.'_'.$level].'_attr'] = $attributes_data;
-                            }
-                        }
-                        //0 and 1 index is already taken
-                        $repeated_tag_index[$tag.'_'.$level]++;
-                    }
-                }
-            } elseif ($type == 'close') {
-                $current = &$parent[$level - 1];
-            }
-        }
-        return ($xml_array);
     }
     
 }

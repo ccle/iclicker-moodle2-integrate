@@ -76,6 +76,7 @@ class iclicker_services_test extends UnitTestCase {
         $user_id = iclicker_service::require_user();
         $this->assertTrue($user_id);
         $results = iclicker_service::get_users(array($user_id));
+        var_dump($results);
         $this->assertTrue($results);
         $this->assertTrue(count($results) == 1);
         $this->assertEqual($results[$user_id]['id'], $user_id);
@@ -204,6 +205,21 @@ class iclicker_services_test extends UnitTestCase {
         // try get registration
         $reg = iclicker_service::get_registration_by_id($reg_id);
         $this->assertFalse($reg);
+    }
+
+    function test_encode_decode() {
+        $xml = <<<XML
+<Register>
+  <S DisplayName="DisplayName-azeckoski-123456" FirstName="First" LastName="Lastazeckoski-123456" 
+    StudentID="eid-azeckoski-123456" Email="azeckoski-123456@email.com" URL="http://sakaiproject.org"; ClickerID="11111111"></S>
+</Register>
+XML;
+        $result = iclicker_service::decode_registration($xml);
+        $this->assertNotNull($result);
+        $this->assertNotNull($result->clicker_id);
+        $this->assertNotNull($result->owner_id);
+        $this->assertEqual($result->clicker_id, '11111111');
+        $this->assertEqual($result->owner_id, 'eid-azeckoski-123456');
     }
 
 }
