@@ -58,13 +58,17 @@ class iclicker_services_test extends UnitTestCase {
                 }
             }
         }
+        // put in test_mode
+        iclicker_service::$test_mode = true;
     }
 
     public function tearDown() {
+        iclicker_service::$test_mode = false;
     }
 
     function test_assert() {
         $this->assertEqual("AZ", "AZ");
+        $this->assertEqual(iclicker_service::$test_mode, true);
     }
 
     function test_require_user() {
@@ -210,7 +214,7 @@ class iclicker_services_test extends UnitTestCase {
         $xml = <<<XML
 <Register>
   <S DisplayName="DisplayName-azeckoski-123456" FirstName="First" LastName="Lastazeckoski-123456" 
-    StudentID="admin" Email="azeckoski-123456@email.com" URL="http://sakaiproject.org" ClickerID="11111111"></S>
+    StudentID="student01" Email="azeckoski-123456@email.com" URL="http://sakaiproject.org" ClickerID="11111111"></S>
 </Register>
 XML;
         $result = iclicker_service::decode_registration($xml);
@@ -218,14 +222,14 @@ XML;
         $this->assertNotNull($result->clicker_id);
         $this->assertNotNull($result->owner_id);
         $this->assertEqual($result->clicker_id, '11111111');
-        $this->assertEqual($result->user_username, 'admin');
+        $this->assertEqual($result->user_username, 'student01');
 
         $xml = <<<XML
 <coursegradebook courseid="BFW61">
-  <user id="lm_student01" usertype="S">
+  <user id="student01" usertype="S">
     <lineitem name="06/02/2009" pointspossible="50" type="iclicker polling scores" score="0"/>
   </user>
-  <user id="lm_student02" usertype="S">
+  <user id="student02" usertype="S">
     <lineitem name="06/02/2009" pointspossible="50" type="iclicker polling scores" score="0"/>
   </user>
 </coursegradebook>

@@ -134,6 +134,7 @@ class iclicker_service {
     public static $webservices_basic_auth_header = self::NATIONAL_WS_BASIC_AUTH_HEADER;
     public static $disable_sync_with_national = false;
     public static $webservices_national_sync_hour = self::DEFAULT_SYNC_HOUR;
+    public static $test_mode = false;
     
     var $notify_emails_string = NULL;
     var $notify_emails = array(
@@ -188,7 +189,9 @@ class iclicker_service {
     }
     
     // USERS
-    
+
+    const USER_FIELDS = 'id,username,firstname,lastname,email';
+
     /**
      * Authenticate a user by username and password
      * @param string $username
@@ -236,7 +239,28 @@ class iclicker_service {
         return $current_user;
     }
 
-    const USER_FIELDS = 'id,username,firstname,lastname,email';
+    /**
+     * Gets a user by their username
+     * @param string $username the username (i.e. login name)
+     * @return the user object OR false if none can be found
+     */
+    public static function get_user_by_username($username) {
+        $user = false;
+        if ($username) {
+            $user = get_record('user', 'username', $username, '', '', '', '', self::USER_FIELDS);
+            // TESTING handling
+            if (self::$test_mode && !$user) {
+                $user = new stdClass();
+                $user->id = 100;
+                $user->username = $username;
+                $user->firstname = 'Student';
+                $user->lastname = 'One';
+                $user->email = 'one@fail.com';
+            }
+        }
+        return $user;
+    }
+
     /**
      * Get user records for a set of user ids
      * @param array $user_ids an array of user ids OR a single user_id
@@ -261,6 +285,15 @@ class iclicker_service {
             } else {
                 // single user id
                 $user = get_record('user', 'id', $user_ids, '', '', '', '', self::USER_FIELDS);
+                // TESTING handling
+                if (self::$test_mode && !$user) {
+                    $user = new stdClass();
+                    $user->id = $user_ids;
+                    $user->username = 'student01';
+                    $user->firstname = 'Student';
+                    $user->lastname = 'One';
+                    $user->email = 'one@fail.com';
+                }
                 if ($user) {
                     self::makeUserDisplayName($user);
                     $results = $user;
@@ -1069,8 +1102,11 @@ format.
                 }
                 $clicker_reg->clicker_id = $clicker_id;
                 $clicker_reg->user_username = $username;
-                // FIXME look up the user ID from the username
-                //$clicker_reg->owner_id = 'TODO';
+                $user = self::get_user_by_username($username);
+                if (! $user) {
+                    throw new InvalidArgumentException("Invalid username for student ($username), could not find user (Cannot process)");
+                }
+                $clicker_reg->owner_id = $user->id;
                 $clicker_reg->user_display_name = $user_node->getAttribute("DisplayName");
             } else {
                 throw new InvalidArgumentException("Invalid user node in XML: $user_node");
