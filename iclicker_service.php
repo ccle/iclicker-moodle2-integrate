@@ -27,6 +27,17 @@ require_once ($CFG->libdir.'/dmllib.php');
 require_once ($CFG->libdir.'/accesslib.php');
 
 /**
+ * For XML error handling
+ */
+function HandleXmlError($errno, $errstr, $errfile, $errline) {
+    if ($errno==E_WARNING && (substr_count($errstr,"DOMDocument::loadXML()")>0)) {
+        throw new DOMException($errstr);
+    } else {
+        return false;
+    }
+}
+
+/**
  * Defines an exception which can occur when validating clicker ids
  * Valid types are:
  * empty - the clickerId is null or empty string
@@ -250,8 +261,10 @@ class iclicker_service {
             } else {
                 // single user id
                 $user = get_record('user', 'id', $user_ids, '', '', '', '', self::USER_FIELDS);
-                self::makeUserDisplayName($user);
-                $results = $user;
+                if ($user) {
+                    self::makeUserDisplayName($user);
+                    $results = $user;
+                }
             }
         }
         return $results;
@@ -1014,6 +1027,22 @@ format.
         return $lineitems;
     }
 
+    private static function parse_xml_to_doc($xml) {
+        if (!$xml) {
+            throw new InvalidArgumentException("xml must be set");
+        }
+        // read the xml (try to anyway)
+        set_error_handler('HandleXmlError');
+        $doc = new DOMDocument();
+        $doc->preserveWhiteSpace = false;
+        if (! $doc->loadXML($xml, LIBXML_NOWARNING) ) {
+            throw new Exception("XML read and parse failure: $xml");
+        }
+        $doc->normalizeDocument();
+        restore_error_handler();
+        return $doc;
+    }
+
     public static function decode_registration($xml) {
         /*
 <Register>
@@ -1021,16 +1050,7 @@ format.
     StudentID="eid-azeckoski-123456" Email="azeckoski-123456@email.com" URL="http://sakaiproject.org"; ClickerID="11111111"></S>
 </Register>
          */
-        if (!xml) {
-            throw new InvalidArgumentException("xml must be set");
-        }
-        // read the xml (try to anyway)
-        $doc = new DOMDocument();
-        $doc->preserveWhiteSpace = false;
-        if (! $doc->loadXML($xml, LIBXML_NOWARNING) ) {
-            throw new Exception("XML read and parse failure: $xml");
-        }
-        $doc->normalizeDocument();
+        $doc = self::parse_xml_to_doc($xml);
         $clicker_reg = new stdClass();
         try {
             $users = $doc->getElementsByTagName("S");
@@ -1043,12 +1063,14 @@ format.
                 if (! $clicker_id) {
                     throw new InvalidArgumentException("Invalid XML for registration, no id in the ClickerID element (Cannot process)");
                 }
-                $user_id = $user_node->getAttribute("StudentID"); // this is the userId
-                if (! $user_id) {
+                $username = $user_node->getAttribute("StudentID"); // this is the username
+                if (! $username) {
                     throw new InvalidArgumentException("Invalid XML for registration, no id in the StudentID element (Cannot process)");
                 }
                 $clicker_reg->clicker_id = $clicker_id;
-                $clicker_reg->user_id = $user_id;
+                $clicker_reg->user_username = $username;
+                // FIXME look up the user ID from the username
+                //$clicker_reg->owner_id = 'TODO';
                 $clicker_reg->user_display_name = $user_node->getAttribute("DisplayName");
             } else {
                 throw new InvalidArgumentException("Invalid user node in XML: $user_node");
@@ -1070,16 +1092,7 @@ format.
   </user>
 </coursegradebook>
          */
-        if (!xml) {
-            throw new InvalidArgumentException("xml must be set");
-        }
-        // read the xml (try to anyway)
-        $doc = new DOMDocument();
-        $doc->preserveWhiteSpace = false;
-        if (! $doc->loadXML($xml, LIBXML_NOWARNING) ) {
-            throw new Exception("XML read and parse failure: $xml");
-        }
-        $doc->normalizeDocument();
+        $doc = self::parse_xml_to_doc($xml);
         $grade_item = new stdClass();
         try {
             // get the course id from the root attribute
@@ -1157,16 +1170,7 @@ format.
     </S>
 </StudentRoster>
          */
-        if (!xml) {
-            throw new InvalidArgumentException("xml must be set");
-        }
-        // read the xml (try to anyway)
-        $doc = new DOMDocument();
-        $doc->preserveWhiteSpace = false;
-        if (! $doc->loadXML($xml, LIBXML_NOWARNING) ) {
-            throw new Exception("XML read and parse failure: $xml");
-        }
-        $doc->normalizeDocument();
+        $doc = self::parse_xml_to_doc($xml);
         $regs = array();
         try {
             $users = $doc->getElementsByTagName("S");

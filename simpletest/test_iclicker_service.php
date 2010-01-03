@@ -210,7 +210,7 @@ class iclicker_services_test extends UnitTestCase {
         $xml = <<<XML
 <Register>
   <S DisplayName="DisplayName-azeckoski-123456" FirstName="First" LastName="Lastazeckoski-123456" 
-    StudentID="eid-azeckoski-123456" Email="azeckoski-123456@email.com" URL="http://sakaiproject.org"; ClickerID="11111111"></S>
+    StudentID="admin" Email="azeckoski-123456@email.com" URL="http://sakaiproject.org" ClickerID="11111111"></S>
 </Register>
 XML;
         $result = iclicker_service::decode_registration($xml);
@@ -218,7 +218,31 @@ XML;
         $this->assertNotNull($result->clicker_id);
         $this->assertNotNull($result->owner_id);
         $this->assertEqual($result->clicker_id, '11111111');
-        $this->assertEqual($result->owner_id, 'eid-azeckoski-123456');
+        $this->assertEqual($result->user_username, 'admin');
+
+        $xml = <<<XML
+<coursegradebook courseid="BFW61">
+  <user id="lm_student01" usertype="S">
+    <lineitem name="06/02/2009" pointspossible="50" type="iclicker polling scores" score="0"/>
+  </user>
+  <user id="lm_student02" usertype="S">
+    <lineitem name="06/02/2009" pointspossible="50" type="iclicker polling scores" score="0"/>
+  </user>
+</coursegradebook>
+XML;
+        $result = iclicker_service::decode_grade_item($xml);
+        $this->assertNotNull($result);
+
+        $xml = <<<XML
+<StudentRoster>
+    <S StudentID="student01" FirstName="student01" LastName="student01" URL="https://www.iclicker.com/" CourseName="">
+        <Registration ClickerId="12CE32EE" WhenAdded="2009-01-27" Enabled="True" />
+    </S>
+</StudentRoster>
+XML;
+        $result = iclicker_service::decode_ws_xml($xml);
+        $this->assertNotNull($result);
+
     }
 
 }
