@@ -76,10 +76,9 @@ class iclicker_services_test extends UnitTestCase {
         $user_id = iclicker_service::require_user();
         $this->assertTrue($user_id);
         $results = iclicker_service::get_users(array($user_id));
-        var_dump($results);
         $this->assertTrue($results);
         $this->assertTrue(count($results) == 1);
-        $this->assertEqual($results[$user_id]['id'], $user_id);
+        $this->assertEqual($results[$user_id]->id, $user_id);
     }
     
     function test_validate_clickerid() {

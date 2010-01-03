@@ -224,7 +224,8 @@ class iclicker_service {
         }
         return $current_user;
     }
-    
+
+    const USER_FIELDS = 'id,username,firstname,lastname,email';
     /**
      * Get user records for a set of user ids
      * @param array $user_ids an array of user ids OR a single user_id
@@ -233,30 +234,22 @@ class iclicker_service {
     public static function get_users($user_ids) {
         $results = array(
         );
-        echo "1";
         if (isset($user_ids)) {
-        echo "2";
             if (is_array($user_ids)) {
-        echo "3";
                 $users = false;
                 if (! empty($user_ids)) {
-        echo "4<pre>";
-                    $users = get_records('user', 'id', $user_ids, 'id');
+                    $ids = implode(',', $user_ids);
+                    $users = get_records_list('user', 'id', $ids, 'id', self::USER_FIELDS);
                 }
-        var_dump($user_ids);
-        var_dump($users);
-        echo "</pre>";
                 if ($users) {
-        echo "5";
                     foreach ($users as $user) {
-        echo "($user)";
                         self::makeUserDisplayName($user);
                         $results[$user->id] = $user;
                     }
                 }
             } else {
                 // single user id
-                $user = get_record('user', 'id', $user_ids);
+                $user = get_record('user', 'id', $user_ids, '', '', '', '', self::USER_FIELDS);
                 self::makeUserDisplayName($user);
                 $results = $user;
             }
