@@ -1010,15 +1010,138 @@ format.
     }
 
     public static function decode_registration($xml) {
-        // FIXME
-        throw new InvalidArgumentException("Not implemented - XML invalid");
-        // return $clicker_registration;
+        /*
+<Register>
+<S DisplayName="DisplayName-azeckoski-123456" FirstName="First" LastName="Lastazeckoski-123456" 
+    StudentID="eid-azeckoski-123456" Email="azeckoski-123456@email.com" URL="http://sakaiproject.org"; ClickerID="11111111"></S>
+</Register>
+         */
+        if (!xml) {
+            throw new InvalidArgumentException("xml must be set");
+        }
+        // read the xml (try to anyway)
+        $doc = new DOMDocument();
+        $doc->preserveWhiteSpace = false;
+        if (! $doc->loadXML($xml, LIBXML_NOWARNING) ) {
+            throw new Exception("XML read and parse failure: $xml");
+        }
+        $doc->normalizeDocument();
+        $clicker_reg = new stdClass();
+        try {
+            $users = $doc->getElementsByTagName("S");
+            if ($users->length <= 0) {
+                throw new InvalidArgumentException("Invalid XML, no S element");
+            }
+            $user_node = $users->item(0);
+            if ($user_node->nodeType == XML_ELEMENT_NODE) {
+                $clicker_id = $user_node->getAttribute("ClickerID");
+                if (! $clicker_id) {
+                    throw new InvalidArgumentException("Invalid XML for registration, no id in the ClickerID element (Cannot process)");
+                }
+                $user_id = $user_node->getAttribute("StudentID"); // this is the userId
+                if (! $user_id) {
+                    throw new InvalidArgumentException("Invalid XML for registration, no id in the StudentID element (Cannot process)");
+                }
+                $clicker_reg->clicker_id = $clicker_id;
+                $clicker_reg->user_id = $user_id;
+                $clicker_reg->user_display_name = $user_node->getAttribute("DisplayName");
+            } else {
+                throw new InvalidArgumentException("Invalid user node in XML: $user_node");
+            }
+        } catch (Exception $e) {
+            throw new Exception("XML DOM parsing failure: $e :: $xml");
+        }
+        return $clicker_reg;
     }
     
     public static function decode_grade_item($xml) {
-        // FIXME
-        throw new InvalidArgumentException("Not implemented - XML invalid");
-        // return new stdClass();
+        /*
+<coursegradebook courseid="BFW61">
+  <user id="lm_student01" usertype="S">
+    <lineitem name="06/02/2009" pointspossible="50" type="iclicker polling scores" score="0"/>
+  </user>
+  <user id="lm_student02" usertype="S">
+    <lineitem name="06/02/2009" pointspossible="50" type="iclicker polling scores" score="0"/>
+  </user>
+</coursegradebook>
+         */
+        if (!xml) {
+            throw new InvalidArgumentException("xml must be set");
+        }
+        // read the xml (try to anyway)
+        $doc = new DOMDocument();
+        $doc->preserveWhiteSpace = false;
+        if (! $doc->loadXML($xml, LIBXML_NOWARNING) ) {
+            throw new Exception("XML read and parse failure: $xml");
+        }
+        $doc->normalizeDocument();
+        $grade_item = new stdClass();
+        try {
+            // get the course id from the root attribute
+            $course_id = $doc->documentElement->getAttribute("courseid");
+            if (! $course_id) {
+                throw new InvalidArgumentException("Invalid XML, no courseid in the root xml element");
+            }
+            $users = $doc->getElementsByTagName("user");
+            if ($users->length <= 0) {
+                throw new InvalidArgumentException("Invalid XML, no user elements found");
+            }
+            $grade_item->course_id = $course_id;
+            foreach ($users as $user_node) {
+                if ($user_node->nodeType == XML_ELEMENT_NODE) {
+                    $user_type = $user_node->getAttribute("usertype");
+                    if (! strcasecmp('s', $user_type)) {
+                        continue; // skip this one
+                    }
+                    // valid user to process
+                    $user_id = $user_node->getAttribute("id"); // this is the userId
+                    if (! $user_id) {
+                        //log.warn("Invalid XML for user, no id in the user element (skipping this entry): " + user);
+                        continue;
+                    }
+                    $lineitems = $user_node->getElementsByTagName("lineitem");
+                    foreach ($lineitems as $lineitem) {
+                        $li_name = $lineitem->getAttribute("name");
+                        if (! $li_name) {
+                            throw new InvalidArgumentException("Invalid XML, no name in the lineitem xml element: $lineitem");
+                        }
+                        if (! isset($grade_item->points_possible)) {
+                            // only read the points possible from the first item
+                            $li_type = $lineitem->getAttribute("type");
+                            $li_pp = 100.0;
+                            $lipptext = $lineitem->getAttribute("pointspossible");
+                            if (isset($lipptext) && $lipptext != '') {
+                                if (! is_numeric($lipptext)) {
+                                    //log.warn("Invalid points possible ("+liPPText+"), using default of "+liPointsPossible+": " + lineitem + ": " + e);
+                                } else {
+                                    $li_pp = floatval($lipptext);
+                                }
+                            }
+                            $grade_item->name = $li_name;
+                            $grade_item->points_possible = $li_pp;
+                            $grade_item->type = $li_type;
+                            $grade_item->scores = array();
+                        }
+                        $li_score = $lineitem->getAttribute("score");
+                        if (! isset($li_score) || '' == $li_score) {
+                            //log.warn("Invalid score ("+liScore+"), skipping this entry: " + lineitem);
+                            continue;
+                        }
+                        // add in the score
+                        $score = new stdClass();
+                        $score->item_name = $grade_item->name;
+                        $score->user_id = $user_id;
+                        $score->score = $li_score;
+                        $grade_item->scores[] = $score;
+                    }
+                } else {
+                    throw new InvalidArgumentException("Invalid user node in XML: $user_node");
+                }
+            }
+        } catch (Exception $e) {
+            throw new Exception("XML DOM parsing failure: $e :: $xml");
+        }
+        return $grade_item;
     }
     
     public static function decode_ws_xml($xml) {
