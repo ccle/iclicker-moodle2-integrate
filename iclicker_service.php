@@ -222,7 +222,7 @@ class iclicker_service {
     /**
      * Get user records for a set of user ids
      * @param array $user_ids an array of user ids OR a single user_id
-     * @return a map of user_id -> user data (empty if no matches)
+     * @return a map of user_id -> user data OR single user object for single user_id OR empty array if no matches
      */
     public static function get_users($user_ids) {
         $results = array(
@@ -240,9 +240,7 @@ class iclicker_service {
                 // single user id
                 $user = get_record('user', 'id', $user_ids);
                 self::makeUserDisplayName($user);
-                if ($user) {
-                    $results[$user->id] = $user;
-                }
+                $results = $user;
             }
         }
         return $results;
@@ -778,25 +776,144 @@ class iclicker_service {
     // DATA ENCODING METHODS
     
     public static function encode_registration($clicker_registration) {
-        // FIXME
-        return '<xml/>';
+        if (! $clicker_registration) {
+            throw new InvalidArgumentException("clicker_registration must be set");
+        }
+        $user_id = $clicker_registration->owner_id;
+        $user = self::get_users($user_id);
+        if (! $user) {
+            throw new InvalidArgumentException("Invalid user id ($user_id) for clicker reg ($clicker_registration->clicker_id)");
+        }
+        $encoded = '<Register>'.PHP_EOL;
+        $encoded .= '  <S DisplayName="';
+        $encoded .= self::encode_for_xml($user->name);
+        $encoded .= '" FirstName="';
+        $encoded .= self::encode_for_xml($user->firstname);
+        $encoded .= '" LastName="';
+        $encoded .= self::encode_for_xml($user->lastname);
+        $encoded .= '" StudentID="';
+        $encoded .= self::encode_for_xml(strtoupper($user->username));
+        $encoded .= '" Email="';
+        $encoded .= self::encode_for_xml($user->email);
+        $encoded .= '" URL="';
+        $encoded .= self::encode_for_xml(self::$domain_URL);
+        $encoded .= '" ClickerID="';
+        $encoded .= strtoupper($clicker_registration->clicker_id);
+        $encoded .= '" Enabled="';
+        $encoded .= $clicker_registration->activated ? 'True' : 'False';
+        $encoded .= '"></S>'.PHP_EOL;
+        // close out
+        $encoded .= '</Register>'.PHP_EOL;
+        return $encoded;
     }
     
     public static function encode_registration_result($registrations, $status, $message) {
-        // FIXME
-        return '<xml/>';
+        if (! $registrations) {
+            throw new InvalidArgumentException("registrations must be set");
+        }
+        if (! isset($status)) {
+            throw new InvalidArgumentException("status must be set");
+        }
+        /* SAMPLE
+1) When clicker is already registered to some one else - the same
+message should be returned that is displayed in the plug-in in xml
+format
+<RetStatus Status="False" Message=""/>
+
+2) When clicker is already registered to the same user - the same
+message should be returned that is displayed in the plug-in in xml
+format.
+<RetStatus Status="False" Message=""/>
+
+3) When studentid is not found in the CMS
+<RetStatus Status="False" Message="Student not found in the CMS"/>
+
+4) Successful registration - 
+<RetStatus Status="True" Message="..."/>
+         */
+        $encoded = '<RetStatus Status="'.($status ? 'True' : 'False').'" Message="'.self::encode_for_xml($message).'" />';
+        return $encoded;
     }
     
-    public static function encode_courses($instructor_id, $courses) {
-        // FIXME
-        return '<xml/>';
+    public static function encode_courses($instructor_id) {
+        if (! isset($instructor_id)) {
+            throw new InvalidArgumentException("instructor_id must be set");
+        }
+        $instructor = self::get_users($instructor_id);
+        if (! $instructor) {
+            throw new InvalidArgumentException("Invalid instructor user id ($instructor_id)");
+        }
+        $courses = self::get_courses_for_instructor($instructor_id);
+        if (! $courses) {
+            throw new SecurityException("No courses found, only instructors can access instructor courses listings");
+        }
+        $encoded = '<coursemembership username="';
+        $encoded .= self::encode_for_xml($instructor->username);
+        $encoded .= '">'.PHP_EOL;
+        // loop through courses
+        foreach ($courses as $course) {
+            $encoded .= '  <course id="'.$course->id.'" name="';
+            $encoded .= self::encode_for_xml($course->fullname);
+            $encoded .= '" usertype="I" />'.PHP_EOL;
+        }
+        // close out
+        $encoded .= '</coursemembership>'.PHP_EOL;
+        return $encoded;
     }
     
     public static function encode_enrollments($course_id) {
-        // FIXME
-        return '<xml/>';
+        if (! isset($course_id)) {
+            throw new InvalidArgumentException("course_id must be set");
+        }
+        $course = self::get_course($course_id);
+        if (! $course) {
+            throw new InvalidArgumentException("No course found with course_id ($course_id)");
+        }
+        $students = self::get_students_for_course_with_regs($course_id);
+        // @todo the students may be an empty set
+        $encoded = '<courseenrollment courseid="'.$course->id.'">'.PHP_EOL;
+        // loop through students
+        foreach ($students as $student) {
+            // get the clicker data out first if there is any
+            $cids_dates = self::make_clicker_ids_and_dates($student->clickers);
+            // now make the actual user data line
+            $encoded .= '  <user id="'.$student->id.'" usertype="S" firstname="';
+            $encoded .= self::encode_for_xml($student->firstname ? $student->firstname : '');
+            $encoded .= '" lastname="';
+            $encoded .= self::encode_for_xml($student->lastname ? $student->lastname : '');
+            $encoded .= '" emailid="';
+            $encoded .= self::encode_for_xml($student->email ? $student->email : '');
+            $encoded .= '" uniqueid="';
+            $encoded .= self::encode_for_xml($student->username);
+            $encoded .= '" clickerid="';
+            $encoded .= self::encode_for_xml( $cids_dates['clickerid'] );
+            $encoded .= '" whenadded="';
+            $encoded .= self::encode_for_xml( $cids_dates['whenadded'] );
+            $encoded .= '" />'.PHP_EOL;
+        }
+        // close out
+        $encoded .= '</courseenrollment>'.PHP_EOL;
+        return $encoded;
     }
-    
+
+    private static function make_clicker_ids_and_dates($clicker_regs) {
+        $clickerIds = '';
+        $clickerAddedDates = '';
+        if ($clicker_regs && !empty($clicker_regs)) {
+            $count = 0;
+            foreach ($clicker_regs as $reg) {
+                if ($count > 0) {
+                    $clickerIds .= ',';
+                    $clickerAddedDates .= ',';
+                }
+                $clickerIds .= $reg->clicker_id;
+                $clickerAddedDates .= date('M/d/Y', $reg->timecreated);
+                $count++;
+            }
+        }
+        return array('clickerid' => $clickerIds, 'whenadded' => $clickerAddedDates);
+    }
+
     public static function encode_grade_item_results($course_id, $results) {
         // FIXME
         return '<xml/>';
@@ -819,6 +936,10 @@ class iclicker_service {
         throw new InvalidArgumentException("Not implemented - XML invalid");
         // new stdClass();
         // array( $clicker_registration )
+    }
+
+    public static function encode_for_xml($value) {
+        return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
     }
     
     /**

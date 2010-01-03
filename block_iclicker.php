@@ -103,7 +103,7 @@ class block_iclicker extends block_base {
             $this->content->text .= "  ".$reg_link."\n";
             // also show the list of currently registered clickers
             $clicker_list_html = '';
-            if ($clickers = iclicker_service::get_registrations_by_user()) {
+            if ($clickers = iclicker_service::get_registrations_by_user(NULL, TRUE)) {
                 $clicker_list_html .= "  <ul class='iclicker_clickerids'>\n";
                 foreach ($clickers as $clicker) {
                     $clicker_list_html .= "    <li class='iclicker_clickerid'>$clicker->clicker_id</li>\n";
@@ -116,7 +116,7 @@ class block_iclicker extends block_base {
                 $link = '<a href="'.iclicker_service::block_url('admin.php').'">'.iclicker_service::msg('admin.title').'</a>';
                 $this->content->text .= "  ".$link."\n";
                 // FIXME remove inst link after testing complete
-                $link = '<a href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('inst.title').'</a>';
+                $link = '<b><i>TODO remove inst link</i></b> <a href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('inst.title').'</a>';
                 $this->content->text .= "  ".$link."\n";
             } else if (iclicker_service::is_instructor()) {
                 $link = '<a href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('instructor.title').'</a>';

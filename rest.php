@@ -126,11 +126,7 @@ if ($valid) {
             if ("courses" == $pathSeg0) {
                 // handle retrieving the list of courses for an instructor
                 $user_id = get_and_check_current_user("access instructor courses listings");
-                $courses = iclicker_service::get_courses_for_instructor($user_id);
-                if (! $courses) {
-                    throw new SecurityException("No courses found, only instructors can access instructor courses listings");
-                }
-                $output = iclicker_service::encode_courses($user_id, $courses);
+                $output = iclicker_service::encode_courses($user_id);
 
             } else if ("students" == $pathSeg0) {
                 // handle retrieval of the list of students
