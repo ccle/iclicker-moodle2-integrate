@@ -104,6 +104,12 @@ class iclicker_service {
      * 'Basic ' + base64(username + ":" + password)
      */
     const NATIONAL_WS_BASIC_AUTH_HEADER = "Basic aWNsaWNrZXJfZ2JzeW5jX3JlZzojOGQ3NjA4ZTFlN2Y0QA==";
+    // errors constants
+    const SCORE_UPDATE_ERRORS = 'ScoreUpdateErrors';
+    const POINTS_POSSIBLE_UPDATE_ERRORS = 'PointsPossibleUpdateErrors';
+    const USER_DOES_NOT_EXIST_ERROR = 'UserDoesNotExistError';
+    const GENERAL_ERRORS = 'GeneralErrors';
+    const SCORE_KEY = '${SCORE}';
     
     // CLASS VARIABLES
     
@@ -747,32 +753,6 @@ class iclicker_service {
         );
     }
     
-    // NATIONAL WEBSERVICES
-    
-    public static function ws_sync_clicker($clicker_registration) {
-        // FIXME
-        return array(
-        );
-    }
-    
-    public static function ws_get_students() {
-        // FIXME
-        return array(
-        );
-    }
-    
-    public static function ws_get_student($user_name) {
-        // FIXME
-        return array(
-        );
-    }
-    
-    public static function ws_save_clicker($user_name) {
-        // FIXME
-        return array(
-        );
-    }
-    
     // DATA ENCODING METHODS
     
     public static function encode_registration($clicker_registration) {
@@ -870,26 +850,28 @@ format.
             throw new InvalidArgumentException("No course found with course_id ($course_id)");
         }
         $students = self::get_students_for_course_with_regs($course_id);
-        // @todo the students may be an empty set
         $encoded = '<courseenrollment courseid="'.$course->id.'">'.PHP_EOL;
-        // loop through students
-        foreach ($students as $student) {
-            // get the clicker data out first if there is any
-            $cids_dates = self::make_clicker_ids_and_dates($student->clickers);
-            // now make the actual user data line
-            $encoded .= '  <user id="'.$student->id.'" usertype="S" firstname="';
-            $encoded .= self::encode_for_xml($student->firstname ? $student->firstname : '');
-            $encoded .= '" lastname="';
-            $encoded .= self::encode_for_xml($student->lastname ? $student->lastname : '');
-            $encoded .= '" emailid="';
-            $encoded .= self::encode_for_xml($student->email ? $student->email : '');
-            $encoded .= '" uniqueid="';
-            $encoded .= self::encode_for_xml($student->username);
-            $encoded .= '" clickerid="';
-            $encoded .= self::encode_for_xml( $cids_dates['clickerid'] );
-            $encoded .= '" whenadded="';
-            $encoded .= self::encode_for_xml( $cids_dates['whenadded'] );
-            $encoded .= '" />'.PHP_EOL;
+        // the students may be an empty set
+        if ($students) {
+            // loop through students
+            foreach ($students as $student) {
+                // get the clicker data out first if there is any
+                $cids_dates = self::make_clicker_ids_and_dates($student->clickers);
+                // now make the actual user data line
+                $encoded .= '  <user id="'.$student->id.'" usertype="S" firstname="';
+                $encoded .= self::encode_for_xml($student->firstname ? $student->firstname : '');
+                $encoded .= '" lastname="';
+                $encoded .= self::encode_for_xml($student->lastname ? $student->lastname : '');
+                $encoded .= '" emailid="';
+                $encoded .= self::encode_for_xml($student->email ? $student->email : '');
+                $encoded .= '" uniqueid="';
+                $encoded .= self::encode_for_xml($student->username);
+                $encoded .= '" clickerid="';
+                $encoded .= self::encode_for_xml( $cids_dates['clickerid'] );
+                $encoded .= '" whenadded="';
+                $encoded .= self::encode_for_xml( $cids_dates['whenadded'] );
+                $encoded .= '" />'.PHP_EOL;
+            }
         }
         // close out
         $encoded .= '</courseenrollment>'.PHP_EOL;
@@ -897,28 +879,136 @@ format.
     }
 
     private static function make_clicker_ids_and_dates($clicker_regs) {
-        $clickerIds = '';
-        $clickerAddedDates = '';
+        $clicker_ids = '';
+        $clicker_added_dates = '';
         if ($clicker_regs && !empty($clicker_regs)) {
             $count = 0;
             foreach ($clicker_regs as $reg) {
                 if ($count > 0) {
-                    $clickerIds .= ',';
-                    $clickerAddedDates .= ',';
+                    $clicker_ids .= ',';
+                    $clicker_added_dates .= ',';
                 }
-                $clickerIds .= $reg->clicker_id;
-                $clickerAddedDates .= date('M/d/Y', $reg->timecreated);
+                $clicker_ids .= $reg->clicker_id;
+                $clicker_added_dates .= date('M/d/Y', $reg->timecreated);
                 $count++;
             }
         }
-        return array('clickerid' => $clickerIds, 'whenadded' => $clickerAddedDates);
+        return array('clickerid' => $clicker_ids, 'whenadded' => $clicker_added_dates);
     }
 
-    public static function encode_grade_item_results($course_id, $results) {
-        // FIXME
-        return '<xml/>';
+    public static function encode_grade_item_results($course_id, $result_items) {
+        if (! isset($course_id)) {
+            throw new InvalidArgumentException("course_id must be set");
+        }
+        $course = self::get_course($course_id);
+        if (! $course) {
+            throw new InvalidArgumentException("No course found with course_id ($course_id)");
+        }
+        // check for any errors
+        $has_errors = false;
+        foreach ($result_items as $item) {
+            if (isset($item->score_errors) && !empty($item->score_errors)) {
+                $has_errors = true;
+                break;
+            }
+        }
+        /* SAMPLE
+<errors courseid="BFW61">
+  <Userdoesnotexisterrors>
+    <user id="student03" />
+  </Userdoesnotexisterrors>
+  <Scoreupdateerrors>
+    <user id="student02">
+      <lineitem name="Decsample" pointspossible="0" type="Text" score="9" />
+    </user>
+  </Scoreupdateerrors>
+  <PointsPossibleupdateerrors>
+    <user id="6367a431-557c-4869-88a7-229c2398f6ec">
+      <lineitem name="CMSIntTEST01" pointspossible="50" type="iclicker polling scores" score="70" />
+    </user>
+  </PointsPossibleupdateerrors>
+  <Scoreupdateerrors>
+    <user id="iclicker_student01">
+      <lineitem name="Mac-integrate-2" pointspossible="31" type="092509Mac" score="13"/>
+    </user>
+  </Scoreupdateerrors>
+  <Generalerrors>
+    <user id="student02" error="CODE">
+      <lineitem name="itemName" pointspossible="35" score="XX" error="CODE" />
+    </user>
+  </Generalerrors>
+</errors>
+         */
+        $output = null;
+        if ($has_errors) {
+            $lineitems = self::make_lineitems($result_items);
+            $invalid_user_ids = array();
+
+            $encoded = '<errors courseId="'.$course_id.'">'.PHP_EOL;
+            // loop through items and errors and generate errors xml blocks
+            $error_items = array();
+            foreach ($result_items as $item) {
+                if (isset($item->score_errors) && !empty($item->score_errors)) {
+                    foreach ($item->scores as $score) {
+                        if ($score->error) {
+                            $lineitem = $lineitems[$item->id];
+                            if (self::USER_DOES_NOT_EXIST_ERROR == $score->error) {
+                                $key = self::USER_DOES_NOT_EXIST_ERROR;
+                                if (! array_key_exists($score->user_id, $invalid_user_ids)) {
+                                    // only if the invalid user is not already listed in the errors
+                                    $error_items[$key] .= '    <user id="'.$score->user_id.'" />'.PHP_EOL;
+                                    $invalid_user_ids[$score->user_id] = $score->user_id;
+                                }
+                            } else if (self::POINTS_POSSIBLE_UPDATE_ERRORS == $score->error) {
+                                $key = self::POINTS_POSSIBLE_UPDATE_ERRORS;
+                                $li = str_replace(self::SCORE_KEY, $score->grade, $lineitem);
+                                $error_items[$key] .= '    <user id="'.$score->user_id.'">'.PHP_EOL.'      '.$li.PHP_EOL.'    </user>'.PHP_EOL;
+                            } else if (self::SCORE_UPDATE_ERRORS == $score->error) {
+                                $key = self::SCORE_UPDATE_ERRORS;
+                                $li = str_replace(self::SCORE_KEY, $score->grade, $lineitem);
+                                $error_items[$key] .= '    <user id="'.$score->user_id.'">'.PHP_EOL.'      '.$li.PHP_EOL.'    </user>'.PHP_EOL;
+                            } else {
+                                // general error
+                                $key = self::GENERAL_ERRORS;
+                                $li = str_replace(self::SCORE_KEY, $score->grade, $lineitem);
+                                $error_items[$key] .= '    <user id="'.$score->user_id.'" error="'.$score->error.'">'.PHP_EOL.
+                                                      '      <error type="'.$score->error.'" />'.PHP_EOL.
+                                                      '      '.$li.PHP_EOL.
+                                                      '    </user>'.PHP_EOL;
+                            }
+                        }
+                    }
+                }
+            }
+            // loop through error items and dump to the output
+            if (array_key_exists(self::USER_DOES_NOT_EXIST_ERROR, $error_items)) {
+                $encoded .= '  <Userdoesnotexisterrors>'.PHP_EOL.$error_items[self::USER_DOES_NOT_EXIST_ERROR].'  </Userdoesnotexisterrors>'.PHP_EOL;
+            }
+            if (array_key_exists(self::POINTS_POSSIBLE_UPDATE_ERRORS, $error_items)) {
+                $encoded .= '  <PointsPossibleupdateerrors>'.PHP_EOL.$error_items[self::POINTS_POSSIBLE_UPDATE_ERRORS].'  </PointsPossibleupdateerrors>'.PHP_EOL;
+            }
+            if (array_key_exists(self::SCORE_UPDATE_ERRORS, $error_items)) {
+                $encoded .= '  <Scoreupdateerrors>'.PHP_EOL.$error_items[self::SCORE_UPDATE_ERRORS].'  </Scoreupdateerrors>'.PHP_EOL;
+            }
+            if (array_key_exists(self::GENERAL_ERRORS, $error_items)) {
+                $encoded .= '  <Generalerrors>'.PHP_EOL.$error_items[self::GENERAL_ERRORS].'  </Generalerrors>'.PHP_EOL;
+            }
+            // close out
+            $encoded .= '</errors>'.PHP_EOL;
+            $output = $encoded;
+        }
+        return $output;
     }
-    
+
+    private static function make_lineitems($items) {
+        $lineitems = array();
+        foreach ($items as $item) {
+            $li = '<lineitem name="'.self::escape_for_xml($item->itemname).'" pointspossible="'.$item->grademax.'" type="'.$item->itemtype.'" score="'.self::SCORE_KEY.'"/>';
+            $lineitems[$item->id] = $li;
+        }
+        return $lineitems;
+    }
+
     public static function decode_registration($xml) {
         // FIXME
         throw new InvalidArgumentException("Not implemented - XML invalid");
@@ -938,8 +1028,45 @@ format.
         // array( $clicker_registration )
     }
 
-    public static function encode_for_xml($value) {
-        return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+    
+    // NATIONAL WEBSERVICES
+    
+    public static function ws_sync_clicker($clicker_registration) {
+        // FIXME
+        return array(
+        );
+    }
+    
+    public static function ws_get_students() {
+        // FIXME
+        return array(
+        );
+    }
+    
+    public static function ws_get_student($user_name) {
+        // FIXME
+        return array(
+        );
+    }
+    
+    public static function ws_save_clicker($user_name) {
+        // FIXME
+        return array(
+        );
+    }
+
+    // XML support functions
+
+    /**
+     * encodes a string for inclusion in an xml document
+     * @param string $value the value to encode
+     * @return the value with xml chars encoded and replaced
+     */
+    private static function encode_for_xml($value) {
+        if ($value) {
+            return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+        }
+        return '';
     }
     
     /**
@@ -955,7 +1082,7 @@ format.
      *
      * @return an array which contains the elements from the xml input
      */
-    public static function xml2array($xml, $get_attributes = 1, $priority = 'tag') {
+    private static function xml2array($xml, $get_attributes = 1, $priority = 'tag') {
         $contents = $xml;
         if (!function_exists('xml_parser_create')) {
             return array(
