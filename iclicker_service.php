@@ -1217,8 +1217,8 @@ format.
                         if (! isset($student_id) || '' == $student_id) {
                             throw new InvalidArgumentException("Invalid XML for registration, no id in the StudentID element (Cannot process)");
                         }
-                        $student_id = strtolower($student_id);
-                        $user = self::get_users($student_id);
+                        $student_id = strtolower($student_id); // username
+                        $user = self::get_user_by_username($student_id);
                         if (! $user) {
                             //log.warn("Cannot identify user (id="+studentId+") in the national webservices feed, skipping this user");
                             continue;
@@ -1248,7 +1248,8 @@ format.
                                     }
                                     $clicker_reg = new stdClass();
                                     $clicker_reg->clicker_id = $clicker_id;
-                                    $clicker_reg->user_id = $user_id;
+                                    $clicker_reg->owner_id = $user_id;
+                                    $clicker_reg->user_username = $student_id;
                                     $clicker_reg->timecreated = $date_created;
                                     $clicker_reg->date_created = $date_created;
                                     $clicker_reg->activated = $activated;

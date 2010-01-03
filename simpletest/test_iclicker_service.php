@@ -236,16 +236,29 @@ XML;
 XML;
         $result = iclicker_service::decode_grade_item($xml);
         $this->assertNotNull($result);
+        // @todo
 
         $xml = <<<XML
 <StudentRoster>
     <S StudentID="student01" FirstName="student01" LastName="student01" URL="https://www.iclicker.com/" CourseName="">
-        <Registration ClickerId="12CE32EE" WhenAdded="2009-01-27" Enabled="True" />
+        <Registration ClickerId="11111111" WhenAdded="2009-01-27" Enabled="True" />
+        <Registration ClickerId="22222222" WhenAdded="2009-01-27" Enabled="True" />
     </S>
 </StudentRoster>
 XML;
         $result = iclicker_service::decode_ws_xml($xml);
         $this->assertNotNull($result);
+        $this->assertTrue(is_array($result));
+        $this->assertEqual(count($result), 2);
+        $this->assertNotNull($result[0]);
+        $this->assertNotNull($result[0]->clicker_id);
+        $this->assertNotNull($result[0]->owner_id);
+        $this->assertNotNull($result[0]->timecreated);
+        $this->assertNotNull($result[0]->activated);
+        $this->assertEqual($result[0]->clicker_id, '11111111');
+        $this->assertEqual($result[0]->user_username, 'student01');
+        $this->assertEqual($result[0]->timecreated, 1233014400);
+        $this->assertEqual($result[0]->activated, true);
 
     }
 
