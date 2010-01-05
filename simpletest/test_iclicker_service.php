@@ -227,16 +227,28 @@ XML;
         $xml = <<<XML
 <coursegradebook courseid="BFW61">
   <user id="student01" usertype="S">
-    <lineitem name="06/02/2009" pointspossible="50" type="iclicker polling scores" score="0"/>
+    <lineitem name="05/05/2009" pointspossible="100" type="iclicker polling scores" score="100"/>
+    <lineitem name="06/06/2009" pointspossible="50" type="iclicker polling scores" score="50"/>
   </user>
   <user id="student02" usertype="S">
-    <lineitem name="06/02/2009" pointspossible="50" type="iclicker polling scores" score="0"/>
+    <lineitem name="06/06/2009" pointspossible="50" type="iclicker polling scores" score="30"/>
+    <lineitem name="07/07/2009" pointspossible="100" type="iclicker polling scores" score="80"/>
   </user>
 </coursegradebook>
 XML;
-        $result = iclicker_service::decode_grade_item($xml);
+        $result = iclicker_service::decode_gradebook($xml);
         $this->assertNotNull($result);
-        // @todo
+        $this->assertNotNull($result->course_id);
+        $this->assertEqual($result->course_id, 'BFW61');
+        $this->assertNotNull($result->students);
+        $this->assertNotNull($result->items);
+        $this->assertEqual(count($result->students), 2);
+        $this->assertEqual(count($result->items), 3);
+        $this->assertNotNull($result->students[101]);
+        $this->assertNotNull($result->students[102]);
+        $this->assertNotNull($result->items['05/05/2009']);
+        $this->assertNotNull($result->items['06/06/2009']);
+        $this->assertNotNull($result->items['07/07/2009']);
 
         $xml = <<<XML
 <StudentRoster>
@@ -259,6 +271,31 @@ XML;
         $this->assertEqual($result[0]->user_username, 'student01');
         $this->assertEqual($result[0]->timecreated, 1233014400);
         $this->assertEqual($result[0]->activated, true);
+
+        // no good way to test this right now
+        //$result = iclicker_service::encode_courses($instructor_id);
+        //$result = iclicker_service::encode_enrollments($course_id)
+        //$result = iclicker_service::encode_gradebook_results($course_id, $result_items);
+
+        $clicker_registration = new stdClass();
+        $clicker_registration->owner_id = 101;
+        $clicker_registration->clicker_id = '12345678';
+        $clicker_registration->activated = true;
+        $result = iclicker_service::encode_registration($clicker_registration);
+        $this->assertNotNull($result);
+        $this->assertTrue(stripos($result, 'student01') > 0);
+        $this->assertTrue(stripos($result, '12345678') > 0);
+        $this->assertTrue(stripos($result, 'True') > 0);
+
+        $registrations = array($clicker_registration);
+        $result = iclicker_service::encode_registration_result($registrations, true, 'hello');
+        $this->assertNotNull($result);
+        $this->assertTrue(stripos($result, 'True') > 0);
+        $this->assertTrue(stripos($result, 'hello') > 0);
+        $result = iclicker_service::encode_registration_result($registrations, false, 'failed');
+        $this->assertNotNull($result);
+        $this->assertTrue(stripos($result, 'False') > 0);
+        $this->assertTrue(stripos($result, 'failed') > 0);
 
     }
 

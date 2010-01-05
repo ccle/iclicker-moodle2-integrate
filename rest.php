@@ -156,11 +156,11 @@ if ($valid) {
                 get_and_check_current_user("upload grades into the gradebook");
                 $xml = $cntlr->body;
                 try {
-                    $grade_item = iclicker_service::decode_grade_item($xml);
+                    $gradebook = iclicker_service::decode_gradebook($xml);
                     // process gradebook data
-                    $results = iclicker_service::save_grade_item($grade_item);
+                    $results = iclicker_service::save_gradebook($gradebook);
                     // generate the output
-                    $output = iclicker_service::encode_grade_item_results($course_id, $results);
+                    $output = iclicker_service::encode_gradebook_results($course_id, $results);
                     if (! $output) {
                         // special RETURN, non-XML, no failures in save
                         $cntlr->setStatus(200);

@@ -126,10 +126,13 @@ class iclicker_gradebook_test extends UnitTestCase {
 
         $grade_item->courseid = $this->courseid;
         $grade_item->categoryid = $grade_category->id;
-        $grade_item->itemname = $this->item_name;
+        $grade_item->idnumber = $this->item_name; // lookup
+        $grade_item->itemname = $this->item_name; // display
         $grade_item->itemtype = 'blocks';
-        $grade_item->itemmodule = 'simplehtml';
-        $grade_item->iteminfo = 'blocks/simplehtml for unit testing';
+        $grade_item->itemmodule = 'iclicker';
+        $grade_item->iteminfo = 'blocks/iclicker for unit testing';
+        // grademax=100, grademin=0
+        $grade_item->grademax = 100.0;
 
         $grade_item->insert($location_str);
 

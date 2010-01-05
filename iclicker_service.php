@@ -250,12 +250,36 @@ class iclicker_service {
             $user = get_record('user', 'username', $username, '', '', '', '', self::USER_FIELDS);
             // TESTING handling
             if (self::$test_mode && !$user) {
-                $user = new stdClass();
-                $user->id = 100;
-                $user->username = $username;
-                $user->firstname = 'Student';
-                $user->lastname = 'One';
-                $user->email = 'one@fail.com';
+                // test users
+                if ($username == 'student01') {
+                    $user = new stdClass();
+                    $user->id = 101;
+                    $user->username = 'student01';
+                    $user->firstname = 'Student';
+                    $user->lastname = 'One';
+                    $user->email = 'one@fail.com';
+                } else if ($username == 'student02') {
+                    $user = new stdClass();
+                    $user->id = 102;
+                    $user->username = 'student02';
+                    $user->firstname = 'Student';
+                    $user->lastname = 'Two';
+                    $user->email = 'two@fail.com';
+                } else if ($username == 'student03') {
+                    $user = new stdClass();
+                    $user->id = 103;
+                    $user->username = 'student03';
+                    $user->firstname = 'Student';
+                    $user->lastname = 'Three';
+                    $user->email = 'three@fail.com';
+                } else if ($username == 'inst01') {
+                    $user = new stdClass();
+                    $user->id = 111;
+                    $user->username = 'inst01';
+                    $user->firstname = 'Instructor';
+                    $user->lastname = 'One';
+                    $user->email = 'uno_inst@fail.com';
+                }
             }
         }
         return $user;
@@ -287,12 +311,35 @@ class iclicker_service {
                 $user = get_record('user', 'id', $user_ids, '', '', '', '', self::USER_FIELDS);
                 // TESTING handling
                 if (self::$test_mode && !$user) {
-                    $user = new stdClass();
-                    $user->id = $user_ids;
-                    $user->username = 'student01';
-                    $user->firstname = 'Student';
-                    $user->lastname = 'One';
-                    $user->email = 'one@fail.com';
+                    if ($user_ids == 101) {
+                        $user = new stdClass();
+                        $user->id = 101;
+                        $user->username = 'student01';
+                        $user->firstname = 'Student';
+                        $user->lastname = 'One';
+                        $user->email = 'one@fail.com';
+                    } else if ($user_ids == 102) {
+                        $user = new stdClass();
+                        $user->id = 102;
+                        $user->username = 'student02';
+                        $user->firstname = 'Student';
+                        $user->lastname = 'Two';
+                        $user->email = 'two@fail.com';
+                    } else if ($user_ids == 103) {
+                        $user = new stdClass();
+                        $user->id = 103;
+                        $user->username = 'student03';
+                        $user->firstname = 'Student';
+                        $user->lastname = 'Three';
+                        $user->email = 'three@fail.com';
+                    } else if ($user_ids == 111) {
+                        $user = new stdClass();
+                        $user->id = 111;
+                        $user->username = 'inst01';
+                        $user->firstname = 'Instructor';
+                        $user->lastname = 'One';
+                        $user->email = 'uno_inst@fail.com';
+                    }
                 }
                 if ($user) {
                     self::makeUserDisplayName($user);
@@ -803,6 +850,12 @@ class iclicker_service {
         return array(
         );
     }
+
+    public static function save_gradebook($gradebook) {
+        // FIXME
+        return array(
+        );
+    }
     
     // DATA ENCODING METHODS
     
@@ -947,7 +1000,7 @@ format.
         return array('clickerid' => $clicker_ids, 'whenadded' => $clicker_added_dates);
     }
 
-    public static function encode_grade_item_results($course_id, $result_items) {
+    public static function encode_gradebook_results($course_id, $result_items) {
         if (! isset($course_id)) {
             throw new InvalidArgumentException("course_id must be set");
         }
@@ -1060,6 +1113,13 @@ format.
         return $lineitems;
     }
 
+    /**
+     * This will handle the initial parsing of an XML string into a DOM document
+     * @param string $xml the xml string
+     * @return DOMDocument object
+     * @throws InvalidArgumentException if the xml is not set
+     * @throws DOMException if the document fails to parse
+     */
     private static function parse_xml_to_doc($xml) {
         if (!$xml) {
             throw new InvalidArgumentException("xml must be set");
@@ -1117,7 +1177,7 @@ format.
         return $clicker_reg;
     }
     
-    public static function decode_grade_item($xml) {
+    public static function decode_gradebook($xml) {
         /*
 <coursegradebook courseid="BFW61">
   <user id="lm_student01" usertype="S">
@@ -1129,7 +1189,9 @@ format.
 </coursegradebook>
          */
         $doc = self::parse_xml_to_doc($xml);
-        $grade_item = new stdClass();
+        $gradebook = new stdClass();
+        $gradebook->students = array();
+        $gradebook->items = array();
         try {
             // get the course id from the root attribute
             $course_id = $doc->documentElement->getAttribute("courseid");
@@ -1140,27 +1202,34 @@ format.
             if ($users->length <= 0) {
                 throw new InvalidArgumentException("Invalid XML, no user elements found");
             }
-            $grade_item->course_id = $course_id;
+            $gradebook->course_id = $course_id;
             foreach ($users as $user_node) {
                 if ($user_node->nodeType == XML_ELEMENT_NODE) {
                     $user_type = $user_node->getAttribute("usertype");
-                    if (! strcasecmp('s', $user_type)) {
+                    if (strcasecmp('s', $user_type) != 0) {
                         continue; // skip this one
                     }
                     // valid user to process
-                    $user_id = $user_node->getAttribute("id"); // this is the userId
-                    if (! $user_id) {
+                    $username = $user_node->getAttribute("id"); // this is the username
+                    if (! $username) {
                         //log.warn("Invalid XML for user, no id in the user element (skipping this entry): " + user);
+                        echo "DOH!!";
                         continue;
                     }
+                    $user = self::get_user_by_username($username);
+                    if (! $user) {
+                        throw new InvalidArgumentException("Invalid username for student ($username), could not find user (Cannot process)");
+                    }
+                    $user_id = $user->id;
+                    $gradebook->students[$user_id] = $user;
                     $lineitems = $user_node->getElementsByTagName("lineitem");
                     foreach ($lineitems as $lineitem) {
                         $li_name = $lineitem->getAttribute("name");
                         if (! $li_name) {
                             throw new InvalidArgumentException("Invalid XML, no name in the lineitem xml element: $lineitem");
                         }
-                        if (! isset($grade_item->points_possible)) {
-                            // only read the points possible from the first item
+                        if (! isset($gradebook->items[$li_name])) {
+                            // only add lineitem from the first item
                             $li_type = $lineitem->getAttribute("type");
                             $li_pp = 100.0;
                             $lipptext = $lineitem->getAttribute("pointspossible");
@@ -1175,6 +1244,7 @@ format.
                             $grade_item->points_possible = $li_pp;
                             $grade_item->type = $li_type;
                             $grade_item->scores = array();
+                            $gradebook->items[$li_name] = $grade_item;
                         }
                         $li_score = $lineitem->getAttribute("score");
                         if (! isset($li_score) || '' == $li_score) {
@@ -1195,7 +1265,7 @@ format.
         } catch (Exception $e) {
             throw new Exception("XML DOM parsing failure: $e :: $xml");
         }
-        return $grade_item;
+        return $gradebook;
     }
     
     public static function decode_ws_xml($xml) {
