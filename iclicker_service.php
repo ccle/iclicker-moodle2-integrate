@@ -837,6 +837,14 @@ class iclicker_service {
      */
     public static function get_course($course_id) {
         $course = get_record('course', 'id', $course_id);
+        // TESTING handling
+        if (self::$test_mode && !$course) {
+            if ($course_id == '11111111') {
+                $course = new stdClass();
+                $course->id = $course_id;
+                $course->fullname = 'testing: '.$course_id;
+            }
+        }
         if (!$course) {
             $course = FALSE;
         }
@@ -872,8 +880,7 @@ class iclicker_service {
     }
 */
     
-    public static function save_grade_item($grade_item) {
-        // FIXME test and doc
+    private static function save_grade_item($grade_item) {
         if (! $grade_item) {
             throw new InvalidArgumentException("grade_item must be set");
         }
@@ -926,8 +933,10 @@ class iclicker_service {
                 'itemid' => $grade_item_id
                 )
             );
-            foreach ($existing_grades as $grade) {
-                $current_scores[$grade->userid] = $grade;
+            if ($existing_grades) {
+                foreach ($existing_grades as $grade) {
+                    $current_scores[$grade->userid] = $grade;
+                }
             }
 
             // run through the scores in the gradeitem and try to save them
@@ -944,13 +953,13 @@ class iclicker_service {
                 $user_id = $user->id;
                 // null/blank scores are not allowed
                 if (! isset($score->score)) {
-                    $score->error = "NO_SCORE_ERROR";
+                    $score->error = 'NO_SCORE_ERROR';
                     $processed_scores[] = $score;
                     $errors_count++;
                     continue;
                 }
                 if (! is_numeric($score->score)) {
-                    $score->error = "SCORE_INVALID";
+                    $score->error = 'SCORE_INVALID';
                     $processed_scores[] = $score;
                     $errors_count++;
                     continue;
@@ -971,7 +980,7 @@ class iclicker_service {
                         // check against existing score
                         if ($score->score < $grade_tosave->rawgrade) {
                             $score->error = self::SCORE_UPDATE_ERRORS;
-                            $processed_scores[] = $grade_tosave;
+                            $processed_scores[] = $score;
                             $errors_count++;
                             continue;
                         }
@@ -983,8 +992,10 @@ class iclicker_service {
                         $grade_tosave->itemid = $grade_item_id;
                         $grade_tosave->userid = $user_id;
                         $grade_tosave->rawgrade = $score->score;
+                        $grade_tosave->rawgrademax = $grade_item_pp;
                         $grade_tosave->insert(self::GRADE_LOCATION_STR);
                     }
+                    $grade_tosave->username = $score->username;
                     $processed_scores[] = $grade_tosave;
                 } catch (Exception $e) {
                     // General errors, caused while performing updates (Tag: generalerrors)
@@ -1011,17 +1022,20 @@ class iclicker_service {
         if (! $gradebook) {
             throw new InvalidArgumentException("gradebook must be set");
         }
-        if (! $gradebook->course_id) {
+        if (! isset($gradebook->course_id)) {
             throw new InvalidArgumentException("gradebook->course_id must be set");
         }
-        if (! $gradebook->items) {
-            throw new InvalidArgumentException("gradebook->items must be set");
+        if (! isset($gradebook->items) || !$gradebook->items) {
+            throw new InvalidArgumentException("gradebook->items must be set and include items");
         }
+        $gb_saved = new stdClass();
+        $gb_saved->items = array();
+        $gb_saved->course_id = $gradebook->course_id;
         $course = self::get_course($gradebook->course_id);
         if (! $course) {
             throw new InvalidArgumentException("No course found with course_id ($gradebook->course_id)");
         }
-        $gradebook->course = $course;
+        $gb_saved->course = $course;
 
         // attempt to get the iclicker category first or create it if needed
         $iclicker_category = grade_category::fetch(array(
@@ -1041,20 +1055,20 @@ class iclicker_service {
         } else {
             $iclicker_category_id = $iclicker_category->id;
         }
-        $gradebook->category_id = $iclicker_category_id;
+        $gb_saved->category_id = $iclicker_category_id;
 
         // iterate through and save grade items by calling other method
         if (! empty($gradebook->items)) {
             $saved_items = array();
             foreach ($gradebook->items as $grade_item) {
                 $grade_item->categoryid = $iclicker_category_id;
-                $grade_item->courseid = $gradebook->course_id;
+                $grade_item->courseid = $gb_saved->course_id;
                 $saved_grade_item = self::save_grade_item($grade_item);
                 $saved_items[] = $saved_grade_item;
             }
-            $gradebook->items = $saved_items;
+            $gb_saved->items = $saved_items;
         }
-        return $gradebook;
+        return $gb_saved;
     }
     
     // DATA ENCODING METHODS
