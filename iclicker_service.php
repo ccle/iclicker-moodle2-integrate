@@ -107,6 +107,10 @@ class iclicker_service {
     const BLOCK_PATH = '/blocks/iclicker';
     const REG_TABLENAME = 'iclicker_registration';
     const REG_ORDER = 'timecreated desc';
+    const GRADE_CATEGORY_NAME = 'i>clicker';
+    const GRADE_ITEM_TYPE = 'blocks';
+    const GRADE_ITEM_MODULE = 'iclicker';
+    const GRADE_LOCATION_STR = 'manual';
     const DEFAULT_SYNC_HOUR = 3;
     const DEFAULT_SERVER_URL = "http://moodle.org/"; // "http://epicurus.learningmate.com/";
     const NATIONAL_WS_URL = "https://webservices.iclicker.com/iclicker_gbsync_registrations/service.asmx";
@@ -838,23 +842,219 @@ class iclicker_service {
         }
         return $course;
     }
-    
-    public static function get_course_grade_item($course_id, $grade_item_id) {
-        // FIXME
-        return array(
+
+/* Not needed right now
+    public static function get_course_grade_item($course_id, $grade_item_name) {
+        if (! $course_id) {
+            throw new InvalidArgumentException("course_id must be set");
+        }
+        if (! $grade_item_name) {
+            throw new InvalidArgumentException("grade_item_name must be set");
+        }
+        $grade_item_fetched = false;
+        $iclicker_category = grade_category::fetch(array(
+            'courseid' => $course_id,
+            'fullname' => self::GRADE_CATEGORY_NAME
+            )
         );
+        if ($iclicker_category) {
+            $grade_item_fetched = grade_item::fetch(array(
+                'courseid' => $course_id,
+                'categoryid' => $iclicker_category->id,
+                'itemname' => $grade_item_name
+                )
+            );
+            if (! $grade_item_fetched) {
+                $grade_item_fetched = false;
+            }
+        }
+        return $grade_item_fetched;
     }
+*/
     
     public static function save_grade_item($grade_item) {
-        // FIXME
-        return array(
+        // FIXME test and doc
+        if (! $grade_item) {
+            throw new InvalidArgumentException("grade_item must be set");
+        }
+        if (! $grade_item->courseid) {
+            throw new InvalidArgumentException("grade_item->courseid must be set");
+        }
+        if (! $grade_item->categoryid) {
+            throw new InvalidArgumentException("grade_item->categoryid must be set");
+        }
+        if (! $grade_item->name) {
+            throw new InvalidArgumentException("grade_item->name must be set");
+        }
+
+        // check for an existing item and update or create
+        $grade_item_tosave = grade_item::fetch(array(
+            'courseid' => $grade_item->courseid,
+            'categoryid' => $grade_item->categoryid,
+            'itemname' => $grade_item->name
+            )
         );
+        if (! $grade_item_tosave) {
+            // create new one
+            $grade_item_tosave = new grade_item();
+            $grade_item_tosave->courseid = $grade_item->courseid;
+            $grade_item_tosave->categoryid = $grade_item->categoryid;
+            $grade_item_tosave->idnumber = $grade_item->name;
+            $grade_item_tosave->itemname = $grade_item->name;
+            $grade_item_tosave->itemtype = self::GRADE_ITEM_TYPE;
+            $grade_item_tosave->itemmodule = self::GRADE_ITEM_MODULE;
+            $grade_item_tosave->iteminfo = $grade_item->name.' '.$grade_item->type.' '.self::GRADE_CATEGORY_NAME;
+            if (isset($grade_item->points_possible) && $grade_item->points_possible > 0) {
+                $grade_item_tosave->grademax = $grade_item->points_possible;
+            }
+            $grade_item_tosave->insert(self::GRADE_LOCATION_STR);
+        } else {
+            // update
+            if (isset($grade_item->points_possible) && $grade_item->points_possible > 0) {
+                $grade_item_tosave->grademax = $grade_item->points_possible;
+            }
+            $grade_item_tosave->update(self::GRADE_LOCATION_STR);
+        }
+        $grade_item_id = $grade_item_tosave->id;
+        $grade_item_pp = $grade_item_tosave->grademax;
+
+        // now save the related scores
+        if (isset($grade_item->scores) && !empty($grade_item->scores)) {
+            // get the existing scores
+            $current_scores = array();
+            $existing_grades = grade_grade::fetch_all(array(
+                'itemid' => $grade_item_id
+                )
+            );
+            foreach ($existing_grades as $grade) {
+                $current_scores[$grade->userid] = $grade;
+            }
+
+            // run through the scores in the gradeitem and try to save them
+            $errors_count = 0;
+            $processed_scores = array();
+            foreach ($grade_item->scores as $score) {
+                $user = self::get_user_by_username($score->username);
+                if (! $user) {
+                    $score->error = self::USER_DOES_NOT_EXIST_ERROR;
+                    $processed_scores[] = $score;
+                    $errors_count++;
+                    continue;
+                }
+                $user_id = $user->id;
+                // null/blank scores are not allowed
+                if (! isset($score->score)) {
+                    $score->error = "NO_SCORE_ERROR";
+                    $processed_scores[] = $score;
+                    $errors_count++;
+                    continue;
+                }
+                if (! is_numeric($score->score)) {
+                    $score->error = "SCORE_INVALID";
+                    $processed_scores[] = $score;
+                    $errors_count++;
+                    continue;
+                }
+                $score->score = floatval($score->score);
+                // Student Score should not be greater than the total points possible
+                if ($score->score > $grade_item_pp) {
+                    $score->error = self::POINTS_POSSIBLE_UPDATE_ERRORS;
+                    $processed_scores[] = $score;
+                    $errors_count++;
+                    continue;
+                }
+                try {
+                    $grade_tosave = NULL;
+                    if (isset($current_scores[$user_id])) {
+                        // existing score
+                        $grade_tosave = $current_scores[$user_id];
+                        // check against existing score
+                        if ($score->score < $grade_tosave->rawgrade) {
+                            $score->error = self::SCORE_UPDATE_ERRORS;
+                            $processed_scores[] = $grade_tosave;
+                            $errors_count++;
+                            continue;
+                        }
+                        $grade_tosave->rawgrade = $score->score;
+                        $grade_tosave->update(self::GRADE_LOCATION_STR);
+                    } else {
+                        // new score
+                        $grade_tosave = new grade_grade();
+                        $grade_tosave->itemid = $grade_item_id;
+                        $grade_tosave->userid = $user_id;
+                        $grade_tosave->rawgrade = $score->score;
+                        $grade_tosave->insert(self::GRADE_LOCATION_STR);
+                    }
+                    $processed_scores[] = $grade_tosave;
+                } catch (Exception $e) {
+                    // General errors, caused while performing updates (Tag: generalerrors)
+                    $score->error = self::GENERAL_ERRORS;
+                    $processed_scores[] = $score;
+                    $errors_count++;
+                }
+            }
+            $grade_item_tosave->scores = $processed_scores;
+            // put the errors in the item
+            if ($errors_count > 0) {
+                $errors = array();
+                foreach ($processed_scores as $score) {
+                    $errors[$score->username] = $score->error;
+                }
+                $grade_item_tosave->errors = $errors;
+            }
+        }
+        return $grade_item_tosave;
     }
 
     public static function save_gradebook($gradebook) {
-        // FIXME
-        return array(
+        // FIXME test and doc
+        if (! $gradebook) {
+            throw new InvalidArgumentException("gradebook must be set");
+        }
+        if (! $gradebook->course_id) {
+            throw new InvalidArgumentException("gradebook->course_id must be set");
+        }
+        if (! $gradebook->items) {
+            throw new InvalidArgumentException("gradebook->items must be set");
+        }
+        $course = self::get_course($gradebook->course_id);
+        if (! $course) {
+            throw new InvalidArgumentException("No course found with course_id ($gradebook->course_id)");
+        }
+        $gradebook->course = $course;
+
+        // attempt to get the iclicker category first or create it if needed
+        $iclicker_category = grade_category::fetch(array(
+            'courseid' => $gradebook->course_id,
+            'fullname' => self::GRADE_CATEGORY_NAME
+            )
         );
+        $iclicker_category_id = NULL;
+        if (! $iclicker_category) {
+            // create the category
+            $params = new stdClass();
+            $params->courseid = $gradebook->course_id;
+            $params->fullname = self::GRADE_CATEGORY_NAME;
+            $grade_category = new grade_category($params, false);
+            $grade_category->insert(self::GRADE_LOCATION_STR);
+            $iclicker_category_id = $grade_category->id;
+        } else {
+            $iclicker_category_id = $iclicker_category->id;
+        }
+        $gradebook->category_id = $iclicker_category_id;
+
+        // iterate through and save grade items by calling other method
+        if (! empty($gradebook->items)) {
+            $saved_items = array();
+            foreach ($gradebook->items as $grade_item) {
+                $grade_item->categoryid = $iclicker_category_id;
+                $grade_item->courseid = $gradebook->course_id;
+                $saved_grade_item = self::save_grade_item($grade_item);
+                $saved_items[] = $saved_grade_item;
+            }
+            $gradebook->items = $saved_items;
+        }
+        return $gradebook;
     }
     
     // DATA ENCODING METHODS
@@ -1213,15 +1413,16 @@ format.
                     $username = $user_node->getAttribute("id"); // this is the username
                     if (! $username) {
                         //log.warn("Invalid XML for user, no id in the user element (skipping this entry): " + user);
-                        echo "DOH!!";
                         continue;
                     }
+                    /* check the username when saving
                     $user = self::get_user_by_username($username);
                     if (! $user) {
                         throw new InvalidArgumentException("Invalid username for student ($username), could not find user (Cannot process)");
                     }
                     $user_id = $user->id;
-                    $gradebook->students[$user_id] = $user;
+                    */
+                    $gradebook->students[$username] = $username;
                     $lineitems = $user_node->getElementsByTagName("lineitem");
                     foreach ($lineitems as $lineitem) {
                         $li_name = $lineitem->getAttribute("name");
@@ -1254,7 +1455,7 @@ format.
                         // add in the score
                         $score = new stdClass();
                         $score->item_name = $grade_item->name;
-                        $score->user_id = $user_id;
+                        $score->username = $username;
                         $score->score = $li_score;
                         $grade_item->scores[] = $score;
                     }

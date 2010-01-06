@@ -244,8 +244,6 @@ XML;
         $this->assertNotNull($result->items);
         $this->assertEqual(count($result->students), 2);
         $this->assertEqual(count($result->items), 3);
-        $this->assertNotNull($result->students[101]);
-        $this->assertNotNull($result->students[102]);
         $this->assertNotNull($result->items['05/05/2009']);
         $this->assertNotNull($result->items['06/06/2009']);
         $this->assertNotNull($result->items['07/07/2009']);
