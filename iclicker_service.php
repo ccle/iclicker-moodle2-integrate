@@ -893,6 +893,9 @@ class iclicker_service {
         if (! $grade_item->name) {
             throw new InvalidArgumentException("grade_item->name must be set");
         }
+        if (! isset($grade_item->item_number)) {
+            $grade_item->item_number = 0;
+        }
 
         // check for an existing item and update or create
         $grade_item_tosave = grade_item::fetch(array(
@@ -906,10 +909,11 @@ class iclicker_service {
             $grade_item_tosave = new grade_item();
             $grade_item_tosave->courseid = $grade_item->courseid;
             $grade_item_tosave->categoryid = $grade_item->categoryid;
-            $grade_item_tosave->idnumber = $grade_item->name;
+            $grade_item_tosave->itemnumber = $grade_item->item_number;
+            //$grade_item_tosave->idnumber = $grade_item->name;
             $grade_item_tosave->itemname = $grade_item->name;
             $grade_item_tosave->itemtype = self::GRADE_ITEM_TYPE;
-            $grade_item_tosave->itemmodule = self::GRADE_ITEM_MODULE;
+            //$grade_item_tosave->itemmodule = self::GRADE_ITEM_MODULE;
             $grade_item_tosave->iteminfo = $grade_item->name.' '.$grade_item->type.' '.self::GRADE_CATEGORY_NAME;
             if (isset($grade_item->points_possible) && $grade_item->points_possible > 0) {
                 $grade_item_tosave->grademax = $grade_item->points_possible;
@@ -984,15 +988,21 @@ class iclicker_service {
                             $errors_count++;
                             continue;
                         }
+                        $grade_tosave->finalgrade = $score->score;
                         $grade_tosave->rawgrade = $score->score;
+                        $grade_tosave->timemodified = time();
                         $grade_tosave->update(self::GRADE_LOCATION_STR);
                     } else {
                         // new score
                         $grade_tosave = new grade_grade();
                         $grade_tosave->itemid = $grade_item_id;
                         $grade_tosave->userid = $user_id;
+                        $grade_tosave->finalgrade = $score->score;
                         $grade_tosave->rawgrade = $score->score;
                         $grade_tosave->rawgrademax = $grade_item_pp;
+                        $now = time();
+                        $grade_tosave->timecreated = $now;
+                        $grade_tosave->timemodified = $now;
                         $grade_tosave->insert(self::GRADE_LOCATION_STR);
                     }
                     $grade_tosave->username = $score->username;
@@ -1013,6 +1023,7 @@ class iclicker_service {
                 }
                 $grade_item_tosave->errors = $errors;
             }
+            $grade_item_tosave->force_regrading();
         }
         return $grade_item_tosave;
     }
@@ -1060,11 +1071,14 @@ class iclicker_service {
         // iterate through and save grade items by calling other method
         if (! empty($gradebook->items)) {
             $saved_items = array();
+            $number = 0;
             foreach ($gradebook->items as $grade_item) {
                 $grade_item->categoryid = $iclicker_category_id;
                 $grade_item->courseid = $gb_saved->course_id;
+                $grade_item->item_number = $number;
                 $saved_grade_item = self::save_grade_item($grade_item);
                 $saved_items[] = $saved_grade_item;
+                $number++;
             }
             $gb_saved->items = $saved_items;
         }

@@ -45,7 +45,7 @@ class iclicker_services_test extends UnitTestCase {
    	var $item_name = 'az_gradeitem';
    	var $grade_score = 91;
 
-    public function setUp() {
+    public function cleanup() {
         // cleanup any clickers before the test
         $user_id = iclicker_service::require_user();
         $results = iclicker_service::get_registrations_by_user($user_id);
@@ -73,18 +73,31 @@ class iclicker_services_test extends UnitTestCase {
                 );
                 if ($grade_items) {
                     foreach ($grade_items as $item) {
+                        $grades = grade_grade::fetch_all(array(
+                            'itemid'=>$item->id
+                            )
+                        );
+                        if ($grades) {
+                            foreach ($grades as $grade) {
+                                $grade->delete("cleanup");
+                            }
+                        }
                         $item->delete("cleanup");
                     }
                 }
                 $cat->delete("cleanup");
             }
         }
-        // put in test_mode
+    }
+
+    public function setUp() {
+        $this->cleanup();
         iclicker_service::$test_mode = true;
     }
 
     public function tearDown() {
         iclicker_service::$test_mode = false;
+        $this->cleanup();
     }
 
     function test_assert() {
@@ -371,7 +384,6 @@ XML;
         $this->assertEqual($result->items[0]->grademax, 90);
         $this->assertEqual($result->items[0]->categoryid, $result->category_id);
         $this->assertEqual($result->items[0]->courseid, $result->course_id);
-        $this->assertEqual($result->items[0]->idnumber, $test_item_name1);
         $this->assertEqual($result->items[0]->itemname, $test_item_name1);
         $this->assertNotNull($result->items[0]->scores[0]);
         $this->assertFalse(isset($result->items[0]->scores[0]->error));
@@ -411,7 +423,6 @@ XML;
         $this->assertEqual($result->items[0]->grademax, 90);
         $this->assertEqual($result->items[0]->categoryid, $result->category_id);
         $this->assertEqual($result->items[0]->courseid, $result->course_id);
-        $this->assertEqual($result->items[0]->idnumber, $test_item_name1);
         $this->assertEqual($result->items[0]->itemname, $test_item_name1);
         $this->assertNotNull($result->items[0]->scores[0]);
         $this->assertTrue(isset($result->items[0]->scores[0]->error));
@@ -453,11 +464,11 @@ XML;
         $this->assertEqual($result->items[0]->scores[1]->rawgrade, 50);
         $this->assertNotNull($result->items[0]->scores[2]);
         $this->assertEqual($result->items[0]->scores[2]->rawgrade, 0);
-
-//echo "<pre>";
-//var_export($result->items[0]);
-//echo "</pre>";
-
+/*
+echo "<pre>";
+var_export($result->items[0]);
+echo "</pre>";
+*/
     }
 
 }

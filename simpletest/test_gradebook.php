@@ -45,7 +45,7 @@ class iclicker_gradebook_test extends UnitTestCase {
 	var $grade_score = 91;
 
     public function setUp() {
-    	// cleanup the cats and gradeitems if any exist
+    	// cleanup the cats and gradeitems and grades if any exist
 		$grade_cats = grade_category::fetch_all(array(
 			'courseid'=>$this->courseid,
 			'fullname'=>$this->cat_name
@@ -61,6 +61,15 @@ class iclicker_gradebook_test extends UnitTestCase {
 				);
 				if ($grade_items) {
 					foreach ($grade_items as $item) {
+                        $grades = grade_grade::fetch_all(array(
+                            'itemid'=>$item->id
+                            )
+                        );
+                        if ($grades) {
+                            foreach ($grades as $grade) {
+                                $grade->delete("cleanup");
+                            }
+                        }
 						$item->delete("cleanup");
 					}
 				}
