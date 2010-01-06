@@ -306,7 +306,7 @@ XML;
 
         // no good way to test this right now
         //$result = iclicker_service::encode_courses($instructor_id);
-        //$result = iclicker_service::encode_enrollments($course_id)
+        //$result = iclicker_service::encode_enrollments($course_id);
         //$result = iclicker_service::encode_gradebook_results($course_id, $result_items);
 
         $clicker_registration = new stdClass();
@@ -437,6 +437,17 @@ XML;
         $this->assertTrue(isset($result->items[0]->scores[3]->error));
         $this->assertEqual($result->items[0]->scores[3]->error, 'SCORE_INVALID');
 
+        $xml = iclicker_service::encode_gradebook_results($result);
+        $this->assertNotNull($xml);
+        $this->assertTrue(stripos($xml, '<user ') > 0);
+        $this->assertTrue(stripos($xml, '<lineitem ') > 0);
+        $this->assertTrue(stripos($xml, '<error ') > 0);
+        $this->assertTrue(stripos($xml, iclicker_service::SCORE_UPDATE_ERRORS) > 0);
+        $this->assertTrue(stripos($xml, iclicker_service::USER_DOES_NOT_EXIST_ERROR) > 0);
+        $this->assertTrue(stripos($xml, iclicker_service::POINTS_POSSIBLE_UPDATE_ERRORS) > 0);
+        $this->assertTrue(stripos($xml, iclicker_service::GENERAL_ERRORS) > 0);
+        //echo "<xmp>$xml</xmp>";
+
         // Save 1 update and 2 new grades
         $score->score = 85;
         $score2->score = 50;
@@ -469,6 +480,8 @@ echo "<pre>";
 var_export($result->items[0]);
 echo "</pre>";
 */
+        $xml = iclicker_service::encode_gradebook_results($result);
+        $this->assertNull($xml);
     }
 
 }

@@ -1028,8 +1028,16 @@ class iclicker_service {
         return $grade_item_tosave;
     }
 
+    /**
+     * Saves a gradebook (a set of grade items and scores related to a course)
+     * 
+     * @param object $gradebook an object with at least course_id and items set
+     * items should contain grade_items (courseid. categoryid, name, scores)
+     * scores should contain grade_grade (username, score)
+     * @return the saved gradebook with all items and scores in the same structure,
+     * errors are recorded as grade_item->errors and score->error
+     */
     public static function save_gradebook($gradebook) {
-        // FIXME test and doc
         if (! $gradebook) {
             throw new InvalidArgumentException("gradebook must be set");
         }
@@ -1086,7 +1094,14 @@ class iclicker_service {
     }
     
     // DATA ENCODING METHODS
-    
+
+    /**
+     * Encodes a clicker registration into XML
+     * 
+     * @param object $clicker_registration fields(owner_id, clicker_id)
+     * @return the XML
+     * @throws InvalidArgumentException if the registration is invalid
+     */
     public static function encode_registration($clicker_registration) {
         if (! $clicker_registration) {
             throw new InvalidArgumentException("clicker_registration must be set");
@@ -1118,7 +1133,16 @@ class iclicker_service {
         $encoded .= '</Register>'.PHP_EOL;
         return $encoded;
     }
-    
+
+    /**
+     * Creates XML encoding of the result of a clicker registration
+     * 
+     * @param object $registrations [optional] all regs for the registering user
+     * @param boolean $status true if success, false if failure
+     * @param string $message the message to send along (typically failure message)
+     * @return the XML
+     * @throws InvalidArgumentException if the data is invalid
+     */
     public static function encode_registration_result($registrations, $status, $message) {
         if (! $registrations) {
             throw new InvalidArgumentException("registrations must be set");
@@ -1146,7 +1170,14 @@ format.
         $encoded = '<RetStatus Status="'.($status ? 'True' : 'False').'" Message="'.self::encode_for_xml($message).'" />';
         return $encoded;
     }
-    
+
+    /**
+     * Encode a set of courses which a user is an instructor for into XML
+     * 
+     * @param int $instructor_id unique user id
+     * @return the XML
+     * @throws InvalidArgumentException if the id is invalid
+     */
     public static function encode_courses($instructor_id) {
         if (! isset($instructor_id)) {
             throw new InvalidArgumentException("instructor_id must be set");
@@ -1172,7 +1203,14 @@ format.
         $encoded .= '</coursemembership>'.PHP_EOL;
         return $encoded;
     }
-    
+
+    /**
+     * Encode a set of enrollments for a course into XML
+     * 
+     * @param int $course_id unique id for a course
+     * @return the XML
+     * @throws InvalidArgumentException if the id is invalid
+     */
     public static function encode_enrollments($course_id) {
         if (! isset($course_id)) {
             throw new InvalidArgumentException("course_id must be set");
@@ -1228,18 +1266,23 @@ format.
         return array('clickerid' => $clicker_ids, 'whenadded' => $clicker_added_dates);
     }
 
-    public static function encode_gradebook_results($course_id, $result_items) {
-        if (! isset($course_id)) {
-            throw new InvalidArgumentException("course_id must be set");
+    /**
+     * Encodes the results of a gradebook save into XML
+     * 
+     * @param object $gradebook_result the result from gradebook_save
+     * @return the XML
+     * @throws InvalidArgumentException if the registration is invalid
+     */
+    public static function encode_gradebook_results($gradebook_result) {
+        if (! isset($gradebook_result->course)) {
+            throw new InvalidArgumentException("course must be set");
         }
-        $course = self::get_course($course_id);
-        if (! $course) {
-            throw new InvalidArgumentException("No course found with course_id ($course_id)");
-        }
+        $course = $gradebook_result->course;
+        $course_id = $gradebook_result->course->id;
         // check for any errors
         $has_errors = false;
-        foreach ($result_items as $item) {
-            if (isset($item->score_errors) && !empty($item->score_errors)) {
+        foreach ($gradebook_result->items as $item) {
+            if (isset($item->errors) && !empty($item->errors)) {
                 $has_errors = true;
                 break;
             }
@@ -1273,37 +1316,49 @@ format.
          */
         $output = null;
         if ($has_errors) {
-            $lineitems = self::make_lineitems($result_items);
+            $lineitems = self::make_lineitems($gradebook_result->items);
             $invalid_user_ids = array();
 
             $encoded = '<errors courseId="'.$course_id.'">'.PHP_EOL;
             // loop through items and errors and generate errors xml blocks
             $error_items = array();
-            foreach ($result_items as $item) {
-                if (isset($item->score_errors) && !empty($item->score_errors)) {
+            foreach ($gradebook_result->items as $item) {
+                if (isset($item->errors) && !empty($item->errors)) {
                     foreach ($item->scores as $score) {
                         if ($score->error) {
                             $lineitem = $lineitems[$item->id];
                             if (self::USER_DOES_NOT_EXIST_ERROR == $score->error) {
                                 $key = self::USER_DOES_NOT_EXIST_ERROR;
-                                if (! array_key_exists($score->user_id, $invalid_user_ids)) {
+                                if (! array_key_exists($score->username, $invalid_user_ids)) {
                                     // only if the invalid user is not already listed in the errors
-                                    $error_items[$key] .= '    <user id="'.$score->user_id.'" />'.PHP_EOL;
-                                    $invalid_user_ids[$score->user_id] = $score->user_id;
+                                    if (!isset($error_items[$key])) {
+                                        $error_items[$key] = '';
+                                    }
+                                    $error_items[$key] .= '    <user id="'.$score->username.'" />'.PHP_EOL;
+                                    $invalid_user_ids[$score->username] = $score->username;
                                 }
                             } else if (self::POINTS_POSSIBLE_UPDATE_ERRORS == $score->error) {
                                 $key = self::POINTS_POSSIBLE_UPDATE_ERRORS;
-                                $li = str_replace(self::SCORE_KEY, $score->grade, $lineitem);
-                                $error_items[$key] .= '    <user id="'.$score->user_id.'">'.PHP_EOL.'      '.$li.PHP_EOL.'    </user>'.PHP_EOL;
+                                $li = str_replace(self::SCORE_KEY, $score->score, $lineitem);
+                                if (!isset($error_items[$key])) {
+                                    $error_items[$key] = '';
+                                }
+                                $error_items[$key] .= '    <user id="'.$score->username.'">'.PHP_EOL.'      '.$li.PHP_EOL.'    </user>'.PHP_EOL;
                             } else if (self::SCORE_UPDATE_ERRORS == $score->error) {
                                 $key = self::SCORE_UPDATE_ERRORS;
-                                $li = str_replace(self::SCORE_KEY, $score->grade, $lineitem);
-                                $error_items[$key] .= '    <user id="'.$score->user_id.'">'.PHP_EOL.'      '.$li.PHP_EOL.'    </user>'.PHP_EOL;
+                                $li = str_replace(self::SCORE_KEY, $score->score, $lineitem);
+                                if (!isset($error_items[$key])) {
+                                    $error_items[$key] = '';
+                                }
+                                $error_items[$key] .= '    <user id="'.$score->username.'">'.PHP_EOL.'      '.$li.PHP_EOL.'    </user>'.PHP_EOL;
                             } else {
                                 // general error
                                 $key = self::GENERAL_ERRORS;
-                                $li = str_replace(self::SCORE_KEY, $score->grade, $lineitem);
-                                $error_items[$key] .= '    <user id="'.$score->user_id.'" error="'.$score->error.'">'.PHP_EOL.
+                                $li = str_replace(self::SCORE_KEY, $score->score, $lineitem);
+                                if (!isset($error_items[$key])) {
+                                    $error_items[$key] = '';
+                                }
+                                $error_items[$key] .= '    <user id="'.$score->username.'" error="'.$score->error.'">'.PHP_EOL.
                                                       '      <error type="'.$score->error.'" />'.PHP_EOL.
                                                       '      '.$li.PHP_EOL.
                                                       '    </user>'.PHP_EOL;
@@ -1335,7 +1390,7 @@ format.
     private static function make_lineitems($items) {
         $lineitems = array();
         foreach ($items as $item) {
-            $li = '<lineitem name="'.self::escape_for_xml($item->itemname).'" pointspossible="'.$item->grademax.'" type="'.$item->itemtype.'" score="'.self::SCORE_KEY.'"/>';
+            $li = '<lineitem name="'.self::encode_for_xml($item->itemname).'" pointspossible="'.$item->grademax.'" type="'.$item->itemtype.'" score="'.self::SCORE_KEY.'"/>';
             $lineitems[$item->id] = $li;
         }
         return $lineitems;
