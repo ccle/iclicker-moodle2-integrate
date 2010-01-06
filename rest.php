@@ -160,7 +160,7 @@ if ($valid) {
                     // process gradebook data
                     $results = iclicker_service::save_gradebook($gradebook);
                     // generate the output
-                    $output = iclicker_service::encode_gradebook_results($course_id, $results);
+                    $output = iclicker_service::encode_gradebook_results($results);
                     if (! $output) {
                         // special RETURN, non-XML, no failures in save
                         $cntlr->setStatus(200);
