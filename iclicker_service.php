@@ -1401,7 +1401,7 @@ format.
      * @param string $xml the xml string
      * @return DOMDocument object
      * @throws InvalidArgumentException if the xml is not set
-     * @throws DOMException if the document fails to parse
+     * @throws DOMException if the xml fails to parse
      */
     private static function parse_xml_to_doc($xml) {
         if (!$xml) {
@@ -1419,6 +1419,14 @@ format.
         return $doc;
     }
 
+    /**
+     * Translate incoming XML into a clicker registration,
+     * will figure out the user and get necessary data
+     * 
+     * @param string $xml the xml
+     * @return the clicker_registration object
+     * @throws InvalidArgumentException if the xml cannot be parsed
+     */
     public static function decode_registration($xml) {
         /*
 <Register>
@@ -1459,7 +1467,14 @@ format.
         }
         return $clicker_reg;
     }
-    
+
+    /**
+     * Decodes XML into a gradebook object
+     * 
+     * @param string $xml the xml
+     * @return the gradebook object
+     * @throws InvalidArgumentException if the xml cannot be parsed or the data is invalid
+     */
     public static function decode_gradebook($xml) {
         /*
 <coursegradebook courseid="BFW61">
@@ -1551,7 +1566,14 @@ format.
         }
         return $gradebook;
     }
-    
+
+    /**
+     * Decodes the webservices xml into an array of clicker registration objects
+     * 
+     * @param string $xml the xml from an iclicker webservice
+     * @return array (clicker_registration object)
+     * @throws InvalidArgumentException if the xml cannot be parsed or the data is invalid
+     */
     public static function decode_ws_xml($xml) {
         /*
 <StudentRoster>
@@ -1631,6 +1653,103 @@ format.
     
     public static function ws_sync_clicker($clicker_registration) {
         // FIXME
+        return array(
+        );
+    }
+    
+    public static function ws_sync_all() {
+        // FIXME
+
+        $local_regs_l = self::get_all_registrations(); //list
+        $xml = self::ws_get_students();
+        $national_regs_l = self::decode_ws_xml($xml); //list
+        // put these into mapped lists so they can be more easily worked with and handled
+        $local_regs = array();
+        if ($local_regs_l) {
+            foreach ($local_regs_l as $reg) {
+                $id = $reg->owner_id.':'.$reg->clicker_id;
+                $local_regs[$id] = $reg;
+            }
+        }
+        $national_regs = array();
+        if ($national_regs_l) {
+            foreach ($national_regs_l as $reg) {
+                $id = $reg->owner_id.':'.$reg->clicker_id;
+                $national_regs[$id] = $reg;
+            }
+        }
+
+        // create maps and sets of local and remote regs
+        // both contains the items that exist in both sets, only contains items from one set only
+/*        $national_regsOnly = new HashSet<ClickerRegistration>($national_regs); //set
+        $national_regsBoth = new HashSet<ClickerRegistration>($national_regs); //set
+        $local_regsOnly = new HashSet<ClickerRegistration>($local_regs); //set
+        $local_regsBoth = new HashSet<ClickerRegistration>($local_regs); //set
+
+        // make the only sets contains the right stuff
+/*        $local_regsOnly.removeAll($national_regsBoth);
+        $national_regsOnly.removeAll($local_regsBoth);
+
+        // make the both sets contain the right stuff
+/*        $local_regsBoth.removeAll($local_regsOnly);
+        $national_regsBoth.removeAll($national_regsOnly);
+        HashMap<String, ClickerRegistration> $national_regsBothMap = new HashMap<String, ClickerRegistration>();
+        for (ClickerRegistration cr : $national_regsBoth) {
+            $national_regsBothMap.put(cr.getKey(), cr);
+        }
+
+/*        for (ClickerRegistration localCR : $local_regsBoth) {
+            // update if needed or just continue (push local or national or neither)
+            ClickerRegistration nationalCR = $national_regsBothMap.get(localCR.getKey());
+            if (nationalCR != null) {
+                // compare these for diffs
+                if (localCR.isActivated() != nationalCR.isActivated()) {
+                    try {
+                        nationalCR.setActivated(localCR.isActivated());
+                        pushRegistrationToNational(nationalCR);
+                    } catch (RuntimeException e) {
+                        // this is ok, we will continue anyway
+                        String msg = "Failed during national activate push all sync while syncing i>clicker registration ("+nationalCR+"): " + e;
+                        sendNotification(msg, e);
+                        //log.warn(msg);
+                    }
+                }
+            }
+            this.incrementCompleted();
+        }
+
+/*        for (ClickerRegistration cr : $national_regsOnly) {
+            // push to local
+            try {
+                ClickerRegistration newRegistration = new ClickerRegistration(cr.getClickerId(), cr.getOwnerId());
+                newRegistration.setActivated(cr.isActivated());
+                newRegistration.setNational(true);
+                saveItem(newRegistration);
+            } catch (RuntimeException e) {
+                // this is ok, we will continue anyway
+                String msg = "Failed during local push all sync while syncing i>clicker registration ("+cr+"): " + e;
+                sendNotification(msg, e);
+                //log.warn(msg);
+            }
+            this.incrementCompleted();
+        }
+
+/*        for (ClickerRegistration cr : $local_regsOnly) {
+            // push to national
+            try {
+                ClickerRegistration newRegistration = new ClickerRegistration(cr.getClickerId(), cr.getOwnerId());
+                newRegistration.setActivated(cr.isActivated());
+                pushRegistrationToNational(cr);
+            } catch (RuntimeException e) {
+                // this is ok, we will continue anyway
+                String msg = "Failed during national push all sync while syncing i>clicker registration ("+cr+"): " + e;
+                sendNotification(msg, e);
+                //log.warn(msg);
+            }
+            this.incrementCompleted();
+        }
+        //log.info("Completed syncing "+total+" i>clicker registrations to ("+$local_regsOnly.size()+") and from ("+$national_regsOnly.size()+") national");
+/*
         return array(
         );
     }
