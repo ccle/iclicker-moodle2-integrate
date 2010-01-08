@@ -1749,7 +1749,7 @@ format.
             this.incrementCompleted();
         }
         //log.info("Completed syncing "+total+" i>clicker registrations to ("+$local_regsOnly.size()+") and from ("+$national_regsOnly.size()+") national");
-/*
+*/
         return array(
         );
     }
