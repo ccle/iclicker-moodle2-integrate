@@ -491,12 +491,14 @@ echo "</pre>";
         $clicker_reg = new stdClass();
         $clicker_reg->owner_id = '101'; // student01
         $clicker_reg->clicker_id = '11111111';
+// NOTE: disable this to avoid putting test data into the real domain of systems
+/*
         $result = iclicker_service::ws_save_clicker($clicker_reg);
         $this->assertNotNull($result);
+*/
 
         $result = iclicker_service::ws_get_student('student01');
         $this->assertNotNull($result);
-
     }
 
 }
