@@ -25,6 +25,7 @@ global $CFG,$USER,$COURSE;
 require_once ($CFG->libdir.'/gradelib.php');
 require_once ($CFG->libdir.'/dmllib.php');
 require_once ($CFG->libdir.'/accesslib.php');
+require_once ($CFG->libdir.'/soap/nusoap.php');
 
 /**
  * For XML error handling
@@ -97,6 +98,9 @@ class ClickerRegisteredException extends Exception {
 class SecurityException extends Exception {
 }
 
+class WebservicesException extends Exception {
+}
+
 /**
  * This holds all the service logic for the iclicker integrate plugin
  */
@@ -118,7 +122,9 @@ class iclicker_service {
      * iclicker_gbsync_reg / #8d7608e1e7f4@
      * 'Basic ' + base64(username + ":" + password)
      */
-    const NATIONAL_WS_BASIC_AUTH_HEADER = "Basic aWNsaWNrZXJfZ2JzeW5jX3JlZzojOGQ3NjA4ZTFlN2Y0QA==";
+    const NATIONAL_WS_BASIC_AUTH_HEADER = 'Basic aWNsaWNrZXJfZ2JzeW5jX3JlZzojOGQ3NjA4ZTFlN2Y0QA==';
+    const NATIONAL_WS_AUTH_USERNAME = 'iclicker_gbsync_reg';
+    const NATIONAL_WS_AUTH_PASSWORD = '#8d7608e1e7f4@';
     // errors constants
     const SCORE_UPDATE_ERRORS = 'ScoreUpdateErrors';
     const POINTS_POSSIBLE_UPDATE_ERRORS = 'PointsPossibleUpdateErrors';
@@ -1111,6 +1117,9 @@ class iclicker_service {
         if (! $user) {
             throw new InvalidArgumentException("Invalid user id ($user_id) for clicker reg ($clicker_registration->clicker_id)");
         }
+        if (!isset($clicker_registration->activated)) {
+            $clicker_registration->activated = true;
+        }
         $encoded = '<Register>'.PHP_EOL;
         $encoded .= '  <S DisplayName="';
         $encoded .= self::encode_for_xml($user->name);
@@ -1753,24 +1762,113 @@ format.
         return array(
         );
     }
-    
+
+    /**
+     * Calls to the national webservices and gets all the student clicker registrations for the current domain
+     * @return array of clicker registration objects
+     */
     public static function ws_get_students() {
-        // FIXME
-        return array(
-        );
+        $ws_operation = 'StudentsReport';
+        $ws_domain_url = self::$domain_URL; // 'http://epicurus.learningmate.com/';
+        $ws_soap_envelope = '<StudentsReport xmlns="http://www.iclicker.com/"> <pVarUrl>'.$ws_domain_url.'</pVarUrl> </StudentsReport>';
+        $result = self::ws_soap_call($ws_operation, $ws_soap_envelope);
+        $xml = $result['StudentsReportResult'];
+        $regs = self::decode_ws_xml($xml);
+        return $regs;
     }
-    
+
+    /**
+     * Calls to the national webservices to get the clicker registrations for a specific student in this domain
+     * @param string $user_name the username (not user id) for a student in this domain
+     * @return array of clicker registration objects
+     */    
     public static function ws_get_student($user_name) {
-        // FIXME
-        return array(
-        );
+        $ws_operation = 'SingleStudentReport';
+        $ws_domain_url = self::$domain_URL; // 'http://epicurus.learningmate.com/';
+        $ws_soap_envelope = '<SingleStudentReport xmlns="http://www.iclicker.com/"> <pVarUrl>'.$ws_domain_url.'</pVarUrl> <pVarStudentId>'.$user_name.'</pVarStudentId> </SingleStudentReport>';
+        $result = self::ws_soap_call($ws_operation, $ws_soap_envelope);
+        $xml = $result['SingleStudentReportResult'];
+        $regs = self::decode_ws_xml($xml);
+        return $regs;
     }
-    
-    public static function ws_save_clicker($user_name) {
-        // FIXME
-        return array(
-        );
+
+    /**
+     * Register a new clicker with the national webservices server for this domain,
+     * will return the set of all registrations for the user who registered the clicker
+     * @param object $clicker_reg a clicker registration object, fields(owner_id, clicker_id)
+     * @return array of clicker registration objects
+     */    
+    public static function ws_save_clicker($clicker_reg) {
+        $ws_operation = 'RegisterStudent';
+        $reg_xml = self::encode_for_xml(self::encode_registration($clicker_reg));
+        $ws_soap_envelope = '<RegisterStudent xmlns="http://www.iclicker.com/"> <pVarRegXml>'.$reg_xml.'</pVarRegXml> </RegisterStudent>';
+        $result = self::ws_soap_call($ws_operation, $ws_soap_envelope);
+        $xml = $result['RegisterStudentResult'];
+        $regs = self::decode_ws_xml($xml);
+        return $regs;
     }
+
+    /**
+     * Handles the soap call to the national webservices server
+     * @param string $ws_operation the operation to perform (e.g. 'StudentsReport')
+     * @param string $ws_soap_envelope the soap envelope to send
+     * @return the results of the SOAP call (array(string))
+     * @throws WebservicesException if the call fails
+     */
+    private static function ws_soap_call($ws_operation, $ws_soap_envelope) {
+/* won't work with .NET webservices
+        $connection = soap_connect(self::NATIONAL_WS_URL);
+        if (is_a($connection, 'SoapFault')) {
+            throw new WebservicesException('Failure in SOAP connect: '.$connection);
+        }
+        $call = 'StudentsReport';
+        $params = array();
+        $result = soap_call($connection, $call, $params);
+*/
+        $soap_client = new soap_client(self::NATIONAL_WS_URL, false);
+        $err = $soap_client->getError();
+        if ($err) {
+            echo '<h2>SOAP constructor error:</h2><pre>' . $err . '</pre>';
+            throw new WebservicesException('SOAP constructor error: '. $err);
+        }
+        $soap_client->setCredentials(self::NATIONAL_WS_AUTH_USERNAME, self::NATIONAL_WS_AUTH_PASSWORD, 'basic');
+        $soap_client->soap_defencoding = 'UTF-8';
+        $soap_client->operation = $ws_operation;
+/* won't work with .NET webservices
+        $soap_client->setDefaultRpcParams(true);
+        $header_action = new soapval('SOAPAction', 'string', 'http://www.iclicker.com/StudentsReport');
+        $header_content_type = new soapval('Content-Type', 'string', 'text/xml; charset=utf-8');
+        $soap_client->setHeaders(array($header_content_type, $header_action));
+        $params = array('pVarUrl' => 'http://epicurus.learningmate.com/'); // $webservices_URL); // 'http://epicurus.learningmate.com/');
+        $result = $soap_client->call('StudentsReport', $params, 'http://www.iclicker.com/', 'http://www.iclicker.com/StudentsReport');
+*/
+        $soap_msg = $soap_client->serializeEnvelope($ws_soap_envelope);
+        $result = $soap_client->send($soap_msg, 'http://www.iclicker.com/'.$ws_operation);
+        if ($soap_client->fault) {
+            // check for fault
+            echo '<h2>SOAP Fault</h2><xmp>';
+            var_export($result);
+            echo '</xmp>';
+            throw new WebservicesException('SOAP fault: '. $result);
+        } else {
+            // Check for errors
+            $err = $soap_client->getError();
+            if ($err) {
+                // Display the error
+                echo '<h2>SOAP Error</h2><pre>' . $err . '</pre>';
+                throw new WebservicesException('SOAP error: '. $err);
+            }
+        }
+/*
+        echo "<xmp>";
+        var_export($result);
+        var_export($soap_client);
+        echo "</xmp>";
+*/
+        unset($soap_client);
+        return $result;
+    }
+
 
     // XML support functions
 

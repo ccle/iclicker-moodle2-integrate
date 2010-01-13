@@ -484,5 +484,20 @@ echo "</pre>";
         $this->assertNull($xml);
     }
 
+    function test_save_ws() {
+        $result = iclicker_service::ws_get_students();
+        $this->assertNotNull($result);
+
+        $clicker_reg = new stdClass();
+        $clicker_reg->owner_id = '101'; // student01
+        $clicker_reg->clicker_id = '11111111';
+        $result = iclicker_service::ws_save_clicker($clicker_reg);
+        $this->assertNotNull($result);
+
+        $result = iclicker_service::ws_get_student('student01');
+        $this->assertNotNull($result);
+
+    }
+
 }
 ?>
