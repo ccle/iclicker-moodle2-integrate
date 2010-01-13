@@ -1670,8 +1670,7 @@ format.
         // FIXME
 
         $local_regs_l = self::get_all_registrations(); //list
-        $xml = self::ws_get_students();
-        $national_regs_l = self::decode_ws_xml($xml); //list
+        $national_regs_l = self::ws_get_students();
         // put these into mapped lists so they can be more easily worked with and handled
         $local_regs = array();
         if ($local_regs_l) {
