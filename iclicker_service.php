@@ -1675,40 +1675,43 @@ format.
         $local_regs = array();
         if ($local_regs_l) {
             foreach ($local_regs_l as $reg) {
-                $id = $reg->owner_id.':'.$reg->clicker_id;
+                $id = self::make_reg_key($reg);
                 $local_regs[$id] = $reg;
             }
         }
         $national_regs = array();
         if ($national_regs_l) {
             foreach ($national_regs_l as $reg) {
-                $id = $reg->owner_id.':'.$reg->clicker_id;
+                $id = self::make_reg_key($reg);
                 $national_regs[$id] = $reg;
             }
         }
 
         // create maps and sets of local and remote regs
         // both contains the items that exist in both sets, only contains items from one set only
-/*        $national_regsOnly = new HashSet<ClickerRegistration>($national_regs); //set
-        $national_regsBoth = new HashSet<ClickerRegistration>($national_regs); //set
-        $local_regsOnly = new HashSet<ClickerRegistration>($local_regs); //set
-        $local_regsBoth = new HashSet<ClickerRegistration>($local_regs); //set
+        $national_regs_only = $national_regs; //set
+        $national_regs_both = $national_regs; //set
+        $local_regs_only = $local_regs; //set
+        $local_regs_both = $local_regs; //set
 
         // make the only sets contains the right stuff
-/*        $local_regsOnly.removeAll($national_regsBoth);
-        $national_regsOnly.removeAll($local_regsBoth);
+        array_intersect_key();
+        array_diff_key();
+
+/*        $local_regs_only.removeAll($national_regs_both);
+        $national_regs_only.removeAll($local_regs_both);
 
         // make the both sets contain the right stuff
-/*        $local_regsBoth.removeAll($local_regsOnly);
-        $national_regsBoth.removeAll($national_regsOnly);
-        HashMap<String, ClickerRegistration> $national_regsBothMap = new HashMap<String, ClickerRegistration>();
-        for (ClickerRegistration cr : $national_regsBoth) {
-            $national_regsBothMap.put(cr.getKey(), cr);
+/*        $local_regs_both.removeAll($local_regs_only);
+        $national_regs_both.removeAll($national_regs_only);
+        HashMap<String, ClickerRegistration> $national_regs_both_map = new HashMap<String, ClickerRegistration>();
+        for (ClickerRegistration cr : $national_regs_both) {
+            $national_regs_both_map.put(cr.getKey(), cr);
         }
 
-/*        for (ClickerRegistration localCR : $local_regsBoth) {
+/*        for (ClickerRegistration localCR : $local_regs_both) {
             // update if needed or just continue (push local or national or neither)
-            ClickerRegistration nationalCR = $national_regsBothMap.get(localCR.getKey());
+            ClickerRegistration nationalCR = $national_regs_both_map.get(localCR.getKey());
             if (nationalCR != null) {
                 // compare these for diffs
                 if (localCR.isActivated() != nationalCR.isActivated()) {
@@ -1726,7 +1729,7 @@ format.
             this.incrementCompleted();
         }
 
-/*        for (ClickerRegistration cr : $national_regsOnly) {
+/*        for (ClickerRegistration cr : $national_regs_only) {
             // push to local
             try {
                 ClickerRegistration newRegistration = new ClickerRegistration(cr.getClickerId(), cr.getOwnerId());
@@ -1742,7 +1745,7 @@ format.
             this.incrementCompleted();
         }
 
-/*        for (ClickerRegistration cr : $local_regsOnly) {
+/*        for (ClickerRegistration cr : $local_regs_only) {
             // push to national
             try {
                 ClickerRegistration newRegistration = new ClickerRegistration(cr.getClickerId(), cr.getOwnerId());
@@ -1756,10 +1759,14 @@ format.
             }
             this.incrementCompleted();
         }
-        //log.info("Completed syncing "+total+" i>clicker registrations to ("+$local_regsOnly.size()+") and from ("+$national_regsOnly.size()+") national");
+        //log.info("Completed syncing "+total+" i>clicker registrations to ("+$local_regs_only.size()+") and from ("+$national_regs_only.size()+") national");
 */
         return array(
         );
+    }
+
+    private static function make_reg_key($reg) {
+        return $reg->owner_id.':'.$reg->clicker_id;
     }
 
     /**

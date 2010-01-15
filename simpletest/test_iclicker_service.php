@@ -100,6 +100,55 @@ class iclicker_services_test extends UnitTestCase {
         $this->cleanup();
     }
 
+    function test_arrays_subtract() {
+        // array_diff and array_diff_key are the same as a subtract when used with 2 arrays -- array_diff(A1, A2) => A1 - A2
+        $a1 = array(1,2,3,4,5);
+        $a2 = array(3,4,5,6,7);
+
+        $result = array_values(array_diff($a1, $a2));
+        $this->assertEqual(2, count($result));
+        $this->assertTrue(in_array(1, $result));
+        $this->assertTrue(in_array(2, $result));
+        $result = array_values(array_diff($a2, $a1));
+        $this->assertEqual(2, count($result));
+        $this->assertTrue(in_array(6, $result));
+        $this->assertTrue(in_array(7, $result));
+
+        $result = array_values(array_intersect($a1, $a2));
+        $this->assertEqual(3, count($result));
+        $this->assertTrue(in_array(3, $result));
+        $this->assertTrue(in_array(4, $result));
+        $this->assertTrue(in_array(5, $result));
+        $result = array_values(array_intersect($a2, $a1));
+        $this->assertEqual(3, count($result));
+        $this->assertTrue(in_array(3, $result));
+        $this->assertTrue(in_array(4, $result));
+        $this->assertTrue(in_array(5, $result));
+
+        $a1 = array('A' => 1, 'B' => 2, 'C' => 3, 'D' => 4, 'E' => 5);
+        $a2 = array('C' => 3, 'D' => 4, 'E' => 5, 'F' => 6, 'G' => 7);
+
+        $result = array_values(array_diff_key($a1, $a2));
+        $this->assertEqual(2, count($result));
+        $this->assertTrue(in_array(1, $result));
+        $this->assertTrue(in_array(2, $result));
+        $result = array_values(array_diff_key($a2, $a1));
+        $this->assertEqual(2, count($result));
+        $this->assertTrue(in_array(6, $result));
+        $this->assertTrue(in_array(7, $result));
+
+        $result = array_values(array_intersect_key($a1, $a2));
+        $this->assertEqual(3, count($result));
+        $this->assertTrue(in_array(3, $result));
+        $this->assertTrue(in_array(4, $result));
+        $this->assertTrue(in_array(5, $result));
+        $result = array_values(array_intersect_key($a2, $a1));
+        $this->assertEqual(3, count($result));
+        $this->assertTrue(in_array(3, $result));
+        $this->assertTrue(in_array(4, $result));
+        $this->assertTrue(in_array(5, $result));
+    }
+
     function test_assert() {
         $this->assertEqual("AZ", "AZ");
         $this->assertEqual(iclicker_service::$test_mode, true);
