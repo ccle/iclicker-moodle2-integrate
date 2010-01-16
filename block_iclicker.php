@@ -46,6 +46,7 @@ class block_iclicker extends block_base {
 	 */
     function init() {
         $this->title = get_string('app.iclicker', iclicker_service::BLOCK_NAME);
+        $this->cron = 3600; // in seconds
         $this->version = 2009112700;
     }
 
@@ -135,6 +136,17 @@ class block_iclicker extends block_base {
 		//$this->content->icons[] = '<img src="images/icons/1.gif" class="icon" alt="" />';
 
         return $this->content;
+    }
+
+    /**
+     * Execute this method when the cron runs
+     * @return true if success, false if failed and should be run again next time
+     */
+    function cron() {
+        global $CFG,$USER,$COURSE;
+        echo ' AAAAAAAAAAAAAAAAAAAAAAAZZZZZZZZZZZZZZZZZZZZZZZZZZZ ';
+        //mtrace('i>clicker: AAAAAAAAAAAAAAAAAAAAAAAZZZZZZZZZZZZZZZZZZZZZZZZZZZ');
+        return true;
     }
 
 	/**

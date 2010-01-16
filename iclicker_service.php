@@ -226,9 +226,9 @@ class iclicker_service {
             $body .= "\nFailure:\n".$e->message."\n\n".$e;
 
             // add to failures record and trim it
-            $this->$failures[] = date('Y-m-d h:i:s').' :: '.substr($body, 0, 300);
-            while (count($this->$failures) > 3) {
-                array_pop($this->$failures);
+            array_unshift($this->failures, date('Y-m-d h:i:s').' :: '.substr($body, 0, 300));
+            while (count($this->failures) > 3) {
+                array_pop($this->failures);
             }
         }
         if ($this->$notify_emails) {
