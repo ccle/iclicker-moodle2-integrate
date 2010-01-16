@@ -149,6 +149,8 @@ class iclicker_service {
     var $notify_emails_string = NULL;
     var $notify_emails = array(
     );
+    var $failures = array(
+    );
     
     // STATIC METHODS
     
@@ -192,10 +194,53 @@ class iclicker_service {
     public static function df($time) {
         return strftime('%Y/%m/%d', $time); //userdate($time, '%Y/%m/%d');
     }
-    
-    public static function sendEmail() {
+
+    /**
+     * Sends an email to an email address
+     * 
+     * @param string $to email address to send email to
+     * @param string $subject email subject
+     * @param string $body email body
+     * @return true if email sent, false otherwise
+     */    
+    public static function send_email($to, $subject, $body) {
         // FIXME LOW not implemented
+        // $user should be a fake user object with the email set to the correct value, $from should be NULL
         //email_to_user($user, $from, $subject, $messagetext, $messagehtml='', $attachment='', $attachname='', $usetrueaddress=true, $replyto='', $replytoname='', $wordwrapwidth=79);
+        throw new Exception('Not implemented');
+    }
+
+    /**
+     * Sends a notification to the configured email addresses in the system about a failure
+     * 
+     * @param string $message the message to send
+     * @param object $exception [optional] the optional exception to notify the admins about
+     * @return true if email sent, false otherwise
+     */
+    public static function send_notifications($message, $exception=NULL) {
+        // FIXME needs testing
+        $sent = false;
+        $body = "i>clicker Moodle integrate plugin notification (".date('d.m.Y h:i:s').")\n" + $message + "\n";
+        if ($exception != null) {
+            // get the stacktrace out
+            $body .= "\nFailure:\n".$e->message."\n\n".$e;
+
+            // add to failures record and trim it
+            $this->$failures[] = date('Y-m-d h:i:s').' :: '.substr($body, 0, 300);
+            while (count($this->$failures) > 3) {
+                array_pop($this->$failures);
+            }
+        }
+        if ($this->$notify_emails) {
+            foreach ($this->$notify_emails as $email) {
+                self::send_email($email, 'i>clicker Moodle integrate plugin notification', $body);
+            }
+            $sent = true;
+        } else {
+            // @todo log.warn("No emails set for sending notifications: logging notification: " + body);
+            $sent = false;
+        }
+        return $sent;
     }
     
     // USERS
@@ -1686,10 +1731,10 @@ format.
                     }
                 }
             } catch (Exception $e) {
-                // this is ok, we will continue anyway
+                // failed to sync with national but we do not fail, only send notification and log
                 $msg = "Failure while syncing i>clicker registration ($clicker_registration): $e";
                 $results['exception'] = $e;
-                // @todo sendNotification(msg, e);
+                self::send_notifications($msg, $e);
                 //log.warn(msg);
             }
         } else {
@@ -1739,7 +1784,7 @@ format.
                             // this is ok, we will continue anyway
                             $msg = "Failed during national activate push all sync while syncing i>clicker registration ($national_reg): $e";
                             $results['errors'][] = $key;
-                            // @todo sendNotification(msg, e);
+                            self::send_notifications($msg, $e);
                             //log.warn(msg);
                         }
                     }
@@ -1758,7 +1803,7 @@ format.
                     // this is ok, we will continue anyway
                     $msg = "Failed during local push all sync while syncing i>clicker registration ($reg): $e";
                     $results['errors'][] = $key;
-                    // @todo sendNotification(msg, e);
+                    self::send_notifications($msg, $e);
                     //log.warn(msg);
                 }
             }
@@ -1775,7 +1820,7 @@ format.
                     // this is ok, we will continue anyway
                     $msg = "Failed during national push all sync while syncing i>clicker registration ($reg): $e";
                     $results['errors'][] = $key;
-                    // @todo sendNotification(msg, e);
+                    self::send_notifications($msg, $e);
                     //log.warn(msg);
                 }
             }
