@@ -709,7 +709,7 @@ class iclicker_service {
         $registration = self::get_registration_by_clicker_id($clicker_id, $user_id);
         // NOTE: we probably want to check the national system here to see if this is already registered
         if ($registration) {
-            throw new ClickerRegisteredException($user_id, $registration->clicker_id, $registration->owner_id);
+            throw new ClickerRegisteredException('Clicker '.$registration->clicker_id.' already registered', $user_id, $registration->clicker_id, $registration->owner_id);
         } else {
             $clicker_registration = new stdClass ;
             $clicker_registration->clicker_id = $clicker_id;
@@ -750,7 +750,7 @@ class iclicker_service {
     /**
      * Saves the clicker registration data (create or update)
      * @param object $clicker_registration the registration data as an object
-     * @return the id of the saved registration
+     * @return int id of the saved registration
      */
     public static function save_registration(&$clicker_registration) {
         if (!$clicker_registration || !isset($clicker_registration->clicker_id)) {

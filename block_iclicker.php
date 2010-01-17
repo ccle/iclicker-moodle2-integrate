@@ -147,9 +147,9 @@ class block_iclicker extends block_base {
         if (!$results) {
             mtrace(' DISABLED. ');
         } else {
-            $num = count($results['errors']);
-            mtrace(' complete with '.$num.' errors. ');
-            if ($num > 0) {
+            $error_num = count($results['errors']);
+            mtrace(' completed syncing '.$results['total'].' registrations ('.$results['national'].' national, '.$results['local'].' local) with '.$error_num.' errors. ');
+            if ($error_num > 0) {
                 $count = 0;
                 foreach ($results['errors'] as $error) {
                     $count++;
