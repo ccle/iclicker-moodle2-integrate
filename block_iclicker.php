@@ -120,7 +120,7 @@ class block_iclicker extends block_base {
                 $link = '<b><i>TODO remove inst link</i></b> <a href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('inst.title').'</a>';
                 $this->content->text .= "  ".$link."\n";
             } else if (iclicker_service::is_instructor()) {
-                $link = '<a href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('instructor.title').'</a>';
+                $link = '<a href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('inst.title').'</a>';
                 $this->content->text .= "  ".$link."\n";
             }
             // close out the html

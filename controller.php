@@ -216,6 +216,7 @@ class iclicker_controller {
     public function processAdmin() {
         $adminPath = iclicker_service::block_url('admin.php');
         $this->results['adminPath'] = $adminPath;
+        $this->results['status_url'] = iclicker_service::block_url('runner_status.php');
         // admin check
         if (!iclicker_service::is_admin()) {
             throw new SecurityException("Current user is not an admin and cannot access the admin view");
@@ -241,7 +242,7 @@ class iclicker_controller {
         if ("POST" == $this->method) {
             if (optional_param('activate', NULL) != NULL) {
                 // First arrived at this page
-                $activate = required_param('activate', PARAM_BOOL); // @todo use 0/1 on the view
+                $activate = required_param('activate', PARAM_BOOL);
                 if (optional_param('registrationId', NULL) == NULL) {
                     $this->addMessage(self::KEY_ERROR, "reg.activate.registrationId.empty", null);
                 } else {
@@ -271,8 +272,9 @@ class iclicker_controller {
                     }
                 }
             } else if (optional_param('runner', NULL) != NULL) {
-                // initiate the runner process
-                throw new Exception("NOT IMPLEMENTED"); // @todo
+                // initiate the runner process if possible
+                $this->addMessage(self::KEY_INFO, 'admin.process.message.sync');
+                iclicker_service::ws_sync_all();
             } else {
                 // invalid POST
                 error('WARN: Invalid POST: does not contain runner, remove, or activate, nothing to do');
@@ -283,15 +285,16 @@ class iclicker_controller {
         $this->results['useNationalWebservices'] = iclicker_service::$use_national_webservices;
         $this->results['domainURL'] = iclicker_service::$domain_URL;
         $this->results['disableSyncWithNational'] = iclicker_service::$disable_sync_with_national;
-        $this->results['webservicesNationalSyncHour'] = iclicker_service::$webservices_national_sync_hour;
         
         // put error data into page
-        $this->results['recent_failures'] = iclicker_service::$failures; // @todo test
+        $this->results['recent_failures'] = array(); // @todo test
         
-        // @todo put runner status in page
-        $this->results['runner_exists'] = false;
-        $this->results['runner_type'] = NULL;
-        $this->results['runner_percent'] = 0;
+        // put runner status in page (only one runner for moodle and we do not know what the % completed is)
+        $runner_time_key = get_config(iclicker_service::BLOCK_RUNNER_KEY);
+        $runner_exists = ((isset($runner_time_key) && $runner_time_key > 0) ? true : false);
+        $this->results['runner_exists'] = $runner_exists;
+        $this->results['runner_type'] = 'sync';
+        $this->results['runner_percent'] = $runner_exists ? 50 : 0;
         
         // handling the calcs for paging
         $first = ($pageNum - 1) * $perPageNum;

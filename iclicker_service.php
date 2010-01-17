@@ -116,6 +116,7 @@ class iclicker_service {
     const GRADE_ITEM_MODULE = 'iclicker';
     const GRADE_LOCATION_STR = 'manual';
     const DEFAULT_SYNC_HOUR = 3;
+    const BLOCK_RUNNER_KEY = 'block_iclicker_runner';
     const DEFAULT_SERVER_URL = "http://moodle.org/"; // "http://epicurus.learningmate.com/";
     const NATIONAL_WS_URL = "https://webservices.iclicker.com/iclicker_gbsync_registrations/service.asmx";
     /*
@@ -717,7 +718,8 @@ class iclicker_service {
             $reg_id = self::save_registration($clicker_registration);
             $registration = self::get_registration_by_id($reg_id);
             if ($local_only) {
-                // FIXME syncClickerRegistrationWithNational(registration);
+                // sync with national
+                self::ws_sync_clicker($registration);
             }
         }
         return $registration;
@@ -751,6 +753,7 @@ class iclicker_service {
      * Saves the clicker registration data (create or update)
      * @param object $clicker_registration the registration data as an object
      * @return int id of the saved registration
+     * @throw InvalidArgumentException if the registration is invalid (missing data or invalid data)
      */
     public static function save_registration(&$clicker_registration) {
         if (!$clicker_registration || !isset($clicker_registration->clicker_id)) {
@@ -763,7 +766,10 @@ class iclicker_service {
             $clicker_registration->owner_id = $current_user_id;
         } else {
             // check for valid user id
-            // @todo
+            $user = self::get_users($clicker_registration->owner_id);
+            if (! $user) {
+                throw new InvalidArgumentException('User id ('.$clicker_registration->owner_id.') for registration is invalid');
+            }
         }
         $clicker_registration->timemodified = time();
         $reg_id = -1;
@@ -1711,7 +1717,6 @@ format.
      * @return results array('errors') with errors if any occurred, false if national ws is disabled
      */
     public static function ws_sync_clicker($clicker_registration) {
-        // FIXME
         $results = array('errors' => array());
         if (self::$use_national_webservices) {
             try {
@@ -1754,90 +1759,104 @@ format.
      * @return results array('errors') with errors if any occurred, false if national ws is disabled
      */
     public static function ws_sync_all() {
-        $results = array('errors' => array());
+        $results = array('errors' => array(), 'runner' => FALSE);
         if (self::$use_national_webservices && ! self::$disable_sync_with_national) {
-            $local_regs_l = self::get_all_registrations(); //list
-            $national_regs_l = self::ws_get_students();
-            // put these into mapped lists so they can be more easily worked with and handled
-            $local_regs = array();
-            if ($local_regs_l) {
-                foreach ($local_regs_l as $reg) {
-                    $id = self::make_reg_key($reg);
-                    $local_regs[$id] = $reg;
-                }
-            }
-            $national_regs = array();
-            if ($national_regs_l) {
-                foreach ($national_regs_l as $reg) {
-                    $id = self::make_reg_key($reg);
-                    $national_regs[$id] = $reg;
-                }
-            }
-    
-            // create maps and sets of local and remote regs
-            // both contains the items that exist in both sets, only contains items from one set only
-            $national_regs_only = array_diff_key($national_regs, $local_regs); //set
-            $local_regs_only = array_diff_key($local_regs, $national_regs); //set
-            $national_regs_both = array_diff_key($national_regs, $local_regs_only); //set
-            $local_regs_both = array_diff_key($local_regs, $national_regs_only); //set
-    
-            foreach ($local_regs_both as $key => $local_reg) {
-                // update if needed or just continue (push local or national or neither)
-                $national_reg = array_key_exists($key, $national_regs_both) ? $national_regs_both[$key] : NULL;
-                if ($national_reg != NULL) {
-                    // compare these for diffs
-                    if ($local_reg->activated != $national_reg->activated) {
+            $runner_status = get_config(self::BLOCK_RUNNER_KEY);
+            $time_check = time() - 60000; // 10 mins ago
+            if (isset($runner_status) && ($runner_status > $time_check)) {
+                $results['runner'] = TRUE;
+                $results['errors'][] = 'sync is already running since '.date('Y-m-d h:i:s', $runner_status);
+            } else {
+                set_config(self::BLOCK_RUNNER_KEY, time());
+                try {
+                    $local_regs_l = self::get_all_registrations(); //list
+                    $national_regs_l = self::ws_get_students();
+                    // put these into mapped lists so they can be more easily worked with and handled
+                    $local_regs = array();
+                    if ($local_regs_l) {
+                        foreach ($local_regs_l as $reg) {
+                            $id = self::make_reg_key($reg);
+                            $local_regs[$id] = $reg;
+                        }
+                    }
+                    $national_regs = array();
+                    if ($national_regs_l) {
+                        foreach ($national_regs_l as $reg) {
+                            $id = self::make_reg_key($reg);
+                            $national_regs[$id] = $reg;
+                        }
+                    }
+            
+                    // create maps and sets of local and remote regs
+                    // both contains the items that exist in both sets, only contains items from one set only
+                    $national_regs_only = array_diff_key($national_regs, $local_regs); //set
+                    $local_regs_only = array_diff_key($local_regs, $national_regs); //set
+                    $national_regs_both = array_diff_key($national_regs, $local_regs_only); //set
+                    $local_regs_both = array_diff_key($local_regs, $national_regs_only); //set
+            
+                    foreach ($local_regs_both as $key => $local_reg) {
+                        // update if needed or just continue (push local or national or neither)
+                        $national_reg = array_key_exists($key, $national_regs_both) ? $national_regs_both[$key] : NULL;
+                        if ($national_reg != NULL) {
+                            // compare these for diffs
+                            if ($local_reg->activated != $national_reg->activated) {
+                                try {
+                                    $national_reg->activated = $local_reg->activated;
+                                    self::ws_save_clicker($national_reg);
+                                } catch (Exception $e) {
+                                    // this is ok, we will continue anyway
+                                    $msg = "Failed during national activate push all sync while syncing i>clicker registration ($national_reg): $e";
+                                    $results['errors'][] = $key;
+                                    self::send_notifications($msg, $e);
+                                    //log.warn(msg);
+                                }
+                            }
+                        }
+                    }
+            
+                    foreach ($national_regs_only as $key => $national_reg) {
                         try {
-                            $national_reg->activated = $local_reg->activated;
-                            self::ws_save_clicker($national_reg);
+                            $reg = new stdClass();
+                            $reg->clicker_id = $national_reg->clicker_id;
+                            $reg->owner_id = $national_reg->owner_id;
+                            $reg->activated = $national_reg->activated;
+                            $reg->from_national = TRUE;
+                            self::save_registration($reg);
                         } catch (Exception $e) {
                             // this is ok, we will continue anyway
-                            $msg = "Failed during national activate push all sync while syncing i>clicker registration ($national_reg): $e";
+                            $msg = "Failed during local push all sync while syncing i>clicker registration ($reg): $e";
                             $results['errors'][] = $key;
                             self::send_notifications($msg, $e);
                             //log.warn(msg);
                         }
                     }
+            
+                    foreach ($local_regs_only as $key => $local_reg) {
+                        try {
+                            $reg = new stdClass();
+                            $reg->clicker_id = $local_reg->clicker_id;
+                            $reg->owner_id = $local_reg->owner_id;
+                            $reg->activated = $local_reg->activated;
+                            $reg->from_national = FALSE;
+                            self::ws_save_clicker($reg);
+                        } catch (Exception $e) {
+                            // this is ok, we will continue anyway
+                            $msg = "Failed during national push all sync while syncing i>clicker registration ($reg): $e";
+                            $results['errors'][] = $key;
+                            self::send_notifications($msg, $e);
+                            //log.warn(msg);
+                        }
+                    }
+                    //log.info("Completed syncing "+total+" i>clicker registrations to ("+$local_regs_only.size()+") and from ("+$national_regs_only.size()+") national");
+                    $results['local'] = count($local_regs_only);
+                    $results['national'] = count($national_regs_only);
+                    $results['total'] = count($local_regs_both) + count($national_regs_only);
+                } catch(Exception $e) {
+                    // reset the clicker runner
+                    set_config(self::BLOCK_RUNNER_KEY, 0);
+                    throw $e;
                 }
             }
-    
-            foreach ($national_regs_only as $key => $national_reg) {
-                try {
-                    $reg = new stdClass();
-                    $reg->clicker_id = $national_reg->clicker_id;
-                    $reg->owner_id = $national_reg->owner_id;
-                    $reg->activated = $national_reg->activated;
-                    $reg->from_national = TRUE;
-                    self::save_registration($reg);
-                } catch (Exception $e) {
-                    // this is ok, we will continue anyway
-                    $msg = "Failed during local push all sync while syncing i>clicker registration ($reg): $e";
-                    $results['errors'][] = $key;
-                    self::send_notifications($msg, $e);
-                    //log.warn(msg);
-                }
-            }
-    
-            foreach ($local_regs_only as $key => $local_reg) {
-                try {
-                    $reg = new stdClass();
-                    $reg->clicker_id = $local_reg->clicker_id;
-                    $reg->owner_id = $local_reg->owner_id;
-                    $reg->activated = $local_reg->activated;
-                    $reg->from_national = FALSE;
-                    self::ws_save_clicker($reg);
-                } catch (Exception $e) {
-                    // this is ok, we will continue anyway
-                    $msg = "Failed during national push all sync while syncing i>clicker registration ($reg): $e";
-                    $results['errors'][] = $key;
-                    self::send_notifications($msg, $e);
-                    //log.warn(msg);
-                }
-            }
-            //log.info("Completed syncing "+total+" i>clicker registrations to ("+$local_regs_only.size()+") and from ("+$national_regs_only.size()+") national");
-            $results['local'] = count($local_regs_only);
-            $results['national'] = count($national_regs_only);
-            $results['total'] = count($local_regs_both) + count($national_regs_only);
         } else {
             // disabled
             $results = false;

@@ -56,7 +56,7 @@ print_header(
     iclicker_service::msg('app.iclicker').' '.iclicker_service::msg('admin.title'),
     build_navigation(iclicker_service::msg('admin.title')), // '<a href="'.$CFG->wwwroot.'/course/view.php?id='.$COURSE->id.'">'.$COURSE->shortname.'</a> ->'.get_string('formtitle', 'block_iclicker'),
     '', 
-    "<meta name=\"description\" content=\"".s(strip_tags($site->summary))."\">\n<link rel=\"stylesheet\" type=\"text/css\" href=\"".iclicker_service::block_url('css/iclicker.css')."\" />", 
+    "<meta name=\"description\" content=\"".s(strip_tags($site->summary))."\">\n<link rel=\"stylesheet\" type=\"text/css\" href=\"".iclicker_service::block_url('css/iclicker.css')."\" />\n<script src=\"".iclicker_service::block_url('js/jquery.js')."\" language=\"JavaScript\" type=\"text/javascript\"></script>\n<script src=\"".iclicker_service::block_url('js/iclicker.js')."\" language=\"JavaScript\" type=\"text/javascript\"></script>", 
     false
 );
 
@@ -81,7 +81,7 @@ require ('user_messages.php');
     </div>
     <?php } ?>
     <?php if ($runner_exists) { ?>
-    <script type="text/javascript">Iclicker.initStatusChecker("#runnerStatus");</script>
+    <script type="text/javascript">Iclicker.initStatusChecker("#runnerStatus", "<?php echo $status_url ?>");</script>
     <?php } ?>
 </div>
 
