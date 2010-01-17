@@ -287,7 +287,7 @@ class iclicker_controller {
         $this->results['disableSyncWithNational'] = iclicker_service::$disable_sync_with_national;
         
         // put error data into page
-        $this->results['recent_failures'] = array(); // @todo test
+        $this->results['recent_failures'] = iclicker_service::get_failures();
         
         // put runner status in page (only one runner for moodle and we do not know what the % completed is)
         $runner_time_key = get_config(iclicker_service::BLOCK_RUNNER_KEY);

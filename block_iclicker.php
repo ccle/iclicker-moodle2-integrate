@@ -116,9 +116,9 @@ class block_iclicker extends block_base {
             if (iclicker_service::is_admin()) {
                 $link = '<a href="'.iclicker_service::block_url('admin.php').'">'.iclicker_service::msg('admin.title').'</a>';
                 $this->content->text .= "  ".$link."\n";
-                // FIXME remove inst link after testing complete
-                $link = '<b><i>TODO remove inst link</i></b> <a href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('inst.title').'</a>';
-                $this->content->text .= "  ".$link."\n";
+                // remove inst link after testing complete
+                //$link = '<b><i>TODO remove inst link</i></b> <a href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('inst.title').'</a>';
+                //$this->content->text .= "  ".$link."\n";
             } else if (iclicker_service::is_instructor()) {
                 $link = '<a href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('inst.title').'</a>';
                 $this->content->text .= "  ".$link."\n";

@@ -219,29 +219,43 @@ class iclicker_service {
             array_walk($admin_emails, 'trim');
         }
 
+        // add to failures record and trim it to 5
+        $failures = self::get_failures();
+        $msg = $message;
+        if ($exception != null) {
+            $msg .= " Failure: ".$e->message." ".$e;
+        }
+        array_unshift($failures, date('Y-m-d h:i:s').' :: '.substr($msg, 0, 300));
+        while (count($failures) > 5) {
+            array_pop($failures);
+        }
+        set_config('block_iclicker_failures', implode('*****', $failures));
+
         // FIXME needs testing
         if ($admin_emails) {
             $sent = false;
             $body = "i>clicker Moodle integrate plugin notification (".date('d.m.Y h:i:s').")\n" + $message + "\n";
             if ($exception != null) {
-                // get the stacktrace out
                 $body .= "\nFailure:\n".$e->message."\n\n".$e;
-    
-                // add to failures record and trim it
-                array_unshift($this->failures, date('Y-m-d h:i:s').' :: '.substr($body, 0, 300));
-                while (count($this->failures) > 3) {
-                    array_pop($this->failures);
-                }
             }
             foreach ($admin_emails as $email) {
                 self::send_email($email, 'i>clicker Moodle integrate plugin notification', $body);
             }
             $sent = true;
         } else {
-            // @todo log.warn("No emails set for sending notifications: logging notification: " + body);
+            error_log("No emails set for sending notifications: logging notification: $body");
             $sent = false;
         }
         return $sent;
+    }
+
+    public static function get_failures() {
+        $failures = array();
+        $failure_string = get_config('block_iclicker_failures');
+        if (! empty($failure_string)) {
+            $failures = explode('*****', $failure_string);
+        }
+        return $failures;
     }
     
     // USERS
@@ -577,9 +591,12 @@ class iclicker_service {
         $result = false;
         if ($clicker_registration->owner_id == $user_id) {
             $result = true;
+        } else if (self::is_admin($user_id)) {
+            $result = true;
+        } else if (self::is_instructor($user_id)) {
+            // NOTE: simply allowing instructors to read/write all registrations for now
+            $result = true;
         }
-        // FIXME make this do a real check
-        $result = true;
         return $result;
     }
     
@@ -593,9 +610,12 @@ class iclicker_service {
         $result = false;
         if ($clicker_registration->owner_id == $user_id) {
             $result = true;
+        } else if (self::is_admin($user_id)) {
+            $result = true;
+        } else if (self::is_instructor($user_id)) {
+            // NOTE: simply allowing instructors to read/write all registrations for now
+            $result = true;
         }
-        // FIXME make this do a real check
-        $result = true;
         return $result;
     }
     
