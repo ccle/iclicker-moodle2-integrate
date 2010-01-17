@@ -135,22 +135,14 @@ class iclicker_service {
     // CLASS VARIABLES
     
     // CONFIG
-    public static $server_id = "UNKNOWN_SERVER_ID";
     public static $server_URL = self::DEFAULT_SERVER_URL;
     public static $domain_URL = self::DEFAULT_SERVER_URL;
-    public static $use_national_webservices = false;
+    public static $use_national_webservices = FALSE;
     public static $webservices_URL = self::NATIONAL_WS_URL;
-    public static $webservices_use_basic_auth = true;
-    public static $webservices_basic_auth_header = self::NATIONAL_WS_BASIC_AUTH_HEADER;
-    public static $disable_sync_with_national = false;
-    public static $webservices_national_sync_hour = self::DEFAULT_SYNC_HOUR;
-    public static $test_mode = false;
-    
-    var $notify_emails_string = NULL;
-    var $notify_emails = array(
-    );
-    var $failures = array(
-    );
+    public static $webservices_username = self::NATIONAL_WS_AUTH_USERNAME;
+    public static $webservices_password = self::NATIONAL_WS_AUTH_PASSWORD;
+    public static $disable_sync_with_national = FALSE;
+    public static $test_mode = FALSE;
     
     // STATIC METHODS
     
@@ -218,21 +210,29 @@ class iclicker_service {
      * @return true if email sent, false otherwise
      */
     public static function send_notifications($message, $exception=NULL) {
-        // FIXME needs testing
-        $sent = false;
-        $body = "i>clicker Moodle integrate plugin notification (".date('d.m.Y h:i:s').")\n" + $message + "\n";
-        if ($exception != null) {
-            // get the stacktrace out
-            $body .= "\nFailure:\n".$e->message."\n\n".$e;
-
-            // add to failures record and trim it
-            array_unshift($this->failures, date('Y-m-d h:i:s').' :: '.substr($body, 0, 300));
-            while (count($this->failures) > 3) {
-                array_pop($this->failures);
-            }
+        // load these on demand only - block_iclicker_notify_emails
+        $admin_emails = NULL;
+        if (!empty($CFG->block_iclicker_notify_emails)) {
+            $email_string = $CFG->block_iclicker_notify_emails;
+            $admin_emails = explode(',', $email_string);
+            array_walk($admin_emails, 'trim');
         }
-        if ($this->$notify_emails) {
-            foreach ($this->$notify_emails as $email) {
+
+        // FIXME needs testing
+        if ($admin_emails) {
+            $sent = false;
+            $body = "i>clicker Moodle integrate plugin notification (".date('d.m.Y h:i:s').")\n" + $message + "\n";
+            if ($exception != null) {
+                // get the stacktrace out
+                $body .= "\nFailure:\n".$e->message."\n\n".$e;
+    
+                // add to failures record and trim it
+                array_unshift($this->failures, date('Y-m-d h:i:s').' :: '.substr($body, 0, 300));
+                while (count($this->failures) > 3) {
+                    array_pop($this->failures);
+                }
+            }
+            foreach ($admin_emails as $email) {
                 self::send_email($email, 'i>clicker Moodle integrate plugin notification', $body);
             }
             $sent = true;
@@ -1911,13 +1911,13 @@ format.
         $params = array();
         $result = soap_call($connection, $call, $params);
 */
-        $soap_client = new soap_client(self::NATIONAL_WS_URL, false);
+        $soap_client = new soap_client(self::$webservices_URL, false);
         $err = $soap_client->getError();
         if ($err) {
             echo '<h2>SOAP constructor error:</h2><pre>' . $err . '</pre>';
             throw new WebservicesException('SOAP constructor error: '. $err);
         }
-        $soap_client->setCredentials(self::NATIONAL_WS_AUTH_USERNAME, self::NATIONAL_WS_AUTH_PASSWORD, 'basic');
+        $soap_client->setCredentials(self::$webservices_username, self::$webservices_password, 'basic');
         $soap_client->soap_defencoding = 'UTF-8';
         $soap_client->operation = $ws_operation;
 /* won't work with .NET webservices
@@ -1971,4 +1971,28 @@ format.
     }
     
 }
+
+// load the config into the static vars from the global config settings
+iclicker_service::$server_URL = $CFG->wwwroot;
+if (!empty($CFG->block_iclicker_domain_url)) {
+    iclicker_service::$domain_URL = $CFG->block_iclicker_domain_url;
+} else {
+    iclicker_service::$domain_URL = $CFG->wwwroot;
+}
+if (!empty($CFG->block_iclicker_use_national_ws)) {
+    iclicker_service::$use_national_webservices = TRUE;
+}
+if (!empty($CFG->block_iclicker_webservices_url)) {
+    iclicker_service::$webservices_URL = $CFG->block_iclicker_webservices_url;
+}
+if (!empty($CFG->block_iclicker_webservices_username)) {
+    iclicker_service::$webservices_username = $CFG->block_iclicker_webservices_username;
+}
+if (!empty($CFG->block_iclicker_webservices_password)) {
+    iclicker_service::$webservices_password = $CFG->block_iclicker_webservices_password;
+}
+if (!empty($CFG->block_iclicker_disable_sync)) {
+    iclicker_service::$disable_sync_with_national = TRUE;
+}
+
 ?>
