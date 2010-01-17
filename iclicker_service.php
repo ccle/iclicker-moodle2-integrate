@@ -1705,6 +1705,11 @@ format.
     
     // NATIONAL WEBSERVICES
     
+    /**
+     * Syncs this clicker with the national services clicker (ensure that this is saved to national)
+     * 
+     * @return results array('errors') with errors if any occurred, false if national ws is disabled
+     */
     public static function ws_sync_clicker($clicker_registration) {
         // FIXME
         $results = array('errors' => array());
@@ -1742,7 +1747,12 @@ format.
         }
         return $results;
     }
-    
+
+    /**
+     * Syncs all current clickers with the national services clickers for this site
+     * 
+     * @return results array('errors') with errors if any occurred, false if national ws is disabled
+     */
     public static function ws_sync_all() {
         $results = array('errors' => array());
         if (self::$use_national_webservices && ! self::$disable_sync_with_national) {

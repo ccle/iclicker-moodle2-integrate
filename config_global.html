@@ -17,13 +17,48 @@
     along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <div style="text-align: center;">
-    <input type="hidden" name="block_iclicker_strict" value="0" />
-	<input type="checkbox" name="block_iclicker_strict" value="1" <?php
-    if (! empty($CFG->block_iclicker_strict)) {
+
+  <h2><?php print_string('config_general', 'block_iclicker'); ?>:</h2>
+  <p>
+    <?php print_string('config_notify_emails', 'block_iclicker'); ?>:
+    <input type="text" name="block_iclicker_notify_emails" size="80" value="<?php echo isset($CFG->block_iclicker_notify_emails)?p($CFG->block_iclicker_notify_emails):''; ?>" />
+  </p>
+
+  <h2><?php print_string('config_webservices', 'block_iclicker'); ?>:</h2>
+  <p>
+    <input type="hidden" name="block_iclicker_use_national_ws" value="0" />
+    <input type="checkbox" name="block_iclicker_use_national_ws" value="1" <?php
+    if (! empty($CFG->block_iclicker_use_national_ws)) {
         echo 'checked="checked"';
-	} ?> />
-    <?php print_string('donotallowhtml', 'block_iclicker'); ?>
-    <p>
-        <input type="submit" value="<?php print_string('savechanges'); ?>" />
-    </p>
+    } ?> />
+    <?php print_string('config_use_national_ws', 'block_iclicker'); ?>
+  </p>
+  <p>
+    <?php print_string('config_domain_url', 'block_iclicker'); ?>:
+    <input type="text" name="block_iclicker_domain_url" size="80" value="<?php echo isset($CFG->block_iclicker_domain_url)?p($CFG->block_iclicker_domain_url):''; ?>" />
+  </p>
+  <p>
+    <?php print_string('config_webservices_url', 'block_iclicker'); ?>:
+    <input type="text" name="block_iclicker_webservices_url" size="80" value="<?php echo isset($CFG->block_iclicker_webservices_url)?p($CFG->block_iclicker_webservices_url):''; ?>" />
+  </p>
+  <p>
+    <?php print_string('config_webservices_username', 'block_iclicker'); ?>:
+    <input type="text" name="block_iclicker_webservices_username" size="25" value="<?php echo isset($CFG->block_iclicker_webservices_username)?p($CFG->block_iclicker_webservices_username):''; ?>" />
+  </p>
+  <p>
+    <?php print_string('config_webservices_password', 'block_iclicker'); ?>:
+    <input type="text" name="block_iclicker_webservices_password" size="25" value="<?php echo isset($CFG->block_iclicker_webservices_password)?p($CFG->block_iclicker_webservices_password):''; ?>" />
+  </p>
+  <p>
+    <input type="hidden" name="block_iclicker_disable_sync" value="0" />
+    <input type="checkbox" name="block_iclicker_disable_sync" value="1" <?php
+    if (! empty($CFG->block_iclicker_disable_sync)) {
+        echo 'checked="checked"';
+    } ?> />
+    <?php print_string('config_disable_sync', 'block_iclicker'); ?>
+  </p>
+
+  <p>
+    <input type="submit" value="<?php print_string('savechanges'); ?>" />
+  </p>
 </div>

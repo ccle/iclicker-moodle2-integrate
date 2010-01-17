@@ -46,7 +46,7 @@ class block_iclicker extends block_base {
 	 */
     function init() {
         $this->title = get_string('app.iclicker', iclicker_service::BLOCK_NAME);
-        $this->cron = 3600; // in seconds
+        $this->cron = 86400; // in seconds
         $this->version = 2009112700;
     }
 
@@ -140,12 +140,23 @@ class block_iclicker extends block_base {
 
     /**
      * Execute this method when the cron runs
-     * @return true if success, false if failed and should be run again next time
      */
     function cron() {
-        global $CFG,$USER,$COURSE;
-        echo ' AAAAAAAAAAAAAAAAAAAAAAAZZZZZZZZZZZZZZZZZZZZZZZZZZZ ';
-        //mtrace('i>clicker: AAAAAAAAAAAAAAAAAAAAAAAZZZZZZZZZZZZZZZZZZZZZZZZZZZ');
+        $results = iclicker_service::ws_sync_all();
+        mtrace(' National WS sync...','');
+        if (!$results) {
+            mtrace(' DISABLED. ');
+        } else {
+            $num = count($results['errors']);
+            mtrace(' complete with '.$num.' errors. ');
+            if ($num > 0) {
+                $count = 0;
+                foreach ($results['errors'] as $error) {
+                    $count++;
+                    mtrace('    '.$count.': '.$error);
+                }
+            }
+        }
         return true;
     }
 

@@ -101,9 +101,15 @@ $string['admin.errors.header'] = 'Most Recent Failures';
 
 
 // Config
-$string['donotallowhtml'] 	= 'Disable use of HTML';
-$string['configtitle'] 		= 'Title';
-$string['configcontent'] 	= 'Content';
+$string['config_general'] = 'General';
+$string['config_notify_emails'] = 'The email addresses to send notifications to on failures, DEFAULT: none';
+$string['config_webservices'] = 'WebServices';
+$string['config_use_national_ws'] = 'Whether to use the webservices to store clicker registrations, DEFAULT: false';
+$string['config_domain_url'] = 'The i>clicker domain URL, leave blank for DEFAULT: the Moodle server URL (e.g. http://your.server.edu)';
+$string['config_webservices_url'] = 'The webservices URL, leave blank for DEFAULT: the URL for the national i>clicker webservices server';
+$string['config_webservices_username'] = 'The webservices username, leave blank for the DEFAULT national webservices username';
+$string['config_webservices_password'] = 'The webservices password, leave blank for the DEFAULT national webservices password';
+$string['config_disable_sync'] = 'Disable the national webservices automatic synchronization, DEFAULT: false (sync enabled)';
 
 // Main block
 $string['leaveblanktohide'] = 'leave blank to hide';

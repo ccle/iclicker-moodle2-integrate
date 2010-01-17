@@ -286,8 +286,7 @@ class iclicker_controller {
         $this->results['webservicesNationalSyncHour'] = iclicker_service::$webservices_national_sync_hour;
         
         // put error data into page
-        $this->results['recent_failures'] = array(
-        ); // FIXME - not real yet
+        $this->results['recent_failures'] = iclicker_service::$failures; // @todo test
         
         // @todo put runner status in page
         $this->results['runner_exists'] = false;
