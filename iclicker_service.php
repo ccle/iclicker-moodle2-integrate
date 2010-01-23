@@ -197,10 +197,19 @@ class iclicker_service {
      * @return true if email sent, false otherwise
      */    
     public static function send_email($to, $subject, $body) {
-        // FIXME LOW not implemented
-        // $user should be a fake user object with the email set to the correct value, $from should be NULL
-        //email_to_user($user, $from, $subject, $messagetext, $messagehtml='', $attachment='', $attachname='', $usetrueaddress=true, $replyto='', $replytoname='', $wordwrapwidth=79);
-        throw new Exception('Not implemented');
+        // $user should be a fake user object with the email set to the correct value, $from should be a string
+        $user = new stdClass();
+        $user->email = $to;
+        $user->firstname = 'ADMIN';
+        $user->lastname = $to;
+        $user->mailformat = 0; // plain
+        $user->confirmed = 1;
+        $user->deleted = 0;
+        $user->emailstop = 0;
+        $user->id = 1;
+        if (email_to_user($user, "SYSTEM", $subject, $body) !== true) {
+            error_log("Could not send email ($to) : $subject \n $body");
+        }
     }
 
     /**
@@ -231,7 +240,6 @@ class iclicker_service {
         }
         set_config('block_iclicker_failures', implode('*****', $failures));
 
-        // FIXME needs testing
         if ($admin_emails) {
             $sent = false;
             $body = "i>clicker Moodle integrate plugin notification (".date('d.m.Y h:i:s').")\n" + $message + "\n";
