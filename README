@@ -16,6 +16,10 @@ The plugin will be made available via the moodle plugins listing::
 
     http://moodle.org/mod/data/view.php?id=6009
 
+It can also be downloaded from the project site::
+
+    http://code.google.com/p/iclicker-moodle-integrate/
+
 Source
 ------
 The source code for this plugin is located at::
@@ -25,7 +29,7 @@ The source code for this plugin is located at::
 
 Install
 -------
-To install this plugin just extract the contents into your server MOODLE_HOME/blocks/iclicker.
+To install this plugin just extract the contents into your server dir MOODLE_HOME/blocks (so you have MOODLE_HOME/blocks/iclicker).
 
 Once the plugin is installed, you can place the block into your instance.
 This is the recommended way to setup the block::
@@ -91,7 +95,10 @@ The REST data feeds for the block are documented and located at::
 
 Release Process
 ---------------
-TODO
+Create a new tag of the code to release, then create a new binary and place it on the site::
+
+    svn export http://iclicker-moodle-integrate.googlecode.com/svn/tags/TAG iclicker
+    zip -r iclicker-VERSION iclicker
 
 Help
 ----
