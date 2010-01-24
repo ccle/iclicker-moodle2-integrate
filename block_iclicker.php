@@ -213,6 +213,22 @@ class block_iclicker extends block_base {
         return true;
     }
 */
+    function config_save($data) {
+        // store the values in the plugin config instead of global
+        foreach ($data as $name=>$value) {
+            if (empty($value)) {
+                $value = NULL;
+            }
+            set_config($name, $value, iclicker_service::BLOCK_NAME);
+        }
+        return true;
+    }
+
+    /**
+     * Called when the block is deleted
+     */
+    function before_delete() {
+    }
 
 	/**
 	 * @return true to hide the header or false to show it

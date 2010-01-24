@@ -238,7 +238,7 @@ class iclicker_service {
         while (count($failures) > 5) {
             array_pop($failures);
         }
-        set_config('block_iclicker_failures', implode('*****', $failures));
+        set_config('block_iclicker_failures', implode('*****', $failures), self::BLOCK_NAME);
 
         if ($admin_emails) {
             $sent = false;
@@ -259,7 +259,7 @@ class iclicker_service {
 
     public static function get_failures() {
         $failures = array();
-        $failure_string = get_config('block_iclicker_failures');
+        $failure_string = get_config(self::BLOCK_NAME, 'block_iclicker_failures');
         if (! empty($failure_string)) {
             $failures = explode('*****', $failure_string);
         }
@@ -1789,13 +1789,13 @@ format.
     public static function ws_sync_all() {
         $results = array('errors' => array(), 'runner' => FALSE);
         if (self::$use_national_webservices && ! self::$disable_sync_with_national) {
-            $runner_status = get_config(self::BLOCK_RUNNER_KEY);
+            $runner_status = get_config(self::BLOCK_NAME, self::BLOCK_RUNNER_KEY);
             $time_check = time() - 60000; // 10 mins ago
             if (isset($runner_status) && ($runner_status > $time_check)) {
                 $results['runner'] = TRUE;
                 $results['errors'][] = 'sync is already running since '.date('Y-m-d h:i:s', $runner_status);
             } else {
-                set_config(self::BLOCK_RUNNER_KEY, time());
+                set_config(self::BLOCK_RUNNER_KEY, time(), self::BLOCK_NAME);
                 try {
                     $local_regs_l = self::get_all_registrations(); //list
                     $national_regs_l = self::ws_get_students();
@@ -1881,7 +1881,7 @@ format.
                     $results['total'] = count($local_regs_both) + count($national_regs_only);
                 } catch(Exception $e) {
                     // reset the clicker runner
-                    set_config(self::BLOCK_RUNNER_KEY, 0);
+                    set_config(self::BLOCK_RUNNER_KEY, 0, self::BLOCK_NAME);
                     throw $e;
                 }
             }
@@ -2019,26 +2019,35 @@ format.
     
 }
 
-// load the config into the static vars from the global config settings
+// load the config into the static vars from the global plugin config settings
+$block_name = iclicker_service::BLOCK_NAME;
+$block_iclicker_notify_emails = get_config($block_name, 'block_iclicker_notify_emails');
+$block_iclicker_use_national_ws = get_config($block_name, 'block_iclicker_use_national_ws');
+$block_iclicker_domain_url = get_config($block_name, 'block_iclicker_domain_url');
+$block_iclicker_webservices_url = get_config($block_name, 'block_iclicker_webservices_url');
+$block_iclicker_webservices_username = get_config($block_name, 'block_iclicker_webservices_username');
+$block_iclicker_webservices_password = get_config($block_name, 'block_iclicker_webservices_password');
+$block_iclicker_disable_sync = get_config($block_name, 'block_iclicker_disable_sync');
+
 iclicker_service::$server_URL = $CFG->wwwroot;
-if (!empty($CFG->block_iclicker_domain_url)) {
-    iclicker_service::$domain_URL = $CFG->block_iclicker_domain_url;
+if (!empty($block_iclicker_domain_url)) {
+    iclicker_service::$domain_URL = $block_iclicker_domain_url;
 } else {
     iclicker_service::$domain_URL = $CFG->wwwroot;
 }
-if (!empty($CFG->block_iclicker_use_national_ws)) {
+if (!empty($block_iclicker_use_national_ws)) {
     iclicker_service::$use_national_webservices = TRUE;
 }
-if (!empty($CFG->block_iclicker_webservices_url)) {
-    iclicker_service::$webservices_URL = $CFG->block_iclicker_webservices_url;
+if (!empty($block_iclicker_webservices_url)) {
+    iclicker_service::$webservices_URL = $block_iclicker_webservices_url;
 }
-if (!empty($CFG->block_iclicker_webservices_username)) {
-    iclicker_service::$webservices_username = $CFG->block_iclicker_webservices_username;
+if (!empty($block_iclicker_webservices_username)) {
+    iclicker_service::$webservices_username = $block_iclicker_webservices_username;
 }
-if (!empty($CFG->block_iclicker_webservices_password)) {
-    iclicker_service::$webservices_password = $CFG->block_iclicker_webservices_password;
+if (!empty($block_iclicker_webservices_password)) {
+    iclicker_service::$webservices_password = $block_iclicker_webservices_password;
 }
-if (!empty($CFG->block_iclicker_disable_sync)) {
+if (!empty($block_iclicker_disable_sync)) {
     iclicker_service::$disable_sync_with_national = TRUE;
 }
 
