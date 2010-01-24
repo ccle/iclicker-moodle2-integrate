@@ -98,7 +98,7 @@ Release Process
 Create a new tag of the code to release, then create a new binary and place it on the site::
 
     svn export http://iclicker-moodle-integrate.googlecode.com/svn/tags/TAG iclicker
-    zip -r iclicker-VERSION iclicker
+    zip -r iclicker-VERSION.zip iclicker
 
 Help
 ----
