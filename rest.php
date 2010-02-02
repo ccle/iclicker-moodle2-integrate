@@ -50,7 +50,7 @@ require_once ('controller.php');
  */
 function get_and_check_current_user($msg) {
     $user_id = iclicker_service::get_current_user_id();
-    if (! isset($user_id)) {
+    if (! $user_id) {
         throw new SecurityException("Only logged in users can $msg");
     }
     if (! iclicker_service::is_admin($user_id) && ! iclicker_service::is_instructor($user_id)) {
@@ -68,14 +68,14 @@ function handle_authn($cntlr) {
     // extract the authn params
     $auth_username = optional_param(iclicker_controller::LOGIN, NULL, PARAM_RAW);
     $auth_password = optional_param(iclicker_controller::PASSWORD, NULL, PARAM_RAW);
-    $session_id = optional_param(iclicker_controller::SESSION_ID, NULL, PARAM_RAW);
+    //$session_id = optional_param(iclicker_controller::SESSION_ID, NULL, PARAM_RAW);
     if ($auth_username) {
         iclicker_service::authenticate_user($auth_username, $auth_password); // throws exception if fails
-    } else if ($session_id) {
-        $valid = FALSE; // @todo validate the session key
-        if (! $valid) {
-            throw new SecurityException("Invalid "+iclicker_controller::SESSION_ID+" provided, session may have expired, send new login credentials");
-        }
+    //} else if ($session_id) {
+    //    $valid = FALSE; // @todo validate the session key
+    //    if (! $valid) {
+    //        throw new SecurityException("Invalid "+iclicker_controller::SESSION_ID+" provided, session may have expired, send new login credentials");
+    //    }
     }
     $current_user_id = iclicker_service::get_current_user_id();
     if (isset($current_user_id)) {
@@ -141,7 +141,7 @@ if ($valid) {
             } else {
                 // UNKNOWN
                 $valid = false;
-                $output = "Unknown path ($cntlr->path) specified"; 
+                $output = "Unknown path ($cntlr->path) specified for method GET"; 
                 $status = 404; //NOT_FOUND
             }
         } else {
@@ -227,14 +227,14 @@ if ($valid) {
             } else {
                 // UNKNOWN
                 $valid = false;
-                $output = "Unknown path ($path) specified"; 
+                $output = "Unknown path ($path) specified for method POST"; 
                 $status = 404; //NOT_FOUND;
             }
         }
     } catch (SecurityException $e) {
         $valid = false;
-        $current_user_id = currentUser();
-        if ($current_user_id == null) {
+        $current_user_id = iclicker_service::get_current_user_id();
+        if (! $current_user_id) {
             $output = "User must be logged in to perform this action: " . $e;
             $status = 403; //UNAUTHORIZED;
         } else {

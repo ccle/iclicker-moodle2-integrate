@@ -279,7 +279,7 @@ class iclicker_service {
      */
     public static function authenticate_user($username, $password) {
         global $USER;
-        if (!isset($USER->id)) {
+        if (!isset($USER->id) || !$USER->id) {
             $u = authenticate_user_login($username, $password);
             if ($u === false) {
                 throw new SecurityException('Could not authenticate username ('.$username.')');
@@ -297,7 +297,7 @@ class iclicker_service {
      */
     public static function require_user() {
         global $USER;
-        if (!isset($USER->id)) {
+        if (!isset($USER->id) || !$USER->id) {
             throw new SecurityException('User must be logged in');
         }
         return $USER->id;
@@ -305,7 +305,7 @@ class iclicker_service {
     
     /**
      * Gets the current user_id, return FALSE if none can be found
-     * @return the current user id OR null/false if no user
+     * @return boolean the current user id OR null/false if no user
      */
     public static function get_current_user_id() {
         $current_user = null;
@@ -485,7 +485,7 @@ class iclicker_service {
             }
         }
         // sadly this is the only way to do this check: http://moodle.org/mod/forum/discuss.php?d=140383
-        $accessinfo = $USER->access;
+        $accessinfo = NULL;
         if ($user_id === $USER->id && isset($USER->access)) {
             $accessinfo = $USER->access;
         } else {

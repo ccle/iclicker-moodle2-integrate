@@ -46,6 +46,7 @@ class iclicker_controller {
     // REQUEST
     public $method = 'GET';
     public $path = '';
+    public $query = '';
     public $body = NULL;
 
     // RESPONSE
@@ -70,6 +71,11 @@ class iclicker_controller {
             if ($pos > 1) {
                 $path = substr($full_path, $pos+4);
                 $path = trim($path, '/ '); // trim whitespace and slashes
+            }
+            if (stripos($path, '?')) {
+                $qloc = stripos($path, '?');
+                $this->query = trim(substr($path, $qloc), '?');
+                $path = substr($path, 0, $qloc);
             }
             $this->path = $path;
         }
