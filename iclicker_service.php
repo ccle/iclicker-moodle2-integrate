@@ -1032,7 +1032,7 @@ class iclicker_service {
             $errors_count = 0;
             $processed_scores = array();
             foreach ($grade_item->scores as $score) {
-                $user = self::get_user_by_username($score->username);
+                $user = self::get_users($score->user_id);
                 if (! $user) {
                     $score->error = self::USER_DOES_NOT_EXIST_ERROR;
                     $processed_scores[] = $score;
@@ -1090,7 +1090,7 @@ class iclicker_service {
                         $grade_tosave->timemodified = $now;
                         $grade_tosave->insert(self::GRADE_LOCATION_STR);
                     }
-                    $grade_tosave->username = $score->username;
+                    $grade_tosave->user_id = $score->user_id;
                     $processed_scores[] = $grade_tosave;
                 } catch (Exception $e) {
                     // General errors, caused while performing updates (Tag: generalerrors)
@@ -1104,7 +1104,7 @@ class iclicker_service {
             if ($errors_count > 0) {
                 $errors = array();
                 foreach ($processed_scores as $score) {
-                    $errors[$score->username] = $score->error;
+                    $errors[$score->user_id] = $score->error;
                 }
                 $grade_item_tosave->errors = $errors;
             }
@@ -1118,7 +1118,7 @@ class iclicker_service {
      * 
      * @param object $gradebook an object with at least course_id and items set
      * items should contain grade_items (courseid. categoryid, name, scores)
-     * scores should contain grade_grade (username, score)
+     * scores should contain grade_grade (user_id, score)
      * @return the saved gradebook with all items and scores in the same structure,
      * errors are recorded as grade_item->errors and score->error
      */
@@ -1378,25 +1378,25 @@ format.
         /* SAMPLE
 <errors courseid="BFW61">
   <Userdoesnotexisterrors>
-    <user id="student03" />
+    <user id="XXXX" />
   </Userdoesnotexisterrors>
   <Scoreupdateerrors>
-    <user id="student02">
+    <user id="2222">
       <lineitem name="Decsample" pointspossible="0" type="Text" score="9" />
     </user>
   </Scoreupdateerrors>
   <PointsPossibleupdateerrors>
-    <user id="6367a431-557c-4869-88a7-229c2398f6ec">
+    <user id="33333">
       <lineitem name="CMSIntTEST01" pointspossible="50" type="iclicker polling scores" score="70" />
     </user>
   </PointsPossibleupdateerrors>
   <Scoreupdateerrors>
-    <user id="iclicker_student01">
+    <user id="444444">
       <lineitem name="Mac-integrate-2" pointspossible="31" type="092509Mac" score="13"/>
     </user>
   </Scoreupdateerrors>
   <Generalerrors>
-    <user id="student02" error="CODE">
+    <user id="5555" error="CODE">
       <lineitem name="itemName" pointspossible="35" score="XX" error="CODE" />
     </user>
   </Generalerrors>
@@ -1417,13 +1417,13 @@ format.
                             $lineitem = $lineitems[$item->id];
                             if (self::USER_DOES_NOT_EXIST_ERROR == $score->error) {
                                 $key = self::USER_DOES_NOT_EXIST_ERROR;
-                                if (! array_key_exists($score->username, $invalid_user_ids)) {
+                                if (! array_key_exists($score->user_id, $invalid_user_ids)) {
                                     // only if the invalid user is not already listed in the errors
                                     if (!isset($error_items[$key])) {
                                         $error_items[$key] = '';
                                     }
-                                    $error_items[$key] .= '    <user id="'.$score->username.'" />'.PHP_EOL;
-                                    $invalid_user_ids[$score->username] = $score->username;
+                                    $error_items[$key] .= '    <user id="'.$score->user_id.'" />'.PHP_EOL;
+                                    $invalid_user_ids[$score->user_id] = $score->user_id;
                                 }
                             } else if (self::POINTS_POSSIBLE_UPDATE_ERRORS == $score->error) {
                                 $key = self::POINTS_POSSIBLE_UPDATE_ERRORS;
@@ -1431,14 +1431,14 @@ format.
                                 if (!isset($error_items[$key])) {
                                     $error_items[$key] = '';
                                 }
-                                $error_items[$key] .= '    <user id="'.$score->username.'">'.PHP_EOL.'      '.$li.PHP_EOL.'    </user>'.PHP_EOL;
+                                $error_items[$key] .= '    <user id="'.$score->user_id.'">'.PHP_EOL.'      '.$li.PHP_EOL.'    </user>'.PHP_EOL;
                             } else if (self::SCORE_UPDATE_ERRORS == $score->error) {
                                 $key = self::SCORE_UPDATE_ERRORS;
                                 $li = str_replace(self::SCORE_KEY, $score->score, $lineitem);
                                 if (!isset($error_items[$key])) {
                                     $error_items[$key] = '';
                                 }
-                                $error_items[$key] .= '    <user id="'.$score->username.'">'.PHP_EOL.'      '.$li.PHP_EOL.'    </user>'.PHP_EOL;
+                                $error_items[$key] .= '    <user id="'.$score->user_id.'">'.PHP_EOL.'      '.$li.PHP_EOL.'    </user>'.PHP_EOL;
                             } else {
                                 // general error
                                 $key = self::GENERAL_ERRORS;
@@ -1446,7 +1446,7 @@ format.
                                 if (!isset($error_items[$key])) {
                                     $error_items[$key] = '';
                                 }
-                                $error_items[$key] .= '    <user id="'.$score->username.'" error="'.$score->error.'">'.PHP_EOL.
+                                $error_items[$key] .= '    <user id="'.$score->user_id.'" error="'.$score->error.'">'.PHP_EOL.
                                                       '      <error type="'.$score->error.'" />'.PHP_EOL.
                                                       '      '.$li.PHP_EOL.
                                                       '    </user>'.PHP_EOL;
@@ -1566,10 +1566,10 @@ format.
     public static function decode_gradebook($xml) {
         /*
 <coursegradebook courseid="BFW61">
-  <user id="lm_student01" usertype="S">
+  <user id="id01" usertype="S">
     <lineitem name="06/02/2009" pointspossible="50" type="iclicker polling scores" score="0"/>
   </user>
-  <user id="lm_student02" usertype="S">
+  <user id="id02" usertype="S">
     <lineitem name="06/02/2009" pointspossible="50" type="iclicker polling scores" score="0"/>
   </user>
 </coursegradebook>
@@ -1596,8 +1596,8 @@ format.
                         continue; // skip this one
                     }
                     // valid user to process
-                    $username = $user_node->getAttribute("id"); // this is the username
-                    if (! $username) {
+                    $user_id = $user_node->getAttribute("id"); // this is the user id (not username)
+                    if (! $user_id) {
                         //log.warn("Invalid XML for user, no id in the user element (skipping this entry): " + user);
                         continue;
                     }
@@ -1608,7 +1608,7 @@ format.
                     }
                     $user_id = $user->id;
                     */
-                    $gradebook->students[$username] = $username;
+                    $gradebook->students[$user_id] = $user_id;
                     $lineitems = $user_node->getElementsByTagName("lineitem");
                     foreach ($lineitems as $lineitem) {
                         $li_name = $lineitem->getAttribute("name");
@@ -1641,7 +1641,7 @@ format.
                         // add in the score
                         $score = new stdClass();
                         $score->item_name = $grade_item->name;
-                        $score->username = $username;
+                        $score->user_id = $user_id;
                         $score->score = $li_score;
                         $grade_item->scores[] = $score;
                     }

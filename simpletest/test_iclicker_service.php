@@ -309,11 +309,11 @@ XML;
 
         $xml = <<<XML
 <coursegradebook courseid="BFW61">
-  <user id="student01" usertype="S">
+  <user id="1" usertype="S">
     <lineitem name="05/05/2009" pointspossible="100" type="iclicker polling scores" score="100"/>
     <lineitem name="06/06/2009" pointspossible="50" type="iclicker polling scores" score="50"/>
   </user>
-  <user id="student02" usertype="S">
+  <user id="2" usertype="S">
     <lineitem name="06/06/2009" pointspossible="50" type="iclicker polling scores" score="30"/>
     <lineitem name="07/07/2009" pointspossible="100" type="iclicker polling scores" score="80"/>
   </user>
@@ -386,6 +386,10 @@ XML;
 
     function test_save_grades() {
         $test_item_name1 = 'testing-iclicker-item1';
+
+        $test_item_name2 = 'testing-iclicker-item2';
+        $test_item_name3 = 'testing-iclicker-item3';
+
         $gradebook = new stdClass();
 
         // saving a gradebook with no course_id not allowed
@@ -409,7 +413,7 @@ XML;
 
         // saving one with one valid item
         $score = new stdClass();
-        $score->username = 'student01';
+        $score->user_id = 1;
         $score->score = 75.0;
 
         $grade_item = new stdClass();
@@ -445,17 +449,17 @@ XML;
         $score->score = 50; // SCORE_UPDATE_ERRORS
 
         $score1 = new stdClass();
-        $score1->username = 'xxxxxx'; // USER_DOES_NOT_EXIST_ERROR
+        $score1->user_id = 'xxxxxx'; // USER_DOES_NOT_EXIST_ERROR
         $score1->score = 80;
         $grade_item->scores[] = $score1;
 
         $score2 = new stdClass();
-        $score2->username = 'student02';
+        $score2->user_id = '2';
         $score2->score = 101; // POINTS_POSSIBLE_UPDATE_ERRORS
         $grade_item->scores[] = $score2;
 
         $score3 = new stdClass();
-        $score3->username = 'student03';
+        $score3->user_id = '3';
         $score3->score = 'XX'; // GENERAL_ERRORS
         $grade_item->scores[] = $score3;
 
@@ -534,7 +538,76 @@ var_export($result->items[0]);
 echo "</pre>";
 */
         $xml = iclicker_service::encode_gradebook_results($result);
+        $this->assertNull($xml); // no errors
+
+        // test saving multiple items at once
+        $gradebook->course_id = $this->courseid;
+        $gradebook->items = array();
+
+        $grade_item1 = new stdClass();
+        $grade_item1->name = $test_item_name2;
+        $grade_item1->points_possible = 100;
+        $grade_item1->type = 'multiple';
+        $grade_item1->scores = array();
+        $gradebook->items[] = $grade_item1;
+
+        $grade_item2 = new stdClass();
+        $grade_item2->name = $test_item_name3;
+        $grade_item2->points_possible = 50;
+        $grade_item2->type = 'multiple';
+        $grade_item2->scores = array();
+        $gradebook->items[] = $grade_item2;
+
+        $score = new stdClass();
+        $score->user_id = 1;
+        $score->score = 80.0;
+        $grade_item1->scores[] = $score;
+
+        $score = new stdClass();
+        $score->user_id = 2;
+        $score->score = 90.0;
+        $grade_item1->scores[] = $score;
+
+        $score = new stdClass();
+        $score->user_id = 2;
+        $score->score = 45.0;
+        $grade_item2->scores[] = $score;
+
+        $score = new stdClass();
+        $score->user_id = 3;
+        $score->score = 40.0;
+        $grade_item2->scores[] = $score;
+        
+        $result = iclicker_service::save_gradebook($gradebook);
+        $this->assertNotNull($result);
+        $this->assertNotNull($result->course_id);
+        $this->assertNotNull($result->items);
+        $this->assertEqual($result->course_id, $this->courseid);
+        $this->assertEqual(count($result->items), 2);
+        $this->assertNotNull($result->items[0]);
+        $this->assertNotNull($result->items[0]->id);
+        $this->assertNotNull($result->items[0]->scores);
+        $this->assertEqual(count($result->items[0]->scores), 2);
+        $this->assertFalse(isset($result->items[0]->errors));
+        $this->assertEqual($result->items[0]->grademax, 100);
+        $this->assertNotNull($result->items[0]->scores[0]);
+        $this->assertEqual($result->items[0]->scores[0]->rawgrade, 80);
+        $this->assertNotNull($result->items[0]->scores[1]);
+        $this->assertEqual($result->items[0]->scores[1]->rawgrade, 90);
+        $this->assertNotNull($result->items[1]);
+        $this->assertNotNull($result->items[1]->id);
+        $this->assertNotNull($result->items[1]->scores);
+        $this->assertEqual(count($result->items[1]->scores), 2);
+        $this->assertFalse(isset($result->items[1]->errors));
+        $this->assertEqual($result->items[1]->grademax, 50);
+        $this->assertNotNull($result->items[1]->scores[0]);
+        $this->assertEqual($result->items[1]->scores[0]->rawgrade, 45);
+        $this->assertNotNull($result->items[1]->scores[1]);
+        $this->assertEqual($result->items[1]->scores[1]->rawgrade, 40);
+
+        $xml = iclicker_service::encode_gradebook_results($result);
         $this->assertNull($xml);
+
     }
 
     function test_save_ws() {
