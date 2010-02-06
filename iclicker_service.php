@@ -1104,7 +1104,9 @@ class iclicker_service {
             if ($errors_count > 0) {
                 $errors = array();
                 foreach ($processed_scores as $score) {
-                    $errors[$score->user_id] = $score->error;
+                    if (isset($score->error)) {
+                        $errors[$score->user_id] = $score->error;
+                    }
                 }
                 $grade_item_tosave->errors = $errors;
             }
@@ -1129,7 +1131,7 @@ class iclicker_service {
         if (! isset($gradebook->course_id)) {
             throw new InvalidArgumentException("gradebook->course_id must be set");
         }
-        if (! isset($gradebook->items) || !$gradebook->items) {
+        if (! isset($gradebook->items) || empty($gradebook->items)) {
             throw new InvalidArgumentException("gradebook->items must be set and include items");
         }
         $gb_saved = new stdClass();
@@ -1160,7 +1162,7 @@ class iclicker_service {
             $iclicker_category_id = $iclicker_category->id;
         }
         $gb_saved->category_id = $iclicker_category_id;
-
+        //echo "\n\nGRADEBOOK: ".var_export($gradebook);
         // iterate through and save grade items by calling other method
         if (! empty($gradebook->items)) {
             $saved_items = array();
@@ -1175,6 +1177,7 @@ class iclicker_service {
             }
             $gb_saved->items = $saved_items;
         }
+        //echo "\n\nRESULT: ".var_export($gb_saved);
         return $gb_saved;
     }
     
@@ -1413,7 +1416,7 @@ format.
             foreach ($gradebook_result->items as $item) {
                 if (isset($item->errors) && !empty($item->errors)) {
                     foreach ($item->scores as $score) {
-                        if ($score->error) {
+                        if (isset($score->error)) {
                             $lineitem = $lineitems[$item->id];
                             if (self::USER_DOES_NOT_EXIST_ERROR == $score->error) {
                                 $key = self::USER_DOES_NOT_EXIST_ERROR;
@@ -1598,7 +1601,7 @@ format.
                     // valid user to process
                     $user_id = $user_node->getAttribute("id"); // this is the user id (not username)
                     if (! $user_id) {
-                        //log.warn("Invalid XML for user, no id in the user element (skipping this entry): " + user);
+                        error_log("WARN: Gradebook import failure for course ($course_id), Invalid XML for user, no id in the user element (skipping this entry): ".var_export($user_node));
                         continue;
                     }
                     /* check the username when saving
@@ -1615,6 +1618,7 @@ format.
                         if (! $li_name) {
                             throw new InvalidArgumentException("Invalid XML, no name in the lineitem xml element: $lineitem");
                         }
+                        $grade_item = NULL;
                         if (! isset($gradebook->items[$li_name])) {
                             // only add lineitem from the first item
                             $li_type = $lineitem->getAttribute("type");
@@ -1622,20 +1626,23 @@ format.
                             $lipptext = $lineitem->getAttribute("pointspossible");
                             if (isset($lipptext) && $lipptext != '') {
                                 if (! is_numeric($lipptext)) {
-                                    //log.warn("Invalid points possible ("+liPPText+"), using default of "+liPointsPossible+": " + lineitem + ": " + e);
+                                    error_log("WARN: Gradebook import failure for course ($course_id) and user ($user_id), Invalid points possible ($lipptext), using default of $li_pp");
                                 } else {
                                     $li_pp = floatval($lipptext);
                                 }
                             }
+                            $grade_item = new stdClass();
                             $grade_item->name = $li_name;
                             $grade_item->points_possible = $li_pp;
                             $grade_item->type = $li_type;
                             $grade_item->scores = array();
                             $gradebook->items[$li_name] = $grade_item;
+                        } else {
+                            $grade_item = $gradebook->items[$li_name];
                         }
                         $li_score = $lineitem->getAttribute("score");
                         if (! isset($li_score) || '' == $li_score) {
-                            //log.warn("Invalid score ("+liScore+"), skipping this entry: " + lineitem);
+                            error_log("WARN: Gradebook import failure for course ($course_id) and user ($user_id), Invalid score ($li_score), skipping this entry: ".var_export($lineitem));
                             continue;
                         }
                         // add in the score
@@ -1652,6 +1659,7 @@ format.
         } catch (Exception $e) {
             throw new Exception("XML DOM parsing failure: $e :: $xml");
         }
+        
         return $gradebook;
     }
 
