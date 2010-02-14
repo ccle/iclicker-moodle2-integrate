@@ -59,11 +59,22 @@ class iclicker_services_test extends UnitTestCase {
             }
         }
         // cleanup the test grades
-        $grade_cats = grade_category::fetch_all( array(
+        $def_grade_cats = grade_category::fetch_all( array(
             'courseid' => $this->courseid,
             'fullname' => iclicker_service::GRADE_CATEGORY_NAME
             )
         );
+        $stuff_grade_cats = grade_category::fetch_all( array(
+            'courseid' => $this->courseid,
+            'fullname' => 'stuff'
+            )
+        );
+        $grade_cats = $def_grade_cats;
+        if (is_array($def_grade_cats) && is_array($stuff_grade_cats)) {
+            $grade_cats = array_merge($def_grade_cats, $stuff_grade_cats);
+        } else if (is_array($stuff_grade_cats)) {
+            $grade_cats = $stuff_grade_cats;
+        }
         if ($grade_cats) {
             foreach ($grade_cats as $cat) {
                 $grade_items = grade_item::fetch_all(array(
@@ -419,7 +430,7 @@ XML;
         $grade_item = new stdClass();
         $grade_item->name = $test_item_name1;
         $grade_item->points_possible = 90;
-        $grade_item->type = 'stuff';
+        $grade_item->type = iclicker_service::GRADE_CATEGORY_NAME;
         $grade_item->scores = array();
 
         $grade_item->scores[] = $score;
@@ -429,7 +440,7 @@ XML;
         $this->assertNotNull($result);
         $this->assertNotNull($result->course_id);
         $this->assertNotNull($result->course);
-        $this->assertNotNull($result->category_id);
+        $this->assertNotNull($result->default_category_id);
         $this->assertNotNull($result->items);
         $this->assertEqual($result->course_id, $this->courseid);
         $this->assertEqual(count($result->items), 1);
@@ -439,13 +450,15 @@ XML;
         $this->assertEqual(count($result->items[0]->scores), 1);
         $this->assertFalse(isset($result->items[0]->errors));
         $this->assertEqual($result->items[0]->grademax, 90);
-        $this->assertEqual($result->items[0]->categoryid, $result->category_id);
+        $this->assertEqual($result->items[0]->iteminfo, iclicker_service::GRADE_CATEGORY_NAME);
+        $this->assertNotNull($result->items[0]->categoryid);
         $this->assertEqual($result->items[0]->courseid, $result->course_id);
         $this->assertEqual($result->items[0]->itemname, $test_item_name1);
         $this->assertNotNull($result->items[0]->scores[0]);
         $this->assertFalse(isset($result->items[0]->scores[0]->error));
 
         // saving one with multiple items, some invalid
+        $grade_item->type = 'stuff'; // update category
         $score->score = 50; // SCORE_UPDATE_ERRORS
 
         $score1 = new stdClass();
@@ -467,18 +480,19 @@ XML;
         $this->assertNotNull($result);
         $this->assertNotNull($result->course_id);
         $this->assertNotNull($result->course);
-        $this->assertNotNull($result->category_id);
+        //$this->assertNotNull($result->default_category_id);
         $this->assertNotNull($result->items);
         $this->assertEqual($result->course_id, $this->courseid);
         $this->assertEqual(count($result->items), 1);
         $this->assertNotNull($result->items[0]);
         $this->assertNotNull($result->items[0]->id);
+        $this->assertEqual($result->items[0]->iteminfo, 'stuff');
         $this->assertNotNull($result->items[0]->scores);
         $this->assertEqual(count($result->items[0]->scores), 4);
         $this->assertTrue(isset($result->items[0]->errors));
         $this->assertEqual(count($result->items[0]->errors), 4);
         $this->assertEqual($result->items[0]->grademax, 90);
-        $this->assertEqual($result->items[0]->categoryid, $result->category_id);
+        $this->assertNotNull($result->items[0]->categoryid);
         $this->assertEqual($result->items[0]->courseid, $result->course_id);
         $this->assertEqual($result->items[0]->itemname, $test_item_name1);
         $this->assertNotNull($result->items[0]->scores[0]);
@@ -547,14 +561,14 @@ echo "</pre>";
         $grade_item1 = new stdClass();
         $grade_item1->name = $test_item_name2;
         $grade_item1->points_possible = 100;
-        $grade_item1->type = 'multiple';
+        $grade_item1->type = NULL; // default
         $grade_item1->scores = array();
         $gradebook->items[] = $grade_item1;
 
         $grade_item2 = new stdClass();
         $grade_item2->name = $test_item_name3;
         $grade_item2->points_possible = 50;
-        $grade_item2->type = 'multiple';
+        $grade_item2->type = 'stuff';
         $grade_item2->scores = array();
         $gradebook->items[] = $grade_item2;
 
@@ -582,6 +596,7 @@ echo "</pre>";
         $this->assertNotNull($result);
         $this->assertNotNull($result->course_id);
         $this->assertNotNull($result->items);
+        $this->assertNotNull($result->default_category_id);
         $this->assertEqual($result->course_id, $this->courseid);
         $this->assertEqual(count($result->items), 2);
         $this->assertNotNull($result->items[0]);

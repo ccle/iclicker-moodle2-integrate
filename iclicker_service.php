@@ -111,7 +111,7 @@ class iclicker_service {
     const BLOCK_PATH = '/blocks/iclicker';
     const REG_TABLENAME = 'iclicker_registration';
     const REG_ORDER = 'timecreated desc';
-    const GRADE_CATEGORY_NAME = 'i>clicker';
+    const GRADE_CATEGORY_NAME = 'iclicker polling scores'; // default category
     const GRADE_ITEM_TYPE = 'blocks';
     const GRADE_ITEM_MODULE = 'iclicker';
     const GRADE_LOCATION_STR = 'manual';
@@ -985,21 +985,24 @@ class iclicker_service {
         // check for an existing item and update or create
         $grade_item_tosave = grade_item::fetch(array(
             'courseid' => $grade_item->courseid,
-            'categoryid' => $grade_item->categoryid,
+            'itemmodule' => self::GRADE_ITEM_MODULE,
+            //'categoryid' => $grade_item->categoryid,
             'itemname' => $grade_item->name
             )
         );
         if (! $grade_item_tosave) {
             // create new one
             $grade_item_tosave = new grade_item();
+            $grade_item_tosave->itemmodule = self::GRADE_ITEM_MODULE;
             $grade_item_tosave->courseid = $grade_item->courseid;
             $grade_item_tosave->categoryid = $grade_item->categoryid;
+            $grade_item_tosave->iteminfo = $grade_item->typename;
+            //$grade_item_tosave->iteminfo = $grade_item->name.' '.$grade_item->type.' '.self::GRADE_CATEGORY_NAME;
             $grade_item_tosave->itemnumber = $grade_item->item_number;
             //$grade_item_tosave->idnumber = $grade_item->name;
             $grade_item_tosave->itemname = $grade_item->name;
             $grade_item_tosave->itemtype = self::GRADE_ITEM_TYPE;
             //$grade_item_tosave->itemmodule = self::GRADE_ITEM_MODULE;
-            $grade_item_tosave->iteminfo = $grade_item->name.' '.$grade_item->type.' '.self::GRADE_CATEGORY_NAME;
             if (isset($grade_item->points_possible) && $grade_item->points_possible > 0) {
                 $grade_item_tosave->grademax = $grade_item->points_possible;
             }
@@ -1009,6 +1012,8 @@ class iclicker_service {
             if (isset($grade_item->points_possible) && $grade_item->points_possible > 0) {
                 $grade_item_tosave->grademax = $grade_item->points_possible;
             }
+            $grade_item_tosave->categoryid = $grade_item->categoryid;
+            $grade_item_tosave->iteminfo = $grade_item->typename;
             $grade_item_tosave->update(self::GRADE_LOCATION_STR);
         }
         $grade_item_id = $grade_item_tosave->id;
@@ -1116,7 +1121,8 @@ class iclicker_service {
     }
 
     /**
-     * Saves a gradebook (a set of grade items and scores related to a course)
+     * Saves a gradebook (a set of grade items and scores related to a course),
+     * also creates the categories based on the item type
      * 
      * @param object $gradebook an object with at least course_id and items set
      * items should contain grade_items (courseid. categoryid, name, scores)
@@ -1143,33 +1149,56 @@ class iclicker_service {
         }
         $gb_saved->course = $course;
 
-        // attempt to get the iclicker category first or create it if needed
-        $iclicker_category = grade_category::fetch(array(
+        // attempt to get the default iclicker category first
+        $default_iclicker_category = grade_category::fetch(array(
             'courseid' => $gradebook->course_id,
             'fullname' => self::GRADE_CATEGORY_NAME
             )
         );
-        $iclicker_category_id = NULL;
-        if (! $iclicker_category) {
-            // create the category
-            $params = new stdClass();
-            $params->courseid = $gradebook->course_id;
-            $params->fullname = self::GRADE_CATEGORY_NAME;
-            $grade_category = new grade_category($params, false);
-            $grade_category->insert(self::GRADE_LOCATION_STR);
-            $iclicker_category_id = $grade_category->id;
-        } else {
-            $iclicker_category_id = $iclicker_category->id;
-        }
-        $gb_saved->category_id = $iclicker_category_id;
+        $default_iclicker_category_id = $default_iclicker_category ? $default_iclicker_category->id : NULL;
         //echo "\n\nGRADEBOOK: ".var_export($gradebook);
         // iterate through and save grade items by calling other method
         if (! empty($gradebook->items)) {
             $saved_items = array();
             $number = 0;
             foreach ($gradebook->items as $grade_item) {
-                $grade_item->categoryid = $iclicker_category_id;
-                $grade_item->courseid = $gb_saved->course_id;
+                // check for this category
+                $item_category_id = $default_iclicker_category_id;
+                $item_category_name = self::GRADE_CATEGORY_NAME;
+                if (! empty($grade_item->type) && self::GRADE_CATEGORY_NAME != $grade_item->type) {
+                    $item_category_name = $grade_item->type;
+                    $item_category = grade_category::fetch(array(
+                        'courseid' => $gradebook->course_id,
+                        'fullname' => $item_category_name
+                        )
+                    );
+                    if (! $item_category) {
+                        // create the category
+                        $params = new stdClass();
+                        $params->courseid = $gradebook->course_id;
+                        $params->fullname = $item_category_name;
+                        $grade_category = new grade_category($params, false);
+                        $grade_category->insert(self::GRADE_LOCATION_STR);
+                        $item_category_id = $grade_category->id;
+                    } else {
+                        $item_category_id = $item_category->id;
+                    }
+                } else {
+                    // use default
+                    if (! $default_iclicker_category_id) {
+                        // create the category
+                        $params = new stdClass();
+                        $params->courseid = $gradebook->course_id;
+                        $params->fullname = self::GRADE_CATEGORY_NAME;
+                        $grade_category = new grade_category($params, false);
+                        $grade_category->insert(self::GRADE_LOCATION_STR);
+                        $default_iclicker_category_id = $grade_category->id;
+                    }
+                    $item_category_id = $default_iclicker_category_id;
+                }
+                $grade_item->categoryid = $item_category_id;
+                $grade_item->typename = $item_category_name;
+                $grade_item->courseid = $gradebook->course_id;
                 $grade_item->item_number = $number;
                 $saved_grade_item = self::save_grade_item($grade_item);
                 $saved_items[] = $saved_grade_item;
@@ -1177,6 +1206,7 @@ class iclicker_service {
             }
             $gb_saved->items = $saved_items;
         }
+        $gb_saved->default_category_id = $default_iclicker_category_id;
         //echo "\n\nRESULT: ".var_export($gb_saved);
         return $gb_saved;
     }
@@ -1481,7 +1511,7 @@ format.
     private static function make_lineitems($items) {
         $lineitems = array();
         foreach ($items as $item) {
-            $li = '<lineitem name="'.self::encode_for_xml($item->itemname).'" pointspossible="'.$item->grademax.'" type="'.$item->itemtype.'" score="'.self::SCORE_KEY.'"/>';
+            $li = '<lineitem name="'.self::encode_for_xml($item->itemname).'" pointspossible="'.$item->grademax.'" type="'.$item->iteminfo.'" score="'.self::SCORE_KEY.'"/>';
             $lineitems[$item->id] = $li;
         }
         return $lineitems;
@@ -1634,7 +1664,7 @@ format.
                             $grade_item = new stdClass();
                             $grade_item->name = $li_name;
                             $grade_item->points_possible = $li_pp;
-                            $grade_item->type = $li_type;
+                            $grade_item->type = trim($li_type);
                             $grade_item->scores = array();
                             $gradebook->items[$li_name] = $grade_item;
                         } else {
