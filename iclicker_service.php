@@ -1552,7 +1552,7 @@ format.
         /*
 <Register>
   <S DisplayName="DisplayName-azeckoski-123456" FirstName="First" LastName="Lastazeckoski-123456" 
-    StudentID="eid-azeckoski-123456" Email="azeckoski-123456@email.com" URL="http://sakaiproject.org"; ClickerID="11111111"></S>
+    StudentID="123456" Email="azeckoski-123456@email.com" URL="http://sakaiproject.org" ClickerID="11111111"></S>
 </Register>
          */
         $doc = self::parse_xml_to_doc($xml);
@@ -1568,16 +1568,16 @@ format.
                 if (! $clicker_id) {
                     throw new InvalidArgumentException("Invalid XML for registration, no id in the ClickerID element (Cannot process)");
                 }
-                $username = $user_node->getAttribute("StudentID"); // this is the username
-                if (! $username) {
+                $user_id = $user_node->getAttribute("StudentID"); // this is the username
+                if (! $user_id) {
                     throw new InvalidArgumentException("Invalid XML for registration, no id in the StudentID element (Cannot process)");
                 }
                 $clicker_reg->clicker_id = $clicker_id;
-                $clicker_reg->user_username = $username;
-                $user = self::get_user_by_username($username);
+                $user = self::get_users($user_id);
                 if (! $user) {
-                    throw new InvalidArgumentException("Invalid username for student ($username), could not find user (Cannot process)");
+                    throw new InvalidArgumentException("Invalid username for student ($user_id), could not find user (Cannot process)");
                 }
+                $clicker_reg->user_username = $user->username;
                 $clicker_reg->owner_id = $user->id;
                 $clicker_reg->user_display_name = $user_node->getAttribute("DisplayName");
             } else {

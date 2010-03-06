@@ -308,7 +308,7 @@ class iclicker_services_test extends UnitTestCase {
         $xml = <<<XML
 <Register>
   <S DisplayName="DisplayName-azeckoski-123456" FirstName="First" LastName="Lastazeckoski-123456" 
-    StudentID="student01" Email="azeckoski-123456@email.com" URL="http://sakaiproject.org" ClickerID="11111111"></S>
+    StudentID="101" Email="azeckoski-123456@email.com" URL="http://sakaiproject.org" ClickerID="11111111"></S>
 </Register>
 XML;
         $result = iclicker_service::decode_registration($xml);
@@ -316,15 +316,16 @@ XML;
         $this->assertNotNull($result->clicker_id);
         $this->assertNotNull($result->owner_id);
         $this->assertEqual($result->clicker_id, '11111111');
+        $this->assertEqual($result->owner_id, 101);
         $this->assertEqual($result->user_username, 'student01');
 
         $xml = <<<XML
 <coursegradebook courseid="BFW61">
-  <user id="1" usertype="S">
+  <user id="101" usertype="S">
     <lineitem name="05/05/2009" pointspossible="100" type="iclicker polling scores" score="100"/>
     <lineitem name="06/06/2009" pointspossible="50" type="iclicker polling scores" score="50"/>
   </user>
-  <user id="2" usertype="S">
+  <user id="102" usertype="S">
     <lineitem name="06/06/2009" pointspossible="50" type="iclicker polling scores" score="30"/>
     <lineitem name="07/07/2009" pointspossible="100" type="iclicker polling scores" score="80"/>
   </user>
