@@ -34,12 +34,13 @@ class iclicker_controller {
     const TYPE_XML = 'xml';
     const TYPE_TEXT = 'txt';
 
-    const PASSWORD = "_password";
-    const LOGIN = "_login";
+    const PASSWORD = '_password';
+    const LOGIN = '_login';
     const SEPARATOR = '/';
     const PERIOD = '.';
     const XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
-    const SESSION_ID = "_sessionId";
+    const SESSION_ID = '_sessionId';
+    const COMPENSATE_METHOD = '_method';
 
     // class vars
 
@@ -83,7 +84,19 @@ class iclicker_controller {
         if ($getBody) {
             $this->body = @file_get_contents('php://input');
         }
-        $this->method = $_SERVER['REQUEST_METHOD'];
+        // allow for method overrides
+        $current_method = $_SERVER['REQUEST_METHOD'];
+        $comp_method = $_SERVER[self::COMPENSATE_METHOD];
+        if (! empty($comp_method)) {
+            // Allows override to GET or DELETE
+            $comp_method = strtoupper(trim($comp_method));
+            if ('GET' == $comp_method) {
+                $current_method = 'GET';
+            } else if ('DELETE' == $comp_method) {
+                $current_method = 'DELETE';
+            }
+        }
+        $this->method = $current_method;
     }
 
     public function setStatus($status) {

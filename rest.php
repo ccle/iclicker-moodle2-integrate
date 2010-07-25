@@ -280,9 +280,10 @@ if ($valid) {
         "                                 or 'True' if no errors, 400 if the xml is missing or course_id is invalid, \n".
         "                                 403 if user is not an instructor in the specified course \n".
         "\n".
-        "Authenticate by sending credentials (".iclicker_controller::LOGIN.",".iclicker_controller::PASSWORD.") in the request parameters \n".
-        "Invalid credentials will result in a 401 (invalid credentials) or 403 (not authorized) status \n".
-        "NOTE: all endpoints return 403 if user is not an instructor \n";
+        " - Authenticate by sending credentials (".iclicker_controller::LOGIN.",".iclicker_controller::PASSWORD.") in the request parameters \n".
+        " - Invalid credentials will result in a 401 (invalid credentials) or 403 (not authorized) status \n".
+        " - Use ".iclicker_controller::COMPENSATE_METHOD." param to override the http method being used (e.g. POST /courses?".iclicker_controller::COMPENSATE_METHOD."=GET will force the method to be a GET despite sending as a POST) \n".
+        " - All endpoints return 403 if user is not an instructor \n";
     $cntlr->sendResponse($msg);
 }
 
