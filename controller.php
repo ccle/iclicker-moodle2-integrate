@@ -41,6 +41,7 @@ class iclicker_controller {
     const XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
     const SESSION_ID = '_sessionId';
     const COMPENSATE_METHOD = '_method';
+    const XML_DATA = '_xml';
 
     // class vars
 

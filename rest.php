@@ -60,7 +60,7 @@ function get_and_check_current_user($msg) {
 }
 
 /**
- * Attempt to authenticate the current request based on request params
+ * Attempt to authenticate the current request based on request params and basic auth
  * @param object $cntlr the controller instance
  * @throws SecurityException if authentication is impossible given the request values
  */
@@ -68,8 +68,17 @@ function handle_authn($cntlr) {
     // extract the authn params
     $auth_username = optional_param(iclicker_controller::LOGIN, NULL, PARAM_RAW);
     $auth_password = optional_param(iclicker_controller::PASSWORD, NULL, PARAM_RAW);
+    if (empty($auth_username) && isset($_SERVER['PHP_AUTH_USER'])) {
+        // no username found in normal params so try to get basic auth
+        $auth_username = $_SERVER['PHP_AUTH_USER'];
+        $auth_password = $_SERVER['PHP_AUTH_PW'];
+        if (empty($auth_username)) {
+            // attempt to get it from the header as a final try
+            list($auth_username, $auth_password) = explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)));
+        }
+    }
     //$session_id = optional_param(iclicker_controller::SESSION_ID, NULL, PARAM_RAW);
-    if ($auth_username) {
+    if (!empty($auth_username)) {
         iclicker_service::authenticate_user($auth_username, $auth_password); // throws exception if fails
     //} else if ($session_id) {
     //    $valid = FALSE; // @todo validate the session key
@@ -82,6 +91,19 @@ function handle_authn($cntlr) {
         $cntlr->setHeader(iclicker_controller::SESSION_ID, sesskey());
         $cntlr->setHeader('_userId', $current_user_id);
     }
+}
+
+/**
+ * Extracts the XML data from the request
+ * @param object $cntlr the controller instance
+ * @return the XML data OR null if none can be found
+ */
+function get_xml_data($cntlr) {
+    $xml = optional_param(iclicker_controller::LOGIN, NULL, XML_DATA);
+    if (empty($xml)) {
+        $xml = $cntlr->body;
+    }
+    return xml;
 }
 
 
@@ -154,7 +176,7 @@ if ($valid) {
                             "valid course_id must be included in the URL /gradebook/{course_id}");
                 }
                 get_and_check_current_user("upload grades into the gradebook");
-                $xml = $cntlr->body;
+                $xml = get_xml_data($cntlr);
                 try {
                     $gradebook = iclicker_service::decode_gradebook($xml);
                     // process gradebook data
@@ -188,7 +210,7 @@ if ($valid) {
 
             } else if ("register" == $pathSeg0) {
                 get_and_check_current_user("upload registrations data");
-                $xml = $cntlr->body;
+                $xml = get_xml_data($cntlr);
                 $cr = iclicker_service::decode_registration($xml);
                 $owner_id = $cr->owner_id;
                 $message = '';
@@ -283,6 +305,7 @@ if ($valid) {
         " - Authenticate by sending credentials (".iclicker_controller::LOGIN.",".iclicker_controller::PASSWORD.") in the request parameters \n".
         " - Invalid credentials will result in a 401 (invalid credentials) or 403 (not authorized) status \n".
         " - Use ".iclicker_controller::COMPENSATE_METHOD." param to override the http method being used (e.g. POST /courses?".iclicker_controller::COMPENSATE_METHOD."=GET will force the method to be a GET despite sending as a POST) \n".
+        " - Send data as the http request BODY or as a form parameter called ".iclicker_controller::XML_DATA." \n".
         " - All endpoints return 403 if user is not an instructor \n";
     $cntlr->sendResponse($msg);
 }
