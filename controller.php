@@ -87,7 +87,7 @@ class iclicker_controller {
         }
         // allow for method overrides
         $current_method = $_SERVER['REQUEST_METHOD'];
-        $comp_method = $_SERVER[self::COMPENSATE_METHOD];
+        $comp_method = $_REQUEST[self::COMPENSATE_METHOD];
         if (! empty($comp_method)) {
             // Allows override to GET or DELETE
             $comp_method = strtoupper(trim($comp_method));
