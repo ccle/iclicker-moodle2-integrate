@@ -46,6 +46,7 @@ Unit Tests
 ----------
 If you are interested you can run the unit tests for the plugin to verify that it is compatible with your installation.
 If all the tests pass then you can be confident that the plugin will work correctly.
+NOTE: You need to have at least 1 user (other than the admin) in your moodle instance to run the tests successfully.
 Go to the following URL in your moodle instance when logged in as an admin::
 
     /admin/report/unittest/index.php?path=blocks%2Ficlicker
