@@ -1,4 +1,4 @@
-<?php 
+<?php
 /**
  * Copyright (c) 2009 i>clicker (R) <http://www.iclicker.com/dnn/>
  *
@@ -132,9 +132,9 @@ class iclicker_service {
     const USER_DOES_NOT_EXIST_ERROR = 'UserDoesNotExistError';
     const GENERAL_ERRORS = 'GeneralErrors';
     const SCORE_KEY = '${SCORE}';
-    
+
     // CLASS VARIABLES
-    
+
     // CONFIG
     public static $server_URL = self::DEFAULT_SERVER_URL;
     public static $domain_URL = self::DEFAULT_SERVER_URL;
@@ -144,9 +144,9 @@ class iclicker_service {
     public static $webservices_password = self::NATIONAL_WS_AUTH_PASSWORD;
     public static $disable_sync_with_national = FALSE;
     public static $test_mode = FALSE;
-    
+
     // STATIC METHODS
-    
+
     /**
      * @return the path for this block
      */
@@ -159,7 +159,7 @@ class iclicker_service {
         }
         return $CFG->dirroot.self::BLOCK_PATH.$added;
     }
-    
+
     /**
      * @return the url for this block
      */
@@ -172,7 +172,7 @@ class iclicker_service {
         }
         return $CFG->wwwroot.self::BLOCK_PATH.$added;
     }
-    
+
     /**
      * i18n message handling
      *
@@ -183,19 +183,19 @@ class iclicker_service {
     public static function msg($key, $vars = NULL) {
         return get_string($key, self::BLOCK_NAME, $vars);
     }
-    
+
     public static function df($time) {
         return strftime('%Y/%m/%d', $time); //userdate($time, '%Y/%m/%d');
     }
 
     /**
      * Sends an email to an email address
-     * 
+     *
      * @param string $to email address to send email to
      * @param string $subject email subject
      * @param string $body email body
      * @return true if email sent, false otherwise
-     */    
+     */
     public static function send_email($to, $subject, $body) {
         // $user should be a fake user object with the email set to the correct value, $from should be a string
         $user = new stdClass();
@@ -214,7 +214,7 @@ class iclicker_service {
 
     /**
      * Sends a notification to the configured email addresses in the system about a failure
-     * 
+     *
      * @param string $message the message to send
      * @param object $exception [optional] the optional exception to notify the admins about
      * @return true if email sent, false otherwise
@@ -265,7 +265,7 @@ class iclicker_service {
         }
         return $failures;
     }
-    
+
     // USERS
 
     const USER_FIELDS = 'id,username,firstname,lastname,email';
@@ -288,7 +288,7 @@ class iclicker_service {
         }
         return true;
     }
-    
+
     /**
      * Ensure user is logged in and return the current user id
      * @return the current user id
@@ -302,7 +302,7 @@ class iclicker_service {
         }
         return $USER->id;
     }
-    
+
     /**
      * Gets the current user_id, return FALSE if none can be found
      * @return boolean the current user id OR null/false if no user
@@ -427,7 +427,7 @@ class iclicker_service {
         }
         return $results;
     }
-    
+
     /**
      * Get a display name for a given user id
      * @param int $user_id id for a user
@@ -469,7 +469,7 @@ class iclicker_service {
 
     /**
      * Check if a user is an instructor in moodle
-     * 
+     *
      * @param int $user_id [optional] the user id to check (default to current user)
      * @return true if an instructor or false otherwise
      * @static
@@ -496,7 +496,7 @@ class iclicker_service {
         $result = count($results) > 0;
         return $result;
     }
-    
+
     const CLICKERID_SAMPLE = '11A4C277';
     /**
      * Cleans up and validates a given clicker_id
@@ -539,9 +539,9 @@ class iclicker_service {
         }
         return $clicker_id;
     }
-    
+
     // CLICKER REGISTRATIONS DATA
-    
+
     /**
      * @param int $id the registration ID
      * @return the registration object OR false if none found
@@ -556,7 +556,7 @@ class iclicker_service {
         //$result = get_record_select(self::REG_TABLENAME, $sql);
         return $result;
     }
-    
+
     /**
      * @param string $clicker_id the clicker id
      * @param int $user_id [optional] the user who registered the clicker (id)
@@ -588,7 +588,7 @@ class iclicker_service {
         }
         return $result;
     }
-    
+
     public static function can_read_registration($clicker_registration, $user_id) {
         if (!isset($clicker_registration)) {
             throw new InvalidArgumentException("clicker_registration must be set");
@@ -607,7 +607,7 @@ class iclicker_service {
         }
         return $result;
     }
-    
+
     public static function can_write_registration($clicker_registration, $user_id) {
         if (!isset($clicker_registration)) {
             throw new InvalidArgumentException("clicker_registration must be set");
@@ -626,7 +626,7 @@ class iclicker_service {
         }
         return $result;
     }
-    
+
     /**
      * @param int $user_id [optional] the user id OR current user id
      * @param boolean $activated if null or not set then return all,
@@ -649,7 +649,7 @@ class iclicker_service {
         }
         return $results;
     }
-    
+
     /**
      * ADMIN ONLY
      * This is a method to get all the clickers for the clicker admin view
@@ -693,14 +693,14 @@ class iclicker_service {
         }
         return $results;
     }
-    
+
     /**
      * @return the count of the total number of registered clickers
      */
     public static function count_all_registrations() {
         return count_records(self::REG_TABLENAME);
     }
-    
+
     /**
      * ADMIN ONLY
      * Removes the registration from the database
@@ -719,7 +719,7 @@ class iclicker_service {
         }
         return false;
     }
-    
+
     /**
      * Create a registration
      *
@@ -752,7 +752,7 @@ class iclicker_service {
         }
         return $registration;
     }
-    
+
     /**
      * Make a registration active or inactive
      *
@@ -776,7 +776,7 @@ class iclicker_service {
         self::save_registration($registration);
         return $registration;
     }
-    
+
     /**
      * Saves the clicker registration data (create or update)
      * @param object $clicker_registration the registration data as an object
@@ -822,7 +822,7 @@ class iclicker_service {
         }
         return $reg_id;
     }
-    
+
     // COURSES METHODS
 
     /**
@@ -891,7 +891,7 @@ class iclicker_service {
      * Get the listing of all courses for an instructor
      * @param int $user_id [optional] the unique user id for an instructor (default to current user)
      * @return the list of courses (maybe be emtpy array)
-     */    
+     */
     public static function get_courses_for_instructor($user_id = NULL) {
         global $USER;
         // make this only get courses for this instructor
@@ -908,7 +908,7 @@ class iclicker_service {
             $accessinfo = get_user_access_sitewide($user_id);
         }
         $results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false,
-            'c.sortorder', array('fullname','summary'), 50);
+            'c.sortorder', array('fullname','summary','timecreated','visible'), 50);
         if (!$results) {
             $results = array();
         }
@@ -964,7 +964,7 @@ class iclicker_service {
         return $grade_item_fetched;
     }
 */
-    
+
     private static function save_grade_item($grade_item) {
         if (! $grade_item) {
             throw new InvalidArgumentException("grade_item must be set");
@@ -1123,7 +1123,7 @@ class iclicker_service {
     /**
      * Saves a gradebook (a set of grade items and scores related to a course),
      * also creates the categories based on the item type
-     * 
+     *
      * @param object $gradebook an object with at least course_id and items set
      * items should contain grade_items (courseid. categoryid, name, scores)
      * scores should contain grade_grade (user_id, score)
@@ -1210,12 +1210,12 @@ class iclicker_service {
         //echo "\n\nRESULT: ".var_export($gb_saved);
         return $gb_saved;
     }
-    
+
     // DATA ENCODING METHODS
 
     /**
      * Encodes a clicker registration into XML
-     * 
+     *
      * @param object $clicker_registration fields(owner_id, clicker_id)
      * @return the XML
      * @throws InvalidArgumentException if the registration is invalid
@@ -1257,7 +1257,7 @@ class iclicker_service {
 
     /**
      * Creates XML encoding of the result of a clicker registration
-     * 
+     *
      * @param object $registrations [optional] all regs for the registering user
      * @param boolean $status true if success, false if failure
      * @param string $message the message to send along (typically failure message)
@@ -1285,7 +1285,7 @@ format.
 3) When studentid is not found in the CMS
 <RetStatus Status="False" Message="Student not found in the CMS"/>
 
-4) Successful registration - 
+4) Successful registration -
 <RetStatus Status="True" Message="..."/>
          */
         $encoded = '<RetStatus Status="'.($status ? 'True' : 'False').'" Message="'.self::encode_for_xml($message).'" />';
@@ -1294,7 +1294,7 @@ format.
 
     /**
      * Encode a set of courses which a user is an instructor for into XML
-     * 
+     *
      * @param int $instructor_id unique user id
      * @return the XML
      * @throws InvalidArgumentException if the id is invalid
@@ -1316,9 +1316,10 @@ format.
         $encoded .= '">'.PHP_EOL;
         // loop through courses
         foreach ($courses as $course) {
-            $encoded .= '  <course id="'.$course->id.'" name="';
-            $encoded .= self::encode_for_xml($course->fullname);
-            $encoded .= '" usertype="I" />'.PHP_EOL;
+            $encoded .= '  <course id="'.$course->id.'" name="'.self::encode_for_xml($course->fullname)
+                    .'" created="'.$course->timecreated
+                    .'" published="'.($course->visible  ? "True" : "False")
+                    .'" usertype="I" />'.PHP_EOL;
         }
         // close out
         $encoded .= '</coursemembership>'.PHP_EOL;
@@ -1327,7 +1328,7 @@ format.
 
     /**
      * Encode a set of enrollments for a course into XML
-     * 
+     *
      * @param int $course_id unique id for a course
      * @return the XML
      * @throws InvalidArgumentException if the id is invalid
@@ -1389,7 +1390,7 @@ format.
 
     /**
      * Encodes the results of a gradebook save into XML
-     * 
+     *
      * @param object $gradebook_result the result from gradebook_save
      * @return the XML
      * @throws InvalidArgumentException if the registration is invalid
@@ -1543,7 +1544,7 @@ format.
     /**
      * Translate incoming XML into a clicker registration,
      * will figure out the user and get necessary data
-     * 
+     *
      * @param string $xml the xml
      * @return the clicker_registration object
      * @throws InvalidArgumentException if the xml cannot be parsed
@@ -1551,7 +1552,7 @@ format.
     public static function decode_registration($xml) {
         /*
 <Register>
-  <S DisplayName="DisplayName-azeckoski-123456" FirstName="First" LastName="Lastazeckoski-123456" 
+  <S DisplayName="DisplayName-azeckoski-123456" FirstName="First" LastName="Lastazeckoski-123456"
     StudentID="123456" Email="azeckoski-123456@email.com" URL="http://sakaiproject.org" ClickerID="11111111"></S>
 </Register>
          */
@@ -1591,7 +1592,7 @@ format.
 
     /**
      * Decodes XML into a gradebook object
-     * 
+     *
      * @param string $xml the xml
      * @return the gradebook object
      * @throws InvalidArgumentException if the xml cannot be parsed or the data is invalid
@@ -1689,13 +1690,13 @@ format.
         } catch (Exception $e) {
             throw new Exception("XML DOM parsing failure: $e :: $xml");
         }
-        
+
         return $gradebook;
     }
 
     /**
      * Decodes the webservices xml into an array of clicker registration objects
-     * 
+     *
      * @param string $xml the xml from an iclicker webservice
      * @return array (clicker_registration object)
      * @throws InvalidArgumentException if the xml cannot be parsed or the data is invalid
@@ -1774,12 +1775,12 @@ format.
         return $regs;
     }
 
-    
+
     // NATIONAL WEBSERVICES
-    
+
     /**
      * Syncs this clicker with the national services clicker (ensure that this is saved to national)
-     * 
+     *
      * @return results array('errors') with errors if any occurred, false if national ws is disabled
      */
     public static function ws_sync_clicker($clicker_registration) {
@@ -1821,7 +1822,7 @@ format.
 
     /**
      * Syncs all current clickers with the national services clickers for this site
-     * 
+     *
      * @return results array('errors') with errors if any occurred, false if national ws is disabled
      */
     public static function ws_sync_all() {
@@ -1852,14 +1853,14 @@ format.
                             $national_regs[$id] = $reg;
                         }
                     }
-            
+
                     // create maps and sets of local and remote regs
                     // both contains the items that exist in both sets, only contains items from one set only
                     $national_regs_only = array_diff_key($national_regs, $local_regs); //set
                     $local_regs_only = array_diff_key($local_regs, $national_regs); //set
                     $national_regs_both = array_diff_key($national_regs, $local_regs_only); //set
                     $local_regs_both = array_diff_key($local_regs, $national_regs_only); //set
-            
+
                     foreach ($local_regs_both as $key => $local_reg) {
                         // update if needed or just continue (push local or national or neither)
                         $national_reg = array_key_exists($key, $national_regs_both) ? $national_regs_both[$key] : NULL;
@@ -1879,7 +1880,7 @@ format.
                             }
                         }
                     }
-            
+
                     foreach ($national_regs_only as $key => $national_reg) {
                         try {
                             $reg = new stdClass();
@@ -1896,7 +1897,7 @@ format.
                             //log.warn(msg);
                         }
                     }
-            
+
                     foreach ($local_regs_only as $key => $local_reg) {
                         try {
                             $reg = new stdClass();
@@ -1952,7 +1953,7 @@ format.
      * Calls to the national webservices to get the clicker registrations for a specific student in this domain
      * @param string $user_name the username (not user id) for a student in this domain
      * @return array of clicker registration objects
-     */    
+     */
     public static function ws_get_student($user_name) {
         $ws_operation = 'SingleStudentReport';
         $ws_domain_url = self::$domain_URL; // 'http://epicurus.learningmate.com/';
@@ -1968,7 +1969,7 @@ format.
      * will return the set of all registrations for the user who registered the clicker
      * @param object $clicker_reg a clicker registration object, fields(owner_id, clicker_id)
      * @return array of clicker registration objects
-     */    
+     */
     public static function ws_save_clicker($clicker_reg) {
         $ws_operation = 'RegisterStudent';
         $reg_xml = self::encode_for_xml(self::encode_registration($clicker_reg));
@@ -2054,7 +2055,7 @@ format.
         }
         return '';
     }
-    
+
 }
 
 // load the config into the static vars from the global plugin config settings
