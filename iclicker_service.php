@@ -1318,7 +1318,7 @@ format.
         foreach ($courses as $course) {
             $encoded .= '  <course id="'.$course->id.'" name="'.self::encode_for_xml($course->fullname)
                     .'" created="'.$course->timecreated
-                    .'" published="'.($course->visible  ? "True" : "False")
+                    .'" published="'.($course->visible  ? 'True' : 'False')
                     .'" usertype="I" />'.PHP_EOL;
         }
         // close out
