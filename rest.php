@@ -81,7 +81,7 @@ function handle_authn($cntlr) {
     if (!empty($auth_username)) {
         iclicker_service::authenticate_user($auth_username, $auth_password); // throws exception if fails
     //} else if ($session_id) {
-    //    $valid = FALSE; // @todo validate the session key
+    //    $valid = FALSE; // validate the session key
     //    if (! $valid) {
     //        throw new SecurityException("Invalid "+iclicker_controller::SESSION_ID+" provided, session may have expired, send new login credentials");
     //    }
@@ -99,11 +99,13 @@ function handle_authn($cntlr) {
  * @return the XML data OR null if none can be found
  */
 function get_xml_data($cntlr) {
-    $xml = optional_param(iclicker_controller::LOGIN, NULL, XML_DATA);
+    $xml = optional_param(iclicker_controller::XML_DATA, NULL, PARAM_RAW);
     if (empty($xml)) {
         $xml = $cntlr->body;
+    } else {
+        $xml = stripslashes($xml);
     }
-    return xml;
+    return $xml;
 }
 
 
@@ -126,11 +128,11 @@ $output = '';
 // check to see if this is one of the paths we understand
 if (! $cntlr->path) {
     $valid = false;
-    $output = "Unknown path ($cntlr->path) specified"; 
+    $output = "Unknown path ($cntlr->path) specified";
     $status = 404; // not found
 }
-if ($valid 
-        && "POST" != $cntlr->method 
+if ($valid
+        && "POST" != $cntlr->method
         && "GET" != $cntlr->method) {
     $valid = false;
     $output = "Only POST and GET methods are supported";
@@ -163,7 +165,7 @@ if ($valid) {
             } else {
                 // UNKNOWN
                 $valid = false;
-                $output = "Unknown path ($cntlr->path) specified for method GET"; 
+                $output = "Unknown path ($cntlr->path) specified for method GET";
                 $status = 404; //NOT_FOUND
             }
         } else {
@@ -249,7 +251,7 @@ if ($valid) {
             } else {
                 // UNKNOWN
                 $valid = false;
-                $output = "Unknown path ($path) specified for method POST"; 
+                $output = "Unknown path ($path) specified for method POST";
                 $status = 404; //NOT_FOUND;
             }
         }

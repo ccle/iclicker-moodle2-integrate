@@ -1526,7 +1526,7 @@ format.
      * @throws DOMException if the xml fails to parse
      */
     private static function parse_xml_to_doc($xml) {
-        if (!$xml) {
+        if (! $xml) {
             throw new InvalidArgumentException("xml must be set");
         }
         // read the xml (try to anyway)
@@ -1690,7 +1690,6 @@ format.
         } catch (Exception $e) {
             throw new Exception("XML DOM parsing failure: $e :: $xml");
         }
-
         return $gradebook;
     }
 
