@@ -178,7 +178,7 @@ class iclicker_services_test extends UnitTestCase {
         $this->assertTrue(count($results) == 1);
         $this->assertEqual($results[$user_id]->id, $user_id);
     }
-    
+
     function test_validate_clickerid() {
         $clicker_id = null;
         try {
@@ -227,6 +227,72 @@ class iclicker_services_test extends UnitTestCase {
         $clicker_id = "11111111";
         $result = iclicker_service::validate_clicker_id($clicker_id);
         $this->assertEqual($result, $clicker_id);
+    }
+
+    function test_alternate_clickerid() {
+        $result = NULL;
+
+        $result = iclicker_service::translate_clicker_id(null);
+        $this->assertEqual(null, $result);
+
+        $result = iclicker_service::translate_clicker_id("");
+        $this->assertEqual(null, $result);
+
+        $result = iclicker_service::translate_clicker_id(IClickerLogic.CLICKERID_SAMPLE);
+        $this->assertEqual(null, $result);
+
+        $result = iclicker_service::translate_clicker_id("11111111");
+        $this->assertEqual(null, $result);
+
+        $result = iclicker_service::translate_clicker_id("22222222");
+        $this->assertEqual("02222222", $result);
+
+        $result = iclicker_service::translate_clicker_id("33333333");
+        $this->assertEqual(null, $result);
+
+        $result = iclicker_service::translate_clicker_id("44444444");
+        $this->assertEqual("04444444", $result);
+
+        $result = iclicker_service::translate_clicker_id("55555555");
+        $this->assertEqual(null, $result);
+
+        $result = iclicker_service::translate_clicker_id("66666666");
+        $this->assertEqual(null, $result);
+
+        $result = iclicker_service::translate_clicker_id("77777777");
+        $this->assertEqual(null, $result);
+
+        $result = iclicker_service::translate_clicker_id("88888888");
+        $this->assertEqual("08888888", $result);
+
+        $result = iclicker_service::translate_clicker_id("99999999");
+        $this->assertEqual(null, $result);
+    }
+
+    function test_make_clickerid_dates() {
+        $user_id = iclicker_service::require_user();
+        $reg1 = new stdClass;
+        $reg1->clicker_id = '11111111';
+        $reg1->owner_id = 'aaronz';
+        $reg2 = new stdClass;
+        $reg2->clicker_id = '22222222';
+        $reg2->owner_id = 'beckyz';
+        $result = NULL;
+
+        $clickers = array($reg1);
+        $result = iclicker_service::make_clicker_ids_and_dates($clickers);
+        $this->assertNotNull($result);
+        $this->assertEqual("11111111", $result['clickerid']);
+
+        $clickers = array($reg2);
+        $result = iclicker_service::make_clicker_ids_and_dates($clickers);
+        $this->assertNotNull($result);
+        $this->assertEqual("22222222,02222222", $result['clickerid']);
+
+        $clickers[] = $reg1;
+        $result = iclicker_service::make_clicker_ids_and_dates($clickers);
+        $this->assertNotNull($result);
+        $this->assertEqual("22222222,02222222,11111111", $result['clickerid']);
     }
 
     function test_registrations() {
@@ -280,7 +346,7 @@ class iclicker_services_test extends UnitTestCase {
         $this->assertEqual($reg_id, $reg5->id);
         $this->assertEqual($reg4->id, $reg5->id);
         $this->assertFalse($reg5->activated);
-        
+
         // get all registration
         $results = iclicker_service::get_registrations_by_user($user_id);
         $this->assertTrue($results);
@@ -290,7 +356,7 @@ class iclicker_services_test extends UnitTestCase {
         $this->assertNotNull($results);
         $this->assertFalse($results);
         $this->assertEqual(0, count($results));
-        
+
         $results = iclicker_service::get_all_registrations();
         $this->assertTrue($results);
         $this->assertTrue(count($results) >= 1);
@@ -307,7 +373,7 @@ class iclicker_services_test extends UnitTestCase {
     function test_encode_decode() {
         $xml = <<<XML
 <Register>
-  <S DisplayName="DisplayName-azeckoski-123456" FirstName="First" LastName="Lastazeckoski-123456" 
+  <S DisplayName="DisplayName-azeckoski-123456" FirstName="First" LastName="Lastazeckoski-123456"
     StudentID="101" Email="azeckoski-123456@email.com" URL="http://sakaiproject.org" ClickerID="11111111"></S>
 </Register>
 XML;
@@ -363,7 +429,7 @@ XML;
         $this->assertEqual($result[0]->clicker_id, '11111111');
         $this->assertEqual($result[0]->user_username, 'student01');
         /* Fails in windows for some reason - not sure why
-        Fail: blocks/iclicker/simpletest/test_iclicker_service.php / ► iclicker_services_test / ► test_encode_decode / ► 
+        Fail: blocks/iclicker/simpletest/test_iclicker_service.php / ► iclicker_services_test / ► test_encode_decode / ►
         Equal expectation fails because [Integer: 1233032400] differs from [Integer: 1233014400] by 18000
         */
         //$this->assertEqual($result[0]->timecreated, 1233014400);
@@ -592,7 +658,7 @@ echo "</pre>";
         $score->user_id = 3;
         $score->score = 40.0;
         $grade_item2->scores[] = $score;
-        
+
         $result = iclicker_service::save_gradebook($gradebook);
         $this->assertNotNull($result);
         $this->assertNotNull($result->course_id);

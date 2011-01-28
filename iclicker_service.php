@@ -138,6 +138,7 @@ class iclicker_service {
     // CONFIG
     public static $server_URL = self::DEFAULT_SERVER_URL;
     public static $domain_URL = self::DEFAULT_SERVER_URL;
+    public static $disable_alternateid = FALSE;
     public static $use_national_webservices = FALSE;
     public static $webservices_URL = self::NATIONAL_WS_URL;
     public static $webservices_username = self::NATIONAL_WS_AUTH_USERNAME;
@@ -500,7 +501,7 @@ class iclicker_service {
     const CLICKERID_SAMPLE = '11A4C277';
     /**
      * Cleans up and validates a given clicker_id
-     * @param clicker_id a remote clicker ID
+     * @param string $clicker_id a remote clicker ID
      * @return the cleaned up and valid clicker ID
      * @throws ClickerIdInvalidException if the id is invalid for some reason,
      * the exception will indicate the type of validation failure
@@ -539,6 +540,33 @@ class iclicker_service {
         }
         return $clicker_id;
     }
+
+    /**
+     * For all remoteids starting with “2”, “4”, “8” we have to generate an alternate id
+     * and concatenate it with the existing remote ids for that particular user in the data
+     * sent to the iclicker desktop app (this is like creating an extra clickerid based on the existing ones)
+     *
+     * @static
+     * @param string $clicker_id a remote clicker ID
+     * @return a translated clicker ID OR null if no translation is required or id is invalid
+     */
+    public static function translate_clicker_id($clicker_id) {
+        $alternateId = null;
+        try {
+            // validate the input, do nothing but return null if invalid
+            $clicker_id = self::validate_clicker_id($clicker_id);
+            $startsWith = $clicker_id{0};
+            if ('2' == $startsWith || '4' == $startsWith || '8' == $startsWith) {
+                // found clicker to translate
+                $alternateId = '0' . substr($clicker_id, 1);
+            }
+        } catch (ClickerIdInvalidException $e) {
+            $alternateId = NULL;
+        }
+        return $alternateId;
+
+    }
+
 
     // CLICKER REGISTRATIONS DATA
 
@@ -1370,7 +1398,12 @@ format.
         return $encoded;
     }
 
-    private static function make_clicker_ids_and_dates($clicker_regs) {
+    /**
+     * @static
+     * @param array $clicker_regs array of clicker registrations
+     * @return array an array with 2 strings under these keys ('clickerid', 'whenadded')
+     */
+    public static function make_clicker_ids_and_dates($clicker_regs) {
         $clicker_ids = '';
         $clicker_added_dates = '';
         if ($clicker_regs && !empty($clicker_regs)) {
@@ -1381,8 +1414,18 @@ format.
                     $clicker_added_dates .= ',';
                 }
                 $clicker_ids .= $reg->clicker_id;
-                $clicker_added_dates .= date('M/d/Y', $reg->timecreated);
+                $clickerDate = date('M/d/Y', $reg->timecreated);
+                $clicker_added_dates .= $clickerDate;
                 $count++;
+                if (! self::$disable_alternateid) {
+                    // add in the alternate clicker id if needed
+                    $alternateId = self::translate_clicker_id($reg->clicker_id);
+                    if ($alternateId != null) {
+                        $clicker_ids .= ','.$alternateId;
+                        $clicker_added_dates .= ','.$clickerDate;
+                        $count++;
+                    }
+                }
             }
         }
         return array('clickerid' => $clicker_ids, 'whenadded' => $clicker_added_dates);
@@ -2060,6 +2103,7 @@ format.
 // load the config into the static vars from the global plugin config settings
 $block_name = iclicker_service::BLOCK_NAME;
 $block_iclicker_notify_emails = get_config($block_name, 'block_iclicker_notify_emails');
+$block_iclicker_disable_alternateid = get_config($block_name, 'block_iclicker_disable_alternateid');
 $block_iclicker_use_national_ws = get_config($block_name, 'block_iclicker_use_national_ws');
 $block_iclicker_domain_url = get_config($block_name, 'block_iclicker_domain_url');
 $block_iclicker_webservices_url = get_config($block_name, 'block_iclicker_webservices_url');
@@ -2072,6 +2116,9 @@ if (!empty($block_iclicker_domain_url)) {
     iclicker_service::$domain_URL = $block_iclicker_domain_url;
 } else {
     iclicker_service::$domain_URL = $CFG->wwwroot;
+}
+if (!empty($block_iclicker_disable_alternateid)) {
+    iclicker_service::$disable_alternateid = TRUE;
 }
 if (!empty($block_iclicker_use_national_ws)) {
     iclicker_service::$use_national_webservices = TRUE;

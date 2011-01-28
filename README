@@ -1,9 +1,9 @@
 i>clicker Moodle integrate
 ==========================
-This is the Moodle i>clicker integrate plugin which integrates Moodle with iClicker (http://www.iclicker.com/dnn/) 
-The plugin (block) allows students to register their clickers with the Moodle installation. 
-It provides an adminstrative interface for managing the registrations for Moodle admins. 
-Instructors are provided with a reporting view which allows them to view a listing of the students in their courses which have and have not registered clickers. 
+This is the Moodle i>clicker integrate plugin which integrates Moodle with iClicker (http://www.iclicker.com/dnn/)
+The plugin (block) allows students to register their clickers with the Moodle installation.
+It provides an administrative interface for managing the registrations for Moodle admins. 
+Instructors are provided with a reporting view which allows them to view a listing of the students in their courses which have and have not registered clickers.
 The plugin also provides integration with the i>clicker and i>grader desktop applications and allows direct grade import and export from the Moodle course gradebook.
 
 Moodle Compatibility
@@ -67,7 +67,7 @@ to place the block anywhere you like.
 Adding the plugin/block to My Moodle for all users::
 
     # Login to your Moodle instance as an admin
-    # Click on Site Administration > Modules > Blocks > Sticky blocks 
+    # Click on Site Administration > Modules > Blocks > Sticky blocks
     # Select My Moodle from the pulldown
         - NOTE: You should have My Moodle enabled under Site Administration > Appearance > My Moodle > mymoodleredirect
     # Select i>clicker from the Blocks pulldown
@@ -106,7 +106,7 @@ Help
 Send questions or comments to:
 http://www.iclicker.com/contact/
 
-This document is in `reST (reStructuredText) <http://docutils.sourceforge.net/rst.html>`_ format 
+This document is in `reST (reStructuredText) <http://docutils.sourceforge.net/rst.html>`_ format
 and can be converted to html using the `online converter <http://www.tele3.cz/jbar/rest/rest.html>`_
 or the `rst2a converter api <http://rst2a.com/api/>`_ or a command line tool (rst2html.py README README.html)
 

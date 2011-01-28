@@ -103,6 +103,7 @@ $string['admin.errors.header'] = 'Most Recent Failures';
 // Config
 $string['config_general'] = 'General';
 $string['config_notify_emails'] = 'The email addresses to send notifications to on failures, DEFAULT: none (disabled)';
+$string['config_disable_alternateid'] = 'Whether to disable the use of alternate clicker IDs, DEFAULT: false (enable alternate clicker IDs)';
 $string['config_webservices'] = 'WebServices';
 $string['config_use_national_ws'] = 'Whether to use the webservices to store clicker registrations, DEFAULT: false';
 $string['config_domain_url'] = 'The i>clicker domain URL, leave blank for DEFAULT: the Moodle server URL (e.g. http://your.server.edu)';
