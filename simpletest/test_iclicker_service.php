@@ -245,13 +245,13 @@ class iclicker_services_test extends UnitTestCase {
         $this->assertEqual(null, $result);
 
         $result = iclicker_service::translate_clicker_id("22222222");
-        $this->assertEqual("02222222", $result);
+        $this->assertEqual("02222202", $result);
 
         $result = iclicker_service::translate_clicker_id("33333333");
         $this->assertEqual(null, $result);
 
         $result = iclicker_service::translate_clicker_id("44444444");
-        $this->assertEqual("04444444", $result);
+        $this->assertEqual("04444404", $result);
 
         $result = iclicker_service::translate_clicker_id("55555555");
         $this->assertEqual(null, $result);
@@ -263,7 +263,7 @@ class iclicker_services_test extends UnitTestCase {
         $this->assertEqual(null, $result);
 
         $result = iclicker_service::translate_clicker_id("88888888");
-        $this->assertEqual("08888888", $result);
+        $this->assertEqual("08888808", $result);
 
         $result = iclicker_service::translate_clicker_id("99999999");
         $this->assertEqual(null, $result);
@@ -287,12 +287,12 @@ class iclicker_services_test extends UnitTestCase {
         $clickers = array($reg2);
         $result = iclicker_service::make_clicker_ids_and_dates($clickers);
         $this->assertNotNull($result);
-        $this->assertEqual("22222222,02222222", $result['clickerid']);
+        $this->assertEqual("22222222,02222202", $result['clickerid']);
 
         $clickers[] = $reg1;
         $result = iclicker_service::make_clicker_ids_and_dates($clickers);
         $this->assertNotNull($result);
-        $this->assertEqual("22222222,02222222,11111111", $result['clickerid']);
+        $this->assertEqual("22222222,02222202,11111111", $result['clickerid']);
     }
 
     function test_registrations() {

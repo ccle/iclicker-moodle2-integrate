@@ -558,7 +558,13 @@ class iclicker_service {
             $startsWith = $clicker_id{0};
             if ('2' == $startsWith || '4' == $startsWith || '8' == $startsWith) {
                 // found clicker to translate
-                $alternateId = '0' . substr($clicker_id, 1);
+                $p1 = hexdec('0'.$clicker_id{1});
+                $p2 = hexdec(substr($clicker_id, 2, 2));
+                $p3 = hexdec(substr($clicker_id, 4, 2));
+                $p4 = $p1 ^ $p2 ^ $p3;
+                $part4 = strtoupper(dechex($p4));
+                $part4 = (count($part4) == 1 ? '0'.$part4 : $part4);
+                $alternateId = '0' . substr($clicker_id, 1, 5) . $part4;
             }
         } catch (ClickerIdInvalidException $e) {
             $alternateId = NULL;
