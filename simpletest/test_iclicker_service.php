@@ -270,12 +270,6 @@ class iclicker_services_test extends UnitTestCase {
 
         $result = iclicker_service::translate_clicker_id("40404040");
         $this->assertEqual("00404000", $result);
-
-        $result = iclicker_service::translate_clicker_id("405FA8B7");
-        $this->assertEqual("005FA8F7", $result);
-
-        $result = iclicker_service::translate_clicker_id("40791920");
-        $this->assertEqual("00791960", $result);
     }
 
     function test_make_clickerid_dates() {
