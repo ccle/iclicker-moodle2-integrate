@@ -221,6 +221,7 @@ class iclicker_service {
      * @return true if email sent, false otherwise
      */
     public static function send_notifications($message, $exception=NULL) {
+        global $CFG;
         // load these on demand only - block_iclicker_notify_emails
         $admin_emails = NULL;
         if (!empty($CFG->block_iclicker_notify_emails)) {
@@ -233,7 +234,7 @@ class iclicker_service {
         $failures = self::get_failures();
         $msg = $message;
         if ($exception != null) {
-            $msg .= " Failure: ".$e->message." ".$e;
+            $msg .= " Failure: ".$exception->message." ".$exception;
         }
         array_unshift($failures, date('Y-m-d h:i:s').' :: '.substr($msg, 0, 300));
         while (count($failures) > 5) {
@@ -245,7 +246,7 @@ class iclicker_service {
             $sent = false;
             $body = "i>clicker Moodle integrate plugin notification (".date('d.m.Y h:i:s').")\n" + $message + "\n";
             if ($exception != null) {
-                $body .= "\nFailure:\n".$e->message."\n\n".$e;
+                $body .= "\nFailure:\n".$exception->message."\n\n".$exception;
             }
             foreach ($admin_emails as $email) {
                 self::send_email($email, 'i>clicker Moodle integrate plugin notification', $body);
@@ -563,7 +564,7 @@ class iclicker_service {
                 $p3 = hexdec(substr($clicker_id, 4, 2));
                 $p4 = $p1 ^ $p2 ^ $p3;
                 $part4 = strtoupper(dechex($p4));
-                $part4 = (count($part4) == 1 ? '0'.$part4 : $part4);
+                $part4 = (strlen($part4) === 1 ? '0'.$part4 : $part4);
                 $alternateId = '0' . substr($clicker_id, 1, 5) . $part4;
             }
         } catch (ClickerIdInvalidException $e) {

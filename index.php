@@ -20,6 +20,8 @@
 /* $Id$ */
 
 // Permanent redirection
+require_once ('../../config.php');
+global $CFG, $USER, $COURSE;
 header("HTTP/1.1 301 Moved Permanently");
 header("Location: ".$CFG->httpswwwroot);
 ?>

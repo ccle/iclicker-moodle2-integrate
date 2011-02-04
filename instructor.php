@@ -23,7 +23,7 @@
  * Handles rendering the form for creating new pages and the submission of the form as well
  * NOTE: table is named iclicker
  */
- 
+
 require_once ('../../config.php');
 global $CFG, $USER, $COURSE;
 require_once ('iclicker_service.php');
@@ -62,11 +62,11 @@ param: string  $bodytags This text will be included verbatim in the <body> tag (
 param: bool    $return If true, return the visible elements of the header instead of echoing them.
  */
 print_header(
-    strip_tags($site->fullname).':'.iclicker_service::msg('app.iclicker').':'.iclicker_service::msg('inst.title'), 
+    strip_tags($site->fullname).':'.iclicker_service::msg('app.iclicker').':'.iclicker_service::msg('inst.title'),
     iclicker_service::msg('app.iclicker').' '.iclicker_service::msg('inst.title'),
     build_navigation($navigation), // '<a href="'.$CFG->wwwroot.'/course/view.php?id='.$COURSE->id.'">'.$COURSE->shortname.'</a> ->'.get_string('formtitle', 'block_iclicker'),
-    '', 
-    "<meta name=\"description\" content=\"".s(strip_tags($site->summary))."\">\n<link rel=\"stylesheet\" type=\"text/css\" href=\"".iclicker_service::block_url('css/iclicker.css')."\" />", 
+    '',
+    "<meta name=\"description\" content=\"".s(strip_tags($site->summary))."\">\n<link rel=\"stylesheet\" type=\"text/css\" href=\"".iclicker_service::block_url('css/iclicker.css')."\" />",
     false
 );
 
@@ -110,7 +110,7 @@ require ('user_messages.php');
 <?php } else { ?>
     <div class="title"><?php echo iclicker_service::msg('inst.courses.header') ?> (<?php echo $courses_count ?>):</div>
     <!-- course listing -->
-    <table width="90%" border="1" cellspacing="0" cellpadding="0" 
+    <table width="90%" border="1" cellspacing="0" cellpadding="0"
         summary="<?php echo iclicker_service::msg('inst.courses.table.summary') ?>">
         <thead>
             <tr class="courses_header header_row">
