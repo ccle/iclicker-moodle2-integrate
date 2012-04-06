@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id: block_iclicker.php 100 2012-04-06 00:50:59Z azeckoski@gmail.com $ */
+/* $Id$ */
 
 // i18n file
 $string['app.iclicker']         = 'i>clicker';

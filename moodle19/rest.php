@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id: rest.php 9 2009-11-28 17:10:13Z azeckoski $ */
+/* $Id$ */
 
 // this includes lib/setup.php and the standard set:
 //setup.php : setup which creates the globals

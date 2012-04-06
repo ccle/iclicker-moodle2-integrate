@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
- /* $Id: settings.php 1169 2011-12-23 17:17:31Z aaronz $ */
+ /* $Id$ */
 
 // control the config settings for this plugin
 require_once ('bfwpub_service.php');

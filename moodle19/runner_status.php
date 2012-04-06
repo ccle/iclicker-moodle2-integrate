@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id: runner_status.php 9 2010-01-18 17:10:13Z azeckoski $ */
+/* $Id$ */
 
 /**
  * checks the status of the current sync process for completion
