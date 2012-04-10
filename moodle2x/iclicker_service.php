@@ -25,7 +25,6 @@ global $CFG,$USER,$COURSE;
 require_once ($CFG->libdir.'/gradelib.php');
 require_once ($CFG->libdir.'/dmllib.php');
 require_once ($CFG->libdir.'/accesslib.php');
-require_once ($CFG->libdir.'/soap/nusoap.php');
 
 /**
  * For XML error handling
@@ -54,7 +53,7 @@ class ClickerIdInvalidException extends Exception {
     const F_CHECKSUM = 'CHECKSUM';
     const F_SAMPLE = 'SAMPLE';
     public $type = "UNKNOWN";
-    public $clicker_id = NULL;
+    public $clicker_id = null;
     /**
      * @param string $message the error message
      * @param string $type [optional] Valid types are:
@@ -65,7 +64,7 @@ class ClickerIdInvalidException extends Exception {
      * sample - the clickerId matches the sample one and cannot be used
      * @param string $clicker_id [optional] the clicker id
      */
-    function __construct($message, $type = NULL, $clicker_id = NULL) {
+    function __construct($message, $type = null, $clicker_id = null) {
         parent::__construct($message);
         $this->type = $type;
         $this->clicker_id = $clicker_id;
@@ -138,20 +137,22 @@ class iclicker_service {
     // CONFIG
     public static $server_URL = self::DEFAULT_SERVER_URL;
     public static $domain_URL = self::DEFAULT_SERVER_URL;
-    public static $disable_alternateid = FALSE;
-    public static $use_national_webservices = FALSE;
+    public static $disable_alternateid = false;
+    public static $use_national_webservices = false;
     public static $webservices_URL = self::NATIONAL_WS_URL;
     public static $webservices_username = self::NATIONAL_WS_AUTH_USERNAME;
     public static $webservices_password = self::NATIONAL_WS_AUTH_PASSWORD;
-    public static $disable_sync_with_national = FALSE;
-    public static $test_mode = FALSE;
+    public static $disable_sync_with_national = false;
+    public static $block_iclicker_sso_enabled = false;
+    public static $block_iclicker_sso_shared_key = null;
+    public static $test_mode = false;
 
     // STATIC METHODS
 
     /**
      * @return the path for this block
      */
-    public static function block_path($added = NULL) {
+    public static function block_path($added = null) {
         global $CFG;
         if (isset($added)) {
             $added = '/'.$added;
@@ -164,7 +165,7 @@ class iclicker_service {
     /**
      * @return the url for this block
      */
-    public static function block_url($added = NULL) {
+    public static function block_url($added = null) {
         global $CFG;
         if (isset($added)) {
             $added = '/'.$added;
@@ -181,7 +182,7 @@ class iclicker_service {
      * @param object $vars [optional] optional replacement variables
      * @return the translated string
      */
-    public static function msg($key, $vars = NULL) {
+    public static function msg($key, $vars = null) {
         return get_string($key, self::BLOCK_NAME, $vars);
     }
 
@@ -220,10 +221,10 @@ class iclicker_service {
      * @param object $exception [optional] the optional exception to notify the admins about
      * @return true if email sent, false otherwise
      */
-    public static function send_notifications($message, $exception=NULL) {
+    public static function send_notifications($message, $exception=null) {
         global $CFG;
         // load these on demand only - block_iclicker_notify_emails
-        $admin_emails = NULL;
+        $admin_emails = null;
         if (!empty($CFG->block_iclicker_notify_emails)) {
             $email_string = $CFG->block_iclicker_notify_emails;
             $admin_emails = explode(',', $email_string);
@@ -306,7 +307,7 @@ class iclicker_service {
     }
 
     /**
-     * Gets the current user_id, return FALSE if none can be found
+     * Gets the current user_id, return false if none can be found
      * @return boolean the current user id OR null/false if no user
      */
     public static function get_current_user_id() {
@@ -456,7 +457,7 @@ class iclicker_service {
      * @return true if this user is an admin OR false if not
      * @static
      */
-    public static function is_admin($user_id = NULL) {
+    public static function is_admin($user_id = null) {
         if (!isset($user_id)) {
             try {
                 $user_id = self::require_user();
@@ -476,7 +477,7 @@ class iclicker_service {
      * @return true if an instructor or false otherwise
      * @static
      */
-    public static function is_instructor($user_id = NULL) {
+    public static function is_instructor($user_id = null) {
         global $USER;
         if (!isset($user_id)) {
             try {
@@ -487,7 +488,7 @@ class iclicker_service {
             }
         }
         // sadly this is the only way to do this check: http://moodle.org/mod/forum/discuss.php?d=140383
-        $accessinfo = NULL;
+        $accessinfo = null;
         if ($user_id === $USER->id && isset($USER->access)) {
             $accessinfo = $USER->access;
         } else {
@@ -510,7 +511,7 @@ class iclicker_service {
      */
     public static function validate_clicker_id($clicker_id) {
         if (!isset($clicker_id) || strlen($clicker_id) == 0) {
-            throw new ClickerIdInvalidException("empty or NULL clicker_id", ClickerIdInvalidException::F_EMPTY, $clicker_id);
+            throw new ClickerIdInvalidException("empty or null clicker_id", ClickerIdInvalidException::F_EMPTY, $clicker_id);
         }
         if (strlen($clicker_id) > 8) {
             throw new ClickerIdInvalidException("clicker_id is an invalid length", ClickerIdInvalidException::F_LENGTH, $clicker_id);
@@ -568,7 +569,7 @@ class iclicker_service {
                 $alternateId = '0' . substr($clicker_id, 1, 5) . $part4;
             }
         } catch (ClickerIdInvalidException $e) {
-            $alternateId = NULL;
+            $alternateId = null;
         }
         return $alternateId;
 
@@ -598,7 +599,7 @@ class iclicker_service {
      * @return the registration object OR false if none found
      * @static
      */
-    public static function get_registration_by_clicker_id($clicker_id, $user_id = NULL) {
+    public static function get_registration_by_clicker_id($clicker_id, $user_id = null) {
         if (!$clicker_id) {
             throw new InvalidArgumentException("clicker_id must be set");
         }
@@ -668,7 +669,7 @@ class iclicker_service {
      * if true then return active only, if false then return inactive only
      * @return the list of registrations for this user or empty array if none
      */
-    public static function get_registrations_by_user($user_id = NULL, $activated = NULL) {
+    public static function get_registrations_by_user($user_id = null, $activated = null) {
         $current_user_id = self::require_user();
         if (!isset($user_id)) {
             $user_id = $current_user_id;
@@ -763,7 +764,7 @@ class iclicker_service {
      * @param boolean $local_only [optional] create this clicker in the local system only if true, otherwise sync to national system as well
      * @return the clicker_registration object
      */
-    public static function create_clicker_registration($clicker_id, $owner_id = NULL, $local_only = false) {
+    public static function create_clicker_registration($clicker_id, $owner_id = null, $local_only = false) {
         $clicker_id = self::validate_clicker_id($clicker_id);
         $current_user_id = self::require_user();
         $user_id = $owner_id;
@@ -870,7 +871,7 @@ class iclicker_service {
         // get_users_by_capability - accesslib - moodle/grade:view
         // search_users - datalib
         $context = get_context_instance(CONTEXT_COURSE, $course_id);
-        $results = get_users_by_capability($context, 'moodle/grade:view', 'u.id, u.username, u.firstname, u.lastname, u.email', 'u.lastname', '', '', '', '', FALSE);
+        $results = get_users_by_capability($context, 'moodle/grade:view', 'u.id, u.username, u.firstname, u.lastname, u.email', 'u.lastname', '', '', '', '', false);
         if (isset($results) && !empty($results)) {
             // get the registrations related to these students
             $user_regs = array();
@@ -927,7 +928,7 @@ class iclicker_service {
      * @param int $user_id [optional] the unique user id for an instructor (default to current user)
      * @return the list of courses (maybe be emtpy array)
      */
-    public static function get_courses_for_instructor($user_id = NULL) {
+    public static function get_courses_for_instructor($user_id = null) {
         global $USER;
         // make this only get courses for this instructor
         // get_user_courses_bycap? - accesslib
@@ -953,7 +954,7 @@ class iclicker_service {
     /**
      * Retrieve a single course by unique id
      * @param int $course_id the course
-     * @return the course object or FALSE
+     * @return the course object or false
      */
     public static function get_course($course_id) {
         $course = get_record('course', 'id', $course_id);
@@ -966,7 +967,7 @@ class iclicker_service {
             }
         }
         if (!$course) {
-            $course = FALSE;
+            $course = false;
         }
         return $course;
     }
@@ -1102,7 +1103,7 @@ class iclicker_service {
                     continue;
                 }
                 try {
-                    $grade_tosave = NULL;
+                    $grade_tosave = null;
                     if (isset($current_scores[$user_id])) {
                         // existing score
                         $grade_tosave = $current_scores[$user_id];
@@ -1190,7 +1191,7 @@ class iclicker_service {
             'fullname' => self::GRADE_CATEGORY_NAME
             )
         );
-        $default_iclicker_category_id = $default_iclicker_category ? $default_iclicker_category->id : NULL;
+        $default_iclicker_category_id = $default_iclicker_category ? $default_iclicker_category->id : null;
         //echo "\n\nGRADEBOOK: ".var_export($gradebook);
         // iterate through and save grade items by calling other method
         if (! empty($gradebook->items)) {
@@ -1699,7 +1700,7 @@ format.
                         if (! $li_name) {
                             throw new InvalidArgumentException("Invalid XML, no name in the lineitem xml element: $lineitem");
                         }
-                        $grade_item = NULL;
+                        $grade_item = null;
                         if (! isset($gradebook->items[$li_name])) {
                             // only add lineitem from the first item
                             $li_type = $lineitem->getAttribute("type");
@@ -1875,12 +1876,12 @@ format.
      * @return results array('errors') with errors if any occurred, false if national ws is disabled
      */
     public static function ws_sync_all() {
-        $results = array('errors' => array(), 'runner' => FALSE);
+        $results = array('errors' => array(), 'runner' => false);
         if (self::$use_national_webservices && ! self::$disable_sync_with_national) {
             $runner_status = get_config(self::BLOCK_NAME, self::BLOCK_RUNNER_KEY);
             $time_check = time() - 60000; // 10 mins ago
             if (isset($runner_status) && ($runner_status > $time_check)) {
-                $results['runner'] = TRUE;
+                $results['runner'] = true;
                 $results['errors'][] = 'sync is already running since '.date('Y-m-d h:i:s', $runner_status);
             } else {
                 set_config(self::BLOCK_RUNNER_KEY, time(), self::BLOCK_NAME);
@@ -1912,8 +1913,8 @@ format.
 
                     foreach ($local_regs_both as $key => $local_reg) {
                         // update if needed or just continue (push local or national or neither)
-                        $national_reg = array_key_exists($key, $national_regs_both) ? $national_regs_both[$key] : NULL;
-                        if ($national_reg != NULL) {
+                        $national_reg = array_key_exists($key, $national_regs_both) ? $national_regs_both[$key] : null;
+                        if ($national_reg != null) {
                             // compare these for diffs
                             if ($local_reg->activated != $national_reg->activated) {
                                 try {
@@ -1936,7 +1937,7 @@ format.
                             $reg->clicker_id = $national_reg->clicker_id;
                             $reg->owner_id = $national_reg->owner_id;
                             $reg->activated = $national_reg->activated;
-                            $reg->from_national = TRUE;
+                            $reg->from_national = true;
                             self::save_registration($reg);
                         } catch (Exception $e) {
                             // this is ok, we will continue anyway
@@ -1953,7 +1954,7 @@ format.
                             $reg->clicker_id = $local_reg->clicker_id;
                             $reg->owner_id = $local_reg->owner_id;
                             $reg->activated = $local_reg->activated;
-                            $reg->from_national = FALSE;
+                            $reg->from_national = false;
                             self::ws_save_clicker($reg);
                         } catch (Exception $e) {
                             // this is ok, we will continue anyway
@@ -2117,6 +2118,8 @@ $block_iclicker_webservices_url = get_config($block_name, 'block_iclicker_webser
 $block_iclicker_webservices_username = get_config($block_name, 'block_iclicker_webservices_username');
 $block_iclicker_webservices_password = get_config($block_name, 'block_iclicker_webservices_password');
 $block_iclicker_disable_sync = get_config($block_name, 'block_iclicker_disable_sync');
+$block_iclicker_sso_enabled = false;
+$block_iclicker_sso_shared_key = get_config($block_name, 'block_iclicker_sso_shared_key');
 
 iclicker_service::$server_URL = $CFG->wwwroot;
 if (!empty($block_iclicker_domain_url)) {
@@ -2125,10 +2128,10 @@ if (!empty($block_iclicker_domain_url)) {
     iclicker_service::$domain_URL = $CFG->wwwroot;
 }
 if (!empty($block_iclicker_disable_alternateid)) {
-    iclicker_service::$disable_alternateid = TRUE;
+    iclicker_service::$disable_alternateid = true;
 }
 if (!empty($block_iclicker_use_national_ws)) {
-    iclicker_service::$use_national_webservices = TRUE;
+    iclicker_service::$use_national_webservices = true;
 }
 if (!empty($block_iclicker_webservices_url)) {
     iclicker_service::$webservices_URL = $block_iclicker_webservices_url;
@@ -2140,7 +2143,11 @@ if (!empty($block_iclicker_webservices_password)) {
     iclicker_service::$webservices_password = $block_iclicker_webservices_password;
 }
 if (!empty($block_iclicker_disable_sync)) {
-    iclicker_service::$disable_sync_with_national = TRUE;
+    iclicker_service::$disable_sync_with_national = true;
+}
+if (!empty($block_iclicker_sso_shared_key)) {
+    iclicker_service::$block_iclicker_sso_enabled = true;
+    iclicker_service::$block_iclicker_sso_shared_key = $block_iclicker_sso_shared_key;
 }
 
 ?>

@@ -22,6 +22,7 @@
 // i18n file
 $string['app.iclicker']         = 'i>clicker';
 $string['app.title']            = 'i>clicker Moodle integrate';
+$string['pluginname']           = 'i>clicker Moodle integrate';
 
 // form controls
 $string['app.register']     = 'Register';
@@ -102,15 +103,26 @@ $string['admin.errors.header'] = 'Most Recent Failures';
 
 // Config
 $string['config_general'] = 'General';
-$string['config_notify_emails'] = 'The email addresses to send notifications to on failures, DEFAULT: none (disabled)';
-$string['config_disable_alternateid'] = 'Whether to disable the use of alternate clicker IDs, DEFAULT: false (enable alternate clicker IDs)';
+$string['config_notify_emails'] = 'Failure notification email';
+$string['config_notify_emails_desc'] = 'The email addresses to send notifications to on failures. Blank indicates disabled.';
+$string['config_disable_alternateid'] = 'Alternate Id disabled';
+$string['config_disable_alternateid_desc'] = 'Whether to disable the use of alternate clicker IDs, DEFAULT: false (enable alternate clicker IDs)';
 $string['config_webservices'] = 'WebServices';
-$string['config_use_national_ws'] = 'Whether to use the webservices to store clicker registrations, DEFAULT: false';
-$string['config_domain_url'] = 'The i>clicker domain URL, leave blank for DEFAULT: the Moodle server URL (e.g. http://your.server.edu)';
-$string['config_webservices_url'] = 'The webservices URL, leave blank for DEFAULT: the URL for the national i>clicker webservices server';
-$string['config_webservices_username'] = 'The webservices username, leave blank for the DEFAULT national webservices username';
-$string['config_webservices_password'] = 'The webservices password, leave blank for the DEFAULT national webservices password';
-$string['config_disable_sync'] = 'Disable the national webservices automatic synchronization, DEFAULT: false (sync enabled)';
+$string['config_use_national_ws'] = 'Enable WebServices';
+$string['config_use_national_ws_desc'] = 'Whether to use the webservices to store clicker registrations';
+$string['config_domain_url'] = 'Domain URL';
+$string['config_domain_url_desc'] = 'The i>clicker domain URL, leave blank for DEFAULT: the Moodle server URL (e.g. http://your.server.edu)';
+$string['config_webservices_url'] = 'WebServices URL';
+$string['config_webservices_url_desc'] = 'The webservices URL, leave blank for DEFAULT: the URL for the national i>clicker webservices server';
+$string['config_webservices_username'] = 'WebServices Username';
+$string['config_webservices_username_desc'] = 'The webservices username, leave blank for the DEFAULT national webservices username';
+$string['config_webservices_password'] = 'WebServices Password';
+$string['config_webservices_password_desc'] = 'The webservices password, leave blank for the DEFAULT national webservices password';
+$string['config_disable_sync'] = 'Disable WebServices Sync';
+$string['config_disable_sync_desc'] = 'Disable the national webservices automatic synchronization, DEFAULT: false (sync enabled)';
+$string['config_sso'] = 'Single Sign On';
+$string['config_shared_key'] = 'SSO Shared Key';
+$string['config_shared_key_desc'] = 'Enable Single Sign On support by setting a shared key (must be at least 10 chars long). Set this to blank to disable SSO support';
 
 // Main block
 $string['leaveblanktohide'] = 'leave blank to hide';
