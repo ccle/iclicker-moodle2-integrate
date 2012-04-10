@@ -173,9 +173,10 @@ class block_iclicker extends block_base {
 
 /* DEFAULT instance config save
     function instance_config_save($data) {
+        global $DB;
         $data = stripslashes_recursive($data);
         $this->config = $data;
-        return set_field('block_instance', 'configdata',
+        return $DB->set_field('block_instance', 'configdata',
 			base64_encode(serialize($data)), 'id', $this->instance->id);
     }
 */

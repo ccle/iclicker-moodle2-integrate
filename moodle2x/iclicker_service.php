@@ -28,6 +28,12 @@ require_once ($CFG->libdir.'/accesslib.php');
 
 /**
  * For XML error handling
+ * @param $errno
+ * @param $errstr
+ * @param $errfile
+ * @param $errline
+ * @return bool
+ * @throws DOMException
  */
 function HandleXmlError($errno, $errstr, $errfile, $errline) {
     if ($errno==E_WARNING && (substr_count($errstr,"DOMDocument::loadXML()")>0)) {
@@ -150,7 +156,9 @@ class iclicker_service {
     // STATIC METHODS
 
     /**
-     * @return the path for this block
+     * @static
+     * @param string $added extra path to add
+     * @return string the path for this block
      */
     public static function block_path($added = null) {
         global $CFG;
@@ -163,7 +171,9 @@ class iclicker_service {
     }
 
     /**
-     * @return the url for this block
+     * @static
+     * @param string $added extra path to add
+     * @return string url for this block
      */
     public static function block_url($added = null) {
         global $CFG;
@@ -180,7 +190,7 @@ class iclicker_service {
      *
      * @param string $key i18 msg key
      * @param object $vars [optional] optional replacement variables
-     * @return the translated string
+     * @return string the translated string
      */
     public static function msg($key, $vars = null) {
         return get_string($key, self::BLOCK_NAME, $vars);
@@ -196,7 +206,7 @@ class iclicker_service {
      * @param string $to email address to send email to
      * @param string $subject email subject
      * @param string $body email body
-     * @return true if email sent, false otherwise
+     * @return bool true if email sent, false otherwise
      */
     public static function send_email($to, $subject, $body) {
         // $user should be a fake user object with the email set to the correct value, $from should be a string
@@ -219,7 +229,7 @@ class iclicker_service {
      *
      * @param string $message the message to send
      * @param object $exception [optional] the optional exception to notify the admins about
-     * @return true if email sent, false otherwise
+     * @return bool true if email sent, false otherwise
      */
     public static function send_notifications($message, $exception=null) {
         global $CFG;
@@ -243,12 +253,12 @@ class iclicker_service {
         }
         set_config('block_iclicker_failures', implode('*****', $failures), self::BLOCK_NAME);
 
+        $body = "i>clicker Moodle integrate plugin notification (".date('d.m.Y h:i:s').")\n" . $message . "\n";
+        if ($exception != null) {
+            $body .= "\nFailure:\n".$exception->message."\n\n".$exception;
+        }
         if ($admin_emails) {
             $sent = false;
-            $body = "i>clicker Moodle integrate plugin notification (".date('d.m.Y h:i:s').")\n" + $message + "\n";
-            if ($exception != null) {
-                $body .= "\nFailure:\n".$exception->message."\n\n".$exception;
-            }
             foreach ($admin_emails as $email) {
                 self::send_email($email, 'i>clicker Moodle integrate plugin notification', $body);
             }
@@ -277,7 +287,7 @@ class iclicker_service {
      * Authenticate a user by username and password
      * @param string $username
      * @param string $password
-     * @return true if the authentication is successful
+     * @return bool true if the authentication is successful
      * @throw SecurityException if auth invalid
      */
     public static function authenticate_user($username, $password) {
@@ -294,7 +304,7 @@ class iclicker_service {
 
     /**
      * Ensure user is logged in and return the current user id
-     * @return the current user id
+     * @return string the current user id
      * @throws SecurityException if there is no current user
      * @static
      */
@@ -323,12 +333,13 @@ class iclicker_service {
     /**
      * Gets a user by their username
      * @param string $username the username (i.e. login name)
-     * @return the user object OR false if none can be found
+     * @return stdClass|bool the user object OR false if none can be found
      */
     public static function get_user_by_username($username) {
+        global $DB;
         $user = false;
         if ($username) {
-            $user = get_record('user', 'username', $username, '', '', '', '', self::USER_FIELDS);
+            $user = $DB->get_record('user', array('username' => $username), self::USER_FIELDS);
             // TESTING handling
             if (self::$test_mode && !$user) {
                 // test users
@@ -369,17 +380,18 @@ class iclicker_service {
     /**
      * Get user records for a set of user ids
      * @param array $user_ids an array of user ids OR a single user_id
-     * @return a map of user_id -> user data OR single user object for single user_id OR empty array if no matches
+     * @return array a map of user_id -> user data OR single user object for single user_id OR empty array if no matches
      */
     public static function get_users($user_ids) {
+        global $DB;
         $results = array(
         );
         if (isset($user_ids)) {
             if (is_array($user_ids)) {
                 $users = false;
                 if (! empty($user_ids)) {
-                    $ids = implode(',', $user_ids);
-                    $users = get_records_list('user', 'id', $ids, 'id', self::USER_FIELDS);
+                    //$ids = implode(',', $user_ids);
+                    $users = $DB->get_records_list('user', 'id', $user_ids, 'id', self::USER_FIELDS);
                 }
                 if ($users) {
                     foreach ($users as $user) {
@@ -389,7 +401,7 @@ class iclicker_service {
                 }
             } else {
                 // single user id
-                $user = get_record('user', 'id', $user_ids, '', '', '', '', self::USER_FIELDS);
+                $user = $DB->get_record('user', array('id' => $user_ids), self::USER_FIELDS);
                 // TESTING handling
                 if (self::$test_mode && !$user) {
                     if ($user_ids == 101) {
@@ -434,7 +446,7 @@ class iclicker_service {
     /**
      * Get a display name for a given user id
      * @param int $user_id id for a user
-     * @return the display name
+     * @return string the display name
      */
     public static function get_user_displayname($user_id) {
         $name = "UNKNOWN-".$user_id;
@@ -454,7 +466,7 @@ class iclicker_service {
 
     /**
      * @param int $user_id [optional] the user id
-     * @return true if this user is an admin OR false if not
+     * @return bool true if this user is an admin OR false if not
      * @static
      */
     public static function is_admin($user_id = null) {
@@ -474,7 +486,7 @@ class iclicker_service {
      * Check if a user is an instructor in moodle
      *
      * @param int $user_id [optional] the user id to check (default to current user)
-     * @return true if an instructor or false otherwise
+     * @return bool true if an instructor or false otherwise
      * @static
      */
     public static function is_instructor($user_id = null) {
@@ -504,7 +516,7 @@ class iclicker_service {
     /**
      * Cleans up and validates a given clicker_id
      * @param string $clicker_id a remote clicker ID
-     * @return the cleaned up and valid clicker ID
+     * @return string the cleaned up and valid clicker ID
      * @throws ClickerIdInvalidException if the id is invalid for some reason,
      * the exception will indicate the type of validation failure
      * @static
@@ -538,7 +550,7 @@ class iclicker_service {
             $checksum = $checksum ^ $hex;
         }
         if ($checksum != 0) {
-            throw new ClickerIdInvalidException("clicker_id checksum (" + $checksum + ") validation failed", ClickerIdInvalidException::F_CHECKSUM, $clicker_id);
+            throw new ClickerIdInvalidException("clicker_id checksum (" . $checksum . ") validation failed", ClickerIdInvalidException::F_CHECKSUM, $clicker_id);
         }
         return $clicker_id;
     }
@@ -550,7 +562,7 @@ class iclicker_service {
      *
      * @static
      * @param string $clicker_id a remote clicker ID
-     * @return a translated clicker ID OR null if no translation is required or id is invalid
+     * @return string|null a translated clicker ID OR null if no translation is required or id is invalid
      */
     public static function translate_clicker_id($clicker_id) {
         $alternateId = null;
@@ -579,27 +591,31 @@ class iclicker_service {
     // CLICKER REGISTRATIONS DATA
 
     /**
-     * @param int $id the registration ID
-     * @return the registration object OR false if none found
      * @static
+     * @param int $reg_id the registration ID
+     * @return stdClass|bool the registration object OR false if none found
+     * @throws InvalidArgumentException
      */
     public static function get_registration_by_id($reg_id) {
+        global $DB;
         if (!isset($reg_id)) {
             throw new InvalidArgumentException("reg_id must be set");
         }
-        $result = get_record(self::REG_TABLENAME, 'id', $reg_id);
+        $result = $DB->get_record(self::REG_TABLENAME, array('id' => $reg_id));
         //$sql = "id = ".addslashes($reg_id);
         //$result = get_record_select(self::REG_TABLENAME, $sql);
         return $result;
     }
 
     /**
+     * @static
      * @param string $clicker_id the clicker id
      * @param int $user_id [optional] the user who registered the clicker (id)
-     * @return the registration object OR false if none found
-     * @static
+     * @return stdClass|bool the registration object OR false if none found
+     * @throws InvalidArgumentException|SecurityException
      */
     public static function get_registration_by_clicker_id($clicker_id, $user_id = null) {
+        global $DB;
         if (!$clicker_id) {
             throw new InvalidArgumentException("clicker_id must be set");
         }
@@ -614,7 +630,7 @@ class iclicker_service {
             return false;
         }
         // NOTE: also returns disabled registrations
-        $result = get_record(self::REG_TABLENAME, 'clicker_id', $clicker_id, 'owner_id', $user_id);
+        $result = $DB->get_record(self::REG_TABLENAME, array('clicker_id' => $clicker_id, 'owner_id' => $user_id));
         //$sql = "clicker_id = '".addslashes($clicker_id)."' and owner_id = '".addslashes($user_id)."'";
         //$result = get_record_select(self::REG_TABLENAME, $sql);
         if ($result) {
@@ -667,9 +683,10 @@ class iclicker_service {
      * @param int $user_id [optional] the user id OR current user id
      * @param boolean $activated if null or not set then return all,
      * if true then return active only, if false then return inactive only
-     * @return the list of registrations for this user or empty array if none
+     * @return array the list of registrations for this user or empty array if none
      */
     public static function get_registrations_by_user($user_id = null, $activated = null) {
+        global $DB;
         $current_user_id = self::require_user();
         if (!isset($user_id)) {
             $user_id = $current_user_id;
@@ -678,7 +695,7 @@ class iclicker_service {
         if (isset($activated)) {
             $sql .= ' and activated = '.($activated ? 1 : 0);
         }
-        $results = get_records_select(self::REG_TABLENAME, $sql, self::REG_ORDER);
+        $results = $DB->get_records_select(self::REG_TABLENAME, $sql, null, self::REG_ORDER);
         if (!$results) {
             $results = array(
             );
@@ -693,9 +710,10 @@ class iclicker_service {
      * @param int $max [optional] max value for paging
      * @param string $order [optional] the order by string
      * @param string $search [optional] search string for clickers
-     * @return array of clicker registrations
+     * @return array the list of clicker registrations
      */
     public static function get_all_registrations($start = 0, $max = 0, $order = 'clicker_id', $search = '') {
+        global $DB;
         if (!self::is_admin()) {
             throw new SecurityException("Only admins can use this function");
         }
@@ -707,7 +725,7 @@ class iclicker_service {
             // build a search query
             $query = 'clicker_id '.sql_ilike().' '.addslashes($search).'%';
         }
-        $results = get_records_select(self::REG_TABLENAME, $query, $order, '*', $start, $max);
+        $results = $DB->get_records_select(self::REG_TABLENAME, $query, null, $order, '*', $start, $max);
         if (!$results) {
             $results = array(
             );
@@ -731,10 +749,11 @@ class iclicker_service {
     }
 
     /**
-     * @return the count of the total number of registered clickers
+     * @return int the count of the total number of registered clickers
      */
     public static function count_all_registrations() {
-        return count_records(self::REG_TABLENAME);
+        global $DB;
+        return $DB->count_records(self::REG_TABLENAME);
     }
 
     /**
@@ -865,12 +884,13 @@ class iclicker_service {
      * Get all the students for a course with their clicker registrations
      * @param int $course_id the course to get the students for
      * @param boolean $include_regs [optional]
-     * @return the list of user objects for the students in the course
+     * @return array the list of user objects for the students in the course
      */
     public static function get_students_for_course_with_regs($course_id, $include_regs=true) {
+        global $DB;
         // get_users_by_capability - accesslib - moodle/grade:view
         // search_users - datalib
-        $context = get_context_instance(CONTEXT_COURSE, $course_id);
+        $context = get_context_instance(CONTEXT_COURSE, $course_id); // TODO
         $results = get_users_by_capability($context, 'moodle/grade:view', 'u.id, u.username, u.firstname, u.lastname, u.email', 'u.lastname', '', '', '', '', false);
         if (isset($results) && !empty($results)) {
             // get the registrations related to these students
@@ -892,7 +912,7 @@ class iclicker_service {
                     }
                     $query .= ')';
                 }
-                $regs = get_records_select(self::REG_TABLENAME, $query);
+                $regs = $DB->get_records_select(self::REG_TABLENAME, $query);
                 if ($regs) {
                     // now put these into a map
                     foreach ($regs as $reg) {
@@ -926,23 +946,22 @@ class iclicker_service {
     /**
      * Get the listing of all courses for an instructor
      * @param int $user_id [optional] the unique user id for an instructor (default to current user)
-     * @return the list of courses (maybe be emtpy array)
+     * @return array the list of courses (maybe be emtpy array)
      */
     public static function get_courses_for_instructor($user_id = null) {
         global $USER;
         // make this only get courses for this instructor
         // get_user_courses_bycap? - accesslib
         // http://docs.moodle.org/en/Category:Capabilities - moodle/course:update
-        //$results = get_records('course', 'category', 1, 'id'); // get_records_sql("SELECT * FROM mdl_course where category = 1");
         if (! isset($user_id)) {
             $user_id = self::get_current_user_id();
         }
-        $accessinfo = $USER->access;
         if ($user_id === $USER->id && isset($USER->access)) {
             $accessinfo = $USER->access;
         } else {
             $accessinfo = get_user_access_sitewide($user_id);
         }
+        // TODO fix deprecated
         $results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false,
             'c.sortorder', array('fullname','summary','timecreated','visible'), 50);
         if (!$results) {
@@ -954,10 +973,11 @@ class iclicker_service {
     /**
      * Retrieve a single course by unique id
      * @param int $course_id the course
-     * @return the course object or false
+     * @return stdClass|bool the course object or false
      */
     public static function get_course($course_id) {
-        $course = get_record('course', 'id', $course_id);
+        global $DB;
+        $course = $DB->get_record('course', array('id' => $course_id));
         // TESTING handling
         if (self::$test_mode && !$course) {
             if ($course_id == '11111111') {
