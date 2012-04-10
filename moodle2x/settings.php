@@ -99,10 +99,14 @@ if ($ADMIN->fulltree) {
         )
     );
     // SSO
+    $headerDesc = get_string('config_sso_disabled', $block_name);
+    if (iclicker_service::$block_iclicker_sso_enabled) {
+        $headerDesc = get_string('config_sso_enabled', $block_name);
+    }
     $settings->add(
         new admin_setting_heading('block_iclicker_sso_heading',
             get_string('config_sso', $block_name),
-            null
+            $headerDesc
         )
     );
     $settings->add(

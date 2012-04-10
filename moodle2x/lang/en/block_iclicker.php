@@ -121,6 +121,8 @@ $string['config_webservices_password_desc'] = 'The webservices password, leave b
 $string['config_disable_sync'] = 'Disable WebServices Sync';
 $string['config_disable_sync_desc'] = 'Disable the national webservices automatic synchronization, DEFAULT: false (sync enabled)';
 $string['config_sso'] = 'Single Sign On';
+$string['config_sso_enabled'] = 'Single Sign On support is enabled.';
+$string['config_sso_disabled'] = 'Single Sign On support is currently disabled. Enter a key below to enable SSO support.';
 $string['config_shared_key'] = 'SSO Shared Key';
 $string['config_shared_key_desc'] = 'Enable Single Sign On support by setting a shared key (must be at least 10 chars long). Set this to blank to disable SSO support';
 
