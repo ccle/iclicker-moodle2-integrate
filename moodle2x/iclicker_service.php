@@ -693,11 +693,11 @@ class iclicker_service {
         if (!isset($user_id)) {
             $user_id = $current_user_id;
         }
-        $sql = "owner_id = '".addslashes($user_id)."'";
+        $sql = 'owner_id = ?'; //'".$user_id."'";
         if (isset($activated)) {
             $sql .= ' and activated = '.($activated ? 1 : 0);
         }
-        $results = $DB->get_records_select(self::REG_TABLENAME, $sql, null, self::REG_ORDER);
+        $results = $DB->get_records_select(self::REG_TABLENAME, $sql, array($user_id), self::REG_ORDER);
         if (!$results) {
             $results = array(
             );
@@ -723,14 +723,15 @@ class iclicker_service {
             $max = 10;
         }
         $query = '';
+        $params = null;
         if ($search) {
             // build a search query
-            $query = 'clicker_id '.sql_ilike().' '.addslashes($search).'%';
+            $query = $DB->sql_like('clicker_id', '?%', false, false, false); // clicker_id like {search}%
+            $params = array($search);
         }
-        $results = $DB->get_records_select(self::REG_TABLENAME, $query, null, $order, '*', $start, $max);
+        $results = $DB->get_records_select(self::REG_TABLENAME, $query, $params, $order, '*', $start, $max);
         if (!$results) {
-            $results = array(
-            );
+            $results = array();
         } else {
             // insert user display names
             $user_ids = array();
@@ -842,6 +843,7 @@ class iclicker_service {
      * @throw InvalidArgumentException if the registration is invalid (missing data or invalid data)
      */
     public static function save_registration(&$clicker_registration) {
+        global $DB;
         if (!$clicker_registration || !isset($clicker_registration->clicker_id)) {
             throw new InvalidArgumentException("clicker_registration cannot be empty and clicker_id must be set");
         }
@@ -862,14 +864,14 @@ class iclicker_service {
         if (!isset($clicker_registration->id)) {
             // new item to save (no perms check)
             $clicker_registration->timecreated = time();
-            if (!$reg_id = insert_record(self::REG_TABLENAME, $clicker_registration, true)) {
+            if (!$reg_id = $DB->insert_record(self::REG_TABLENAME, $clicker_registration, true)) {
                 print_object($clicker_registration);
                 error(self::msg('inserterror'));
             }
         } else {
             // updating existing item
             if (self::can_write_registration($clicker_registration, $current_user_id)) {
-                if (!update_record(self::REG_TABLENAME, $clicker_registration)) {
+                if (!$DB->update_record(self::REG_TABLENAME, $clicker_registration)) {
                     print_object($clicker_registration);
                     error(self::msg('updateerror'));
                 }
