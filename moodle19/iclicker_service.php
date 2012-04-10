@@ -242,12 +242,12 @@ class iclicker_service {
         }
         set_config('block_iclicker_failures', implode('*****', $failures), self::BLOCK_NAME);
 
+        $body = "i>clicker Moodle integrate plugin notification (".date('d.m.Y h:i:s').")\n" . $message . "\n";
+        if ($exception != null) {
+            $body .= "\nFailure:\n".$exception->message."\n\n".$exception;
+        }
         if ($admin_emails) {
             $sent = false;
-            $body = "i>clicker Moodle integrate plugin notification (".date('d.m.Y h:i:s').")\n" + $message + "\n";
-            if ($exception != null) {
-                $body .= "\nFailure:\n".$exception->message."\n\n".$exception;
-            }
             foreach ($admin_emails as $email) {
                 self::send_email($email, 'i>clicker Moodle integrate plugin notification', $body);
             }
