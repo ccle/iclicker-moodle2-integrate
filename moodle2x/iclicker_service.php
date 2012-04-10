@@ -43,6 +43,8 @@ function HandleXmlError($errno, $errstr, $errfile, $errline) {
     }
 }
 
+// TODO http://docs.moodle.org/dev/DB_layer_2.0_migration_docs
+
 /**
  * Defines an exception which can occur when validating clicker ids
  * Valid types are:
@@ -380,7 +382,7 @@ class iclicker_service {
     /**
      * Get user records for a set of user ids
      * @param array $user_ids an array of user ids OR a single user_id
-     * @return array a map of user_id -> user data OR single user object for single user_id OR empty array if no matches
+     * @return array|stdClass a map of user_id -> user data OR single user object for single user_id OR empty array if no matches
      */
     public static function get_users($user_ids) {
         global $DB;
@@ -761,14 +763,15 @@ class iclicker_service {
      * Removes the registration from the database
      *
      * @param int $reg_id id of the clicker registration
-     * @return true if removed OR false if not found or not removed
+     * @return bool true if removed OR false if not found or not removed
      */
     public static function remove_registration($reg_id) {
+        global $DB;
         if (!self::is_admin()) {
             throw new SecurityException("Only admins can use this function");
         }
         if (isset($reg_id)) {
-            if (delete_records(self::REG_TABLENAME, 'id', $reg_id)) {
+            if ($DB->delete_records(self::REG_TABLENAME, array('id' => $reg_id))) {
                 return true;
             }
         }
@@ -781,7 +784,7 @@ class iclicker_service {
      * @param string $clicker_id the clickerID (e.g. 11111111)
      * @param string $owner_id [optional] the user_id OR current user if not set
      * @param boolean $local_only [optional] create this clicker in the local system only if true, otherwise sync to national system as well
-     * @return the clicker_registration object
+     * @return stdClass the clicker_registration object
      */
     public static function create_clicker_registration($clicker_id, $owner_id = null, $local_only = false) {
         $clicker_id = self::validate_clicker_id($clicker_id);
@@ -813,7 +816,7 @@ class iclicker_service {
      *
      * @param int $reg_id id of the clicker registration
      * @param boolean $activated true to enable, false to disable
-     * @return the clicker_registration object
+     * @return stdClass the clicker_registration object
      */
     public static function set_registration_active($reg_id, $activated) {
         if (!isset($reg_id)) {
@@ -1151,7 +1154,7 @@ class iclicker_service {
                         $grade_tosave->timemodified = $now;
                         $grade_tosave->insert(self::GRADE_LOCATION_STR);
                     }
-                    $grade_tosave->user_id = $score->user_id;
+                    $grade_tosave->user_id = $score->user_id; // TODO invalid field?
                     $processed_scores[] = $grade_tosave;
                 } catch (Exception $e) {
                     // General errors, caused while performing updates (Tag: generalerrors)
@@ -1183,7 +1186,7 @@ class iclicker_service {
      * @param object $gradebook an object with at least course_id and items set
      * items should contain grade_items (courseid. categoryid, name, scores)
      * scores should contain grade_grade (user_id, score)
-     * @return the saved gradebook with all items and scores in the same structure,
+     * @return stdClass the saved gradebook with all items and scores in the same structure,
      * errors are recorded as grade_item->errors and score->error
      */
     public static function save_gradebook($gradebook) {
@@ -1273,7 +1276,7 @@ class iclicker_service {
      * Encodes a clicker registration into XML
      *
      * @param object $clicker_registration fields(owner_id, clicker_id)
-     * @return the XML
+     * @return string the XML
      * @throws InvalidArgumentException if the registration is invalid
      */
     public static function encode_registration($clicker_registration) {
@@ -1317,7 +1320,7 @@ class iclicker_service {
      * @param object $registrations [optional] all regs for the registering user
      * @param boolean $status true if success, false if failure
      * @param string $message the message to send along (typically failure message)
-     * @return the XML
+     * @return string the XML
      * @throws InvalidArgumentException if the data is invalid
      */
     public static function encode_registration_result($registrations, $status, $message) {
@@ -1352,7 +1355,7 @@ format.
      * Encode a set of courses which a user is an instructor for into XML
      *
      * @param int $instructor_id unique user id
-     * @return the XML
+     * @return string the XML
      * @throws InvalidArgumentException if the id is invalid
      */
     public static function encode_courses($instructor_id) {
@@ -1386,7 +1389,7 @@ format.
      * Encode a set of enrollments for a course into XML
      *
      * @param int $course_id unique id for a course
-     * @return the XML
+     * @return string the XML
      * @throws InvalidArgumentException if the id is invalid
      */
     public static function encode_enrollments($course_id) {
@@ -1463,7 +1466,7 @@ format.
      * Encodes the results of a gradebook save into XML
      *
      * @param object $gradebook_result the result from gradebook_save
-     * @return the XML
+     * @return string the XML
      * @throws InvalidArgumentException if the registration is invalid
      */
     public static function encode_gradebook_results($gradebook_result) {
@@ -1617,7 +1620,7 @@ format.
      * will figure out the user and get necessary data
      *
      * @param string $xml the xml
-     * @return the clicker_registration object
+     * @return stdClass the clicker_registration object
      * @throws InvalidArgumentException if the xml cannot be parsed
      */
     public static function decode_registration($xml) {
@@ -1665,7 +1668,7 @@ format.
      * Decodes XML into a gradebook object
      *
      * @param string $xml the xml
-     * @return the gradebook object
+     * @return stdClass the gradebook object
      * @throws InvalidArgumentException if the xml cannot be parsed or the data is invalid
      */
     public static function decode_gradebook($xml) {
@@ -1851,7 +1854,9 @@ format.
     /**
      * Syncs this clicker with the national services clicker (ensure that this is saved to national)
      *
-     * @return results array('errors') with errors if any occurred, false if national ws is disabled
+     * @static
+     * @param stdClass $clicker_registration
+     * @return array|bool array('errors') with errors if any occurred, false if national ws is disabled
      */
     public static function ws_sync_clicker($clicker_registration) {
         $results = array('errors' => array());
@@ -1893,7 +1898,7 @@ format.
     /**
      * Syncs all current clickers with the national services clickers for this site
      *
-     * @return results array('errors') with errors if any occurred, false if national ws is disabled
+     * @return array results array('errors') with errors if any occurred, false if national ws is disabled
      */
     public static function ws_sync_all() {
         $results = array('errors' => array(), 'runner' => false);
@@ -2012,8 +2017,11 @@ format.
     public static function ws_get_students() {
         $ws_operation = 'StudentsReport';
         $ws_domain_url = self::$domain_URL; // 'http://epicurus.learningmate.com/';
-        $ws_soap_envelope = '<StudentsReport xmlns="http://www.iclicker.com/"> <pVarUrl>'.$ws_domain_url.'</pVarUrl> </StudentsReport>';
-        $result = self::ws_soap_call($ws_operation, $ws_soap_envelope);
+        $arguments = array(
+            'pVarUrl' => $ws_domain_url,
+        );
+        //$ws_soap_envelope = '<StudentsReport xmlns="http://www.iclicker.com/"> <pVarUrl>'.$ws_domain_url.'</pVarUrl> </StudentsReport>';
+        $result = self::ws_soap_call($ws_operation, $arguments);
         $xml = $result['StudentsReportResult'];
         $regs = self::decode_ws_xml($xml);
         return $regs;
@@ -2027,8 +2035,12 @@ format.
     public static function ws_get_student($user_name) {
         $ws_operation = 'SingleStudentReport';
         $ws_domain_url = self::$domain_URL; // 'http://epicurus.learningmate.com/';
-        $ws_soap_envelope = '<SingleStudentReport xmlns="http://www.iclicker.com/"> <pVarUrl>'.$ws_domain_url.'</pVarUrl> <pVarStudentId>'.$user_name.'</pVarStudentId> </SingleStudentReport>';
-        $result = self::ws_soap_call($ws_operation, $ws_soap_envelope);
+        $arguments = array(
+            'pVarUrl' => $ws_domain_url,
+            'pVarStudentId' => $user_name,
+        );
+        //$ws_soap_envelope = '<SingleStudentReport xmlns="http://www.iclicker.com/"> <pVarUrl>'.$ws_domain_url.'</pVarUrl> <pVarStudentId>'.$user_name.'</pVarStudentId> </SingleStudentReport>';
+        $result = self::ws_soap_call($ws_operation, $arguments);
         $xml = $result['SingleStudentReportResult'];
         $regs = self::decode_ws_xml($xml);
         return $regs;
@@ -2043,8 +2055,11 @@ format.
     public static function ws_save_clicker($clicker_reg) {
         $ws_operation = 'RegisterStudent';
         $reg_xml = self::encode_for_xml(self::encode_registration($clicker_reg));
-        $ws_soap_envelope = '<RegisterStudent xmlns="http://www.iclicker.com/"> <pVarRegXml>'.$reg_xml.'</pVarRegXml> </RegisterStudent>';
-        $result = self::ws_soap_call($ws_operation, $ws_soap_envelope);
+        $arguments = array(
+            'pVarRegXml' => $reg_xml,
+        );
+        //$ws_soap_envelope = '<RegisterStudent xmlns="http://www.iclicker.com/"> <pVarRegXml>'.$reg_xml.'</pVarRegXml> </RegisterStudent>';
+        $result = self::ws_soap_call($ws_operation, $arguments);
         $xml = $result['RegisterStudentResult'];
         $regs = self::decode_ws_xml($xml);
         return $regs;
@@ -2052,12 +2067,38 @@ format.
 
     /**
      * Handles the soap call to the national webservices server
+     * @static
      * @param string $ws_operation the operation to perform (e.g. 'StudentsReport')
-     * @param string $ws_soap_envelope the soap envelope to send
-     * @return the results of the SOAP call (array(string))
+     * @param array $ws_arguments the SOAP arguments to send
+     * @return array the results of the SOAP call
      * @throws WebservicesException if the call fails
      */
-    private static function ws_soap_call($ws_operation, $ws_soap_envelope) {
+    private static function ws_soap_call($ws_operation, $ws_arguments) {
+        try {
+            $client = new SoapClient(self::$webservices_URL, array(
+                    'login' => self::$webservices_username,
+                    'password' => self::$webservices_password,
+                    'encoding' => 'UTF-8',
+                    'trace' => 1,
+                    'exceptions' => 1,
+                )
+            );
+            $result = $client->__soapCall($ws_operation, $ws_arguments);
+            if ($result instanceof SoapFault) {
+                $msg = 'SoapFault occured: '.var_export($result,true);
+                error_log($msg);
+                throw new Exception($msg);
+            }
+        } catch (Exception $e) {
+            $msg = 'Failure in the i>clicker webservices: '.var_export($client,true);
+            error_log($msg);
+            throw new WebservicesException($msg);
+        }
+        // convert result to an array
+        $result = json_decode(json_encode($result),true);
+        unset($client);
+        return $result;
+
 /* won't work with .NET webservices
         $connection = soap_connect(self::NATIONAL_WS_URL);
         if (is_a($connection, 'SoapFault')) {
@@ -2067,6 +2108,7 @@ format.
         $params = array();
         $result = soap_call($connection, $call, $params);
 */
+        /* 1.9
         $soap_client = new soap_client(self::$webservices_URL, false);
         $err = $soap_client->getError();
         if ($err) {
@@ -2076,6 +2118,7 @@ format.
         $soap_client->setCredentials(self::$webservices_username, self::$webservices_password, 'basic');
         $soap_client->soap_defencoding = 'UTF-8';
         $soap_client->operation = $ws_operation;
+        */
 /* won't work with .NET webservices
         $soap_client->setDefaultRpcParams(true);
         $header_action = new soapval('SOAPAction', 'string', 'http://www.iclicker.com/StudentsReport');
@@ -2084,6 +2127,7 @@ format.
         $params = array('pVarUrl' => 'http://epicurus.learningmate.com/'); // $webservices_URL); // 'http://epicurus.learningmate.com/');
         $result = $soap_client->call('StudentsReport', $params, 'http://www.iclicker.com/', 'http://www.iclicker.com/StudentsReport');
 */
+        /** 1.9
         $soap_msg = $soap_client->serializeEnvelope($ws_soap_envelope);
         $result = $soap_client->send($soap_msg, 'http://www.iclicker.com/'.$ws_operation);
         if ($soap_client->fault) {
@@ -2101,14 +2145,15 @@ format.
                 throw new WebservicesException('SOAP error: '. $err);
             }
         }
+         */
 /*
         echo "<xmp>";
         var_export($result);
         var_export($soap_client);
         echo "</xmp>";
 */
-        unset($soap_client);
-        return $result;
+//        unset($soap_client);
+//        return $result;
     }
 
 
@@ -2117,7 +2162,7 @@ format.
     /**
      * encodes a string for inclusion in an xml document
      * @param string $value the value to encode
-     * @return the value with xml chars encoded and replaced
+     * @return string the value with xml chars encoded and replaced
      */
     private static function encode_for_xml($value) {
         if ($value) {
