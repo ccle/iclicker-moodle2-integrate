@@ -87,14 +87,16 @@ class iclicker_controller {
         }
         // allow for method overrides
         $current_method = $_SERVER['REQUEST_METHOD'];
-        $comp_method = $_REQUEST[self::COMPENSATE_METHOD];
-        if (! empty($comp_method)) {
-            // Allows override to GET or DELETE
-            $comp_method = strtoupper(trim($comp_method));
-            if ('GET' == $comp_method) {
-                $current_method = 'GET';
-            } else if ('DELETE' == $comp_method) {
-                $current_method = 'DELETE';
+        if (isset($_REQUEST[self::COMPENSATE_METHOD])) {
+            $comp_method = $_REQUEST[self::COMPENSATE_METHOD];
+            if (! empty($comp_method)) {
+                // Allows override to GET or DELETE
+                $comp_method = strtoupper(trim($comp_method));
+                if ('GET' == $comp_method) {
+                    $current_method = 'GET';
+                } else if ('DELETE' == $comp_method) {
+                    $current_method = 'DELETE';
+                }
             }
         }
         $this->method = $current_method;

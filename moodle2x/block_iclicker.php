@@ -84,13 +84,13 @@ class block_iclicker extends block_base {
      * is_empty() method, and if the block is indeed empty then it is not
      * displayed at all.
      *
-     * @return the content to display in the block
+     * @return string the content to display in the block
      */
     function get_content() {
         // for iclicker we will just render links here and possibly an indicator to show if you have registered a clicker
         global $CFG, $USER, $COURSE;
 
-        if ($this->content !== NULL) {
+        if ($this->content !== null) {
             return $this->content;
         }
 
@@ -99,11 +99,11 @@ class block_iclicker extends block_base {
 
         if (iclicker_service::get_current_user_id()) {
             $this->content->text = "<div class='iclicker_nav_items'>\n";
-            $reg_link = '<a href="'.iclicker_service::block_url('registration.php').'">'.iclicker_service::msg('reg.title').'</a>';
+            $reg_link = '<a href="'.iclicker_service::block_url('registration.php').'">'.iclicker_service::msg('reg.title').'</a><br/>';
             $this->content->text .= "  ".$reg_link."\n";
             // also show the list of currently registered clickers
             $clicker_list_html = '';
-            if ($clickers = iclicker_service::get_registrations_by_user(NULL, TRUE)) {
+            if ($clickers = iclicker_service::get_registrations_by_user(null, true)) {
                 $clicker_list_html .= "  <ul class='iclicker_clickerids'>\n";
                 foreach ($clickers as $clicker) {
                     $clicker_list_html .= "    <li class='iclicker_clickerid'>$clicker->clicker_id</li>\n";
@@ -113,13 +113,13 @@ class block_iclicker extends block_base {
             $this->content->text .= $clicker_list_html;
             // the other links
             if (iclicker_service::is_admin()) {
-                $link = '<a href="'.iclicker_service::block_url('admin.php').'">'.iclicker_service::msg('admin.title').'</a>';
+                $link = '<a href="'.iclicker_service::block_url('admin.php').'">'.iclicker_service::msg('admin.title').'</a><br/>';
                 $this->content->text .= "  ".$link."\n";
                 // remove inst link after testing complete
                 //$link = '<b><i>remove inst link</i></b> <a href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('inst.title').'</a>';
                 //$this->content->text .= "  ".$link."\n";
             } else if (iclicker_service::is_instructor()) {
-                $link = '<a href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('inst.title').'</a>';
+                $link = '<a href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('inst.title').'</a><br/>';
                 $this->content->text .= "  ".$link."\n";
             }
             // close out the html
@@ -139,6 +139,7 @@ class block_iclicker extends block_base {
 
     /**
      * Execute this method when the cron runs
+     * @return bool
      */
     function cron() {
         $results = iclicker_service::ws_sync_all();
@@ -165,7 +166,7 @@ class block_iclicker extends block_base {
      *
      * Requires the config_instance.html file to be present
      *
-     * @return true if this block has some persistent storage in the instance configuration
+     * @return bool true if this block has some persistent storage in the instance configuration
      */
     function instance_allow_config() {
         return false;
@@ -189,7 +190,7 @@ class block_iclicker extends block_base {
     }
 
     /**
-     * @return true if this block allows multiple instances per install/course
+     * @return bool true if this block allows multiple instances per install/course
      */
     function instance_allow_multiple() {
         return false;
@@ -198,7 +199,7 @@ class block_iclicker extends block_base {
     /**
      * Requires a config_global.html file
      *
-     * @return true if this block is configurable
+     * @return bool true if this block is configurable
      */
     function has_config() {
         return true;
@@ -231,7 +232,7 @@ class block_iclicker extends block_base {
     }
 
     /**
-     * @return true to hide the header or false to show it
+     * @return bool true to hide the header or false to show it
      */
     function hide_header() {
         return false;
@@ -262,7 +263,7 @@ class block_iclicker extends block_base {
      * The format name for course types: course-view-weeks, course-view-topics, course-view-social, etc.
      * mod - a module, (mod-quiz is a specific module)
      *
-     * @return an array of all course areas this block should be allowed to appear
+     * @return array an array of all course areas this block should be allowed to appear
      */
     function applicable_formats() {
         return array(

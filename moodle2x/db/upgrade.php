@@ -19,18 +19,18 @@
  */
 /* $Id: upgrade.php 107 2012-04-06 01:48:53Z azeckoski@gmail.com $ */
 
+global $CFG;
+require_once ($CFG->dirroot.'/blocks/iclicker/iclicker_service.php');
+
 // This file keeps track of upgrades to this block
 function xmldb_block_iclicker_upgrade($oldversion = 0) {
     global $CFG,$THEME,$DB;
     $dbman = $DB->get_manager(); /// loads ddl manager and xmldb classes
-    /*
-     * And upgrade begins here. For each one, you'll need one
-     * block of code similar to the next one.
-     */
-    if ($oldversion < 2009112700) {
-        $table = new xmldb_table('iclicker');
+    if ($oldversion < 2009112800) {
+        $table = new xmldb_table(iclicker_service::REG_TABLENAME);
         // Add stuff here if needed
-        //upgrade_mod_savepoint(true, 2009112700, 'iclicker');
+        upgrade_mod_savepoint(true, 2009112800, iclicker_service::BLOCK_NAME);
     }
+    return true;
 }
 ?>

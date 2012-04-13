@@ -23,32 +23,35 @@
  *
  * @author azeckoski
  */
+// ensure no conflicts with other libs
+jQuery.noConflict();
+
 var Iclicker = Iclicker || {};
 ( function($) {
-	Iclicker.initStatusChecker = function(statusSelector, ajaxURL) {
-		var statusHolder = $(statusSelector);
-		$(".runner_button").attr("disabled", true); // disable all controls if this is running
-		var timer = window.setInterval( function() {
-			$.ajax( {
-				url : ajaxURL,
-				dataType :"json",
-				cache :false,
-				success : function(status) {
-					statusHolder.text(status.percent + "%");
-					if (status.complete) {
-						statusHolder.css('color', 'blue');
-						window.clearInterval(timer); // stop the timer
-						$(".runner_button").removeAttr("disabled"); // enable the controls when complete
-					} else {
-						statusHolder.css('color', 'green');
-					}
-				},
-				error : function(request, msg, errorThrown) {
-					var status = request.status;
-					window.clearInterval(timer); // stop the timer
-					alert("Failure: " + status + " :" + msg + " :" + errorThrown);
-				}
-			});
-		}, 3000);
-	};
+    Iclicker.initStatusChecker = function(statusSelector, ajaxURL) {
+        var statusHolder = $(statusSelector);
+        $(".runner_button").attr("disabled", true); // disable all controls if this is running
+        var timer = window.setInterval( function() {
+            $.ajax( {
+                url : ajaxURL,
+                dataType :"json",
+                cache :false,
+                success : function(status) {
+                    statusHolder.text(status.percent + "%");
+                    if (status.complete) {
+                        statusHolder.css('color', 'blue');
+                        window.clearInterval(timer); // stop the timer
+                        $(".runner_button").removeAttr("disabled"); // enable the controls when complete
+                    } else {
+                        statusHolder.css('color', 'green');
+                    }
+                },
+                error : function(request, msg, errorThrown) {
+                    var status = request.status;
+                    window.clearInterval(timer); // stop the timer
+                    alert("Failure: " + status + " :" + msg + " :" + errorThrown);
+                }
+            });
+        }, 3000);
+    };
 }(jQuery));

@@ -19,5 +19,5 @@
  */
 /* $Id$ */
 
-$plugin->version = 2012040500;
+$plugin->version = 2012041200;
 $plugin->requires = 2010090501; // moodle 2.0.1

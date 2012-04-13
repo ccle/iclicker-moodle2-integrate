@@ -21,15 +21,15 @@
 
 /**
  * Handles rendering the form for creating new pages and the submission of the form as well
- * NOTE: table is named iclicker
  */
 
 require_once ('../../config.php');
-global $CFG, $USER, $COURSE;
+global $CFG, $USER, $COURSE, $OUTPUT, $PAGE;
 require_once ('iclicker_service.php');
 require_once ('controller.php');
 
-require_login();
+$site = get_site();
+require_login($site);
 
 // activate the controller
 $cntlr = new iclicker_controller();
@@ -37,28 +37,15 @@ $cntlr->processRegistration();
 extract($cntlr->results);
 
 // begin rendering
-$site = get_site();
-/*
-param: string  $title Appears at the top of the window
-param: string  $heading Appears at the top of the page
-param: array   $navigation Array of $navlinks arrays (keys: name, link, type) for use as breadcrumbs links
-param: string  $focus Indicates form element to get cursor focus on load eg  inputform.password
-param: string  $meta Meta tags to be added to the header
-param: boolean $cache Should this page be cacheable?
-param: string  $button HTML code for a button (usually for module editing)
-param: string  $menu HTML code for a popup menu
-param: boolean $usexml use XML for this page
-param: string  $bodytags This text will be included verbatim in the <body> tag (useful for onload() etc)
-param: bool    $return If true, return the visible elements of the header instead of echoing them.
- */
-print_header(
-    strip_tags($site->fullname).':'.iclicker_service::msg('app.iclicker').':'.iclicker_service::msg('reg.title'),
-    iclicker_service::msg('app.iclicker').' '.iclicker_service::msg('reg.title'),
-	build_navigation(iclicker_service::msg('reg.title')), // '<a href="'.$CFG->wwwroot.'/course/view.php?id='.$COURSE->id.'">'.$COURSE->shortname.'</a> ->'.get_string('formtitle', 'block_iclicker'),
-	'',
-	"<meta name=\"description\" content=\"".s(strip_tags($site->summary))."\">\n<link rel=\"stylesheet\" type=\"text/css\" href=\"".iclicker_service::block_url('css/iclicker.css')."\" />",
-    false
-);
+$PAGE->set_title( strip_tags($site->fullname).':'.iclicker_service::msg('app.iclicker').':'.iclicker_service::msg('reg.title') );
+$PAGE->set_heading( iclicker_service::msg('app.iclicker').' '.iclicker_service::msg('reg.title') );
+$PAGE->navbar->add(iclicker_service::msg('reg.title'));
+$PAGE->set_focuscontrol('');
+$PAGE->set_cacheable(false);
+$PAGE->requires->css(iclicker_service::BLOCK_PATH.'/css/iclicker.css');
+$PAGE->set_url(iclicker_service::BLOCK_PATH.'/registration.php');
+//$PAGE->requires->js('mod/mymod/styles.css');
+echo $OUTPUT->header();
 
 // show messages if there are any to show
 require ('user_messages.php');
@@ -148,4 +135,4 @@ require ('user_messages.php');
     </div>
 </div>
 
-<?php print_footer(); ?>
+<?php echo $OUTPUT->footer(); ?>
