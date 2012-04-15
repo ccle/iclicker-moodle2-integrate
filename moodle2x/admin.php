@@ -49,16 +49,6 @@ $PAGE->requires->js( new moodle_url('https://ajax.googleapis.com/ajax/libs/jquer
 $PAGE->requires->js(iclicker_service::BLOCK_PATH.'/js/iclicker.js');
 echo $OUTPUT->header();
 
-/* TODO
-    "<meta name=\"description\" content=\"".s(strip_tags($site->summary))."\">\n".
-        "<link rel=\"stylesheet\" type=\"text/css\" href=\"".iclicker_service::block_url('css/iclicker.css')."\" />\n".
-        "<script src=\"".iclicker_service::block_url('js/jquery.js')."\" language=\"JavaScript\" type=\"text/javascript\"></script>\n".
-        "<script language=\"JavaScript\" type=\"text/javascript\"><!-- ensure no conflicts with other libs -->jQuery.noConflict();</script>\n".
-        "<script src=\"".iclicker_service::block_url('js/iclicker.js')."\" language=\"JavaScript\" type=\"text/javascript\"></script>",
-    false
-);
-*/
-
 // show messages if there are any to show
 require ('user_messages.php');
 ?>
