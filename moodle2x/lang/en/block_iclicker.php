@@ -20,9 +20,9 @@
 /* $Id$ */
 
 // i18n file
-$string['app.iclicker']         = 'i>clicker';
-$string['app.title']            = 'i>clicker Moodle integrate';
-$string['pluginname']           = 'i>clicker Moodle integrate';
+$string['app.iclicker']     = 'i>clicker';
+$string['app.title']        = 'i>clicker Moodle integrate';
+$string['pluginname']       = 'i>clicker Moodle integrate';
 
 // form controls
 $string['app.register']     = 'Register';
@@ -42,15 +42,15 @@ $string['reg.disable.submit.alt'] = 'Disable this registration';
 $string['reg.reactivate.submit.alt'] = 'Reactivate this registration';
 $string['reg.registration.instructions'] = 'To locate your clicker ID, see the back of your remote and enter the series of numbers (and perhaps letters) on the white sticker on the bottom of your clicker.';
 $string['reg.registered.instructions'] = 'You have successfully registered your i>clicker remote ID with the system. If you lose or need to tie a second clicker to your student/user ID, you can do so here by adding another clicker ID to your registration. As with your other registration, to locate your clicker ID, see the back of your remote and enter the series of numbers (and perhaps letters) on the white sticker on the bottom of your clicker.';
-$string['reg.registered.success'] = 'Registered a Clicker ID ($a)';
+$string['reg.registered.success'] = 'Registered a Clicker ID ({$a})';
 $string['reg.registered.below.success'] = 'Congratulations; you\'ve successfully registered your i>clicker! All of your voting data (previously recorded and future votes) will now be tied to your ID.';
 $string['reg.registered.clickerId.empty'] = 'The clicker ID cannot be empty, please fill in the box and try again';
-$string['reg.registered.clickerId.duplicate'] = 'Clicker ID ($a) is already registered';
-$string['reg.registered.below.duplicate'] = 'You have already successfully registered this clicker ($a) and it is tied to your user ID.';
-$string['reg.registered.clickerId.duplicate.notowned'] = 'Your clicker ($a) has already been registered, but to another student. This could be a result of two possibilities: 1) You are sharing a clicker remote with another student in the same course. You may share your i>clicker remote with another student on campus as long as s/he is not in the same course. You cannot share i>clicker remotes with students in the same course/section. 2) You simply mis-entered your remote ID. Please try again. If you receive this message a second time, contact support@iclicker.com for additional help.';
-$string['reg.registered.clickerId.invalid'] = 'The clicker ID ($a) is invalid, please correct the entry and try again';
-$string['reg.activate.success.true'] = 'Reactivated clicker ($a) registration';
-$string['reg.activate.success.false'] = 'Disabled clicker ($a) registration';
+$string['reg.registered.clickerId.duplicate'] = 'Clicker ID ({$a}) is already registered';
+$string['reg.registered.below.duplicate'] = 'You have already successfully registered this clicker ({$a}) and it is tied to your user ID.';
+$string['reg.registered.clickerId.duplicate.notowned'] = 'Your clicker ({$a}) has already been registered, but to another student. This could be a result of two possibilities: 1) You are sharing a clicker remote with another student in the same course. You may share your i>clicker remote with another student on campus as long as s/he is not in the same course. You cannot share i>clicker remotes with students in the same course/section. 2) You simply mis-entered your remote ID. Please try again. If you receive this message a second time, contact support@iclicker.com for additional help.';
+$string['reg.registered.clickerId.invalid'] = 'The clicker ID ({$a}) is invalid, please correct the entry and try again';
+$string['reg.activate.success.true'] = 'Reactivated clicker ({$a}) registration';
+$string['reg.activate.success.false'] = 'Disabled clicker ({$a}) registration';
 $string['reg.activate.registrationId.empty'] = 'The registrationId cannot be empty, internal error in the form';
 
 // for the instructor page
@@ -81,17 +81,17 @@ $string['admin.process.type.sync'] = 'Syncing with Webservices';
 $string['admin.process.message.add'] = 'Adding i>clicker tool to all workspaces';
 $string['admin.process.message.remove'] = 'Removing i>clicker tool from all workspaces';
 $string['admin.process.message.sync'] = 'Syncing all clicker registrations with Webservices';
-$string['admin.process.message.locked'] = 'Cannot start long running process ($a) because there is already one running on another server';
-$string['admin.process.message.inprogress'] = 'Cannot start long running process ($a) because there is already one running';
+$string['admin.process.message.locked'] = 'Cannot start long running process ({$a}) because there is already one running on another server';
+$string['admin.process.message.inprogress'] = 'Cannot start long running process ({$a}) because there is already one running';
 $string['admin.paging'] = 'Paging:';
 $string['admin.no.regs'] = 'No registrations';
 $string['admin.regs.table.summary'] = 'Lists the registered clickers for all users for the admin; user name, clickerId, date registered, and controls';
 $string['admin.remove.submit.alt'] = 'Remove this registration permanently';
 $string['admin.username.header'] = 'User name';
 $string['admin.controls.header'] = 'Controls';
-$string['admin.activate.success.true'] = 'Reactivated clicker ($a->cid) registration for $a->user';
-$string['admin.activate.success.false'] = 'Disabled clicker ($a->cid) registration for $a->user';
-$string['admin.delete.success'] = 'Deleted clicker ($a->cid) registration ($a->rid) for $a->user';
+$string['admin.activate.success.true'] = 'Reactivated clicker ({$a->cid}) registration for {$a->user}';
+$string['admin.activate.success.false'] = 'Disabled clicker ({$a->cid}) registration for {$a->user}';
+$string['admin.delete.success'] = 'Deleted clicker ({$a->cid}) registration ({$a->rid}) for {$a->user}';
 $string['admin.config.header'] = 'i>clicker plugin configuration';
 $string['admin.config.usewebservices'] = 'Use National Webservices';
 $string['admin.config.domainurl'] = 'Domain URL';
@@ -128,10 +128,10 @@ $string['config_shared_key_desc'] = 'Enable Single Sign On support by setting a 
 
 // Main block
 $string['leaveblanktohide'] = 'leave blank to hide';
-$string['invalidcourse'] 	= 'Invalid CourseID: ';
-$string['addpage'] 			= 'Add a Page';
-$string['confirmdelete'] 	= 'Confirm Delete';
-$string['deletepage'] 		= 'Do you really want to delete \'$a\'';
+$string['invalidcourse']    = 'Invalid CourseID: ';
+$string['addpage']          = 'Add a Page';
+$string['confirmdelete']    = 'Confirm Delete';
+$string['deletepage']       = 'Do you really want to delete \'{$a}\'';
 $string['inserterror']      = 'Insert failed';
 $string['updateerror']      = 'Update failed';
 

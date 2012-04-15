@@ -47,8 +47,13 @@ TR.disabled {
     background-color: #FFCCCC;
 }
 
-INPUT.registerButton { /* background-image: "../images/register_button.jpg" */
+.nav_links {
+    text-align: center;
+    font-size: 0.9em;
+}
 
+.current_nav_link {
+    font-weight: bold;
 }
 
 /** SPECIFIC styles **/

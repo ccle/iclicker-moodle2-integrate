@@ -120,4 +120,17 @@ require ('user_messages.php');
 <?php } ?>
 </div>
 
+<div class="nav_links">
+    <?php
+    $reg_link = '<a class="nav_link" href="'.iclicker_service::block_url('registration.php').'">'.iclicker_service::msg('reg.title').'</a>';
+    $nav_links = $reg_link.PHP_EOL;
+    // the other links
+    $nav_links .= ' | <a class="nav_link current_nav_link" href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('inst.title').'</a>'.PHP_EOL;
+    if (iclicker_service::is_admin()) {
+        $nav_links .= ' | <a class="nav_link" href="'.iclicker_service::block_url('admin.php').'">'.iclicker_service::msg('admin.title').'</a>'.PHP_EOL;
+    }
+    echo $nav_links;
+    ?>
+</div>
+
 <?php echo $OUTPUT->footer(); ?>

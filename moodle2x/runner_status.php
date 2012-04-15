@@ -30,7 +30,7 @@ require_once ('iclicker_service.php');
 header("HTTP/1.0 200 OK");
 header("Content-Type: application/json");
 
-$runner_time_key = get_config(iclicker_service::BLOCK_RUNNER_KEY);
+$runner_time_key = get_config(iclicker_service::BLOCK_NAME, iclicker_service::BLOCK_RUNNER_KEY);
 $runner_exists = ((isset($runner_time_key) && $runner_time_key > 0) ? true : false);
 $runner_percent = $runner_exists ? 50 : 100;
 $runner_complete = $runner_exists ? 'false' : 'true';

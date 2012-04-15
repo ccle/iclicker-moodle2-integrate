@@ -66,9 +66,8 @@ class iclicker_controller {
         //header('Cache-Control: no-cache, must-revalidate');
         // get the rest path
         $full_path = me();
-        if (!$full_path) {
-            $full_path = '';
-        } else {
+        if ($full_path) {
+            $path = $full_path;
             $pos = strripos($full_path, '.php');
             if ($pos > 1) {
                 $path = substr($full_path, $pos+4);
@@ -154,10 +153,10 @@ class iclicker_controller {
         $this->results['new_reg'] = false;
         $this->results['clicker_id_val'] = "";
         if ("POST" == $this->method) {
-            if (optional_param('register', NULL) != NULL) {
+            if (optional_param('register', null, PARAM_RAW) != null) {
                 // we are registering a clicker
-                $clicker_id = optional_param('clickerId', NULL, PARAM_RAW);
-                if ($clicker_id == NULL) {
+                $clicker_id = optional_param('clickerId', null, PARAM_RAW);
+                if ($clicker_id == null) {
                     $this->addMessage(self::KEY_ERROR, "reg.registered.clickerId.empty");
                 } else {
                     $this->results['clicker_id_val'] = $clicker_id;
@@ -180,12 +179,12 @@ class iclicker_controller {
                         }
                     }
                 }
-            } else if (optional_param('activate', NULL) != NULL) {
+            } else if (optional_param('activate', null, PARAM_RAW) != null) {
                 // First arrived at this page
                 $activate = optional_param('activate', 'false', PARAM_RAW);
                 $activate = ($activate == 'true' ? true : false);
-                $reg_id = optional_param('registrationId', NULL, PARAM_INT);
-                if ($reg_id == NULL) {
+                $reg_id = optional_param('registrationId', null, PARAM_INT);
+                if ($reg_id == null) {
                     $this->addMessage(self::KEY_ERROR, "reg.activate.registrationId.empty", null);
                 } else {
                     // save a new clicker registration
@@ -247,7 +246,7 @@ class iclicker_controller {
         // get sorting params
         $pageNum = 1;
         $perPageNum = 20; // does not change
-        if (optional_param('page', NULL) != NULL) {
+        if (optional_param('page', null, PARAM_RAW) != null) {
             $pageNum = required_param('page', PARAM_INT);
             if ($pageNum < 1) {
                 $pageNum = 1;
@@ -256,16 +255,16 @@ class iclicker_controller {
         $this->results['page'] = $pageNum;
         $this->results['perPage'] = $perPageNum;
         $sort = 'clicker_id';
-        if (optional_param('sort', NULL) != NULL) {
+        if (optional_param('sort', null, PARAM_RAW) != null) {
             $sort = required_param('sort', PARAM_ALPHAEXT);
         }
         $this->results['sort'] = $sort;
 
         if ("POST" == $this->method) {
-            if (optional_param('activate', NULL) != NULL) {
+            if (optional_param('activate', null, PARAM_RAW) != null) {
                 // First arrived at this page
                 $activate = required_param('activate', PARAM_BOOL);
-                if (optional_param('registrationId', NULL) == NULL) {
+                if (optional_param('registrationId', null, PARAM_RAW) == null) {
                     $this->addMessage(self::KEY_ERROR, "reg.activate.registrationId.empty", null);
                 } else {
                     $reg_id = required_param('registrationId', PARAM_INT);
@@ -278,8 +277,8 @@ class iclicker_controller {
                         $this->addMessage(self::KEY_INFO, "admin.activate.success.".($cr->activated ? 'true' : 'false'), $args);
                     }
                 }
-            } else if (optional_param('remove', NULL) != NULL) {
-                if (optional_param('registrationId', NULL) == NULL) {
+            } else if (optional_param('remove', null, PARAM_RAW) != null) {
+                if (optional_param('registrationId', null, PARAM_RAW) == null) {
                     $this->addMessage(self::KEY_ERROR, "reg.activate.registrationId.empty", null);
                 } else {
                     $reg_id = required_param('registrationId', PARAM_INT);
@@ -293,7 +292,7 @@ class iclicker_controller {
                         $this->addMessage(self::KEY_INFO, "admin.delete.success", $args);
                     }
                 }
-            } else if (optional_param('runner', NULL) != NULL) {
+            } else if (optional_param('runner', null, PARAM_RAW) != null) {
                 // initiate the runner process if possible
                 $this->addMessage(self::KEY_INFO, 'admin.process.message.sync');
                 iclicker_service::ws_sync_all();
@@ -312,7 +311,7 @@ class iclicker_controller {
         $this->results['recent_failures'] = iclicker_service::get_failures();
 
         // put runner status in page (only one runner for moodle and we do not know what the % completed is)
-        $runner_time_key = get_config(iclicker_service::BLOCK_RUNNER_KEY);
+        $runner_time_key = get_config(iclicker_service::BLOCK_NAME, iclicker_service::BLOCK_RUNNER_KEY);
         $runner_exists = ((isset($runner_time_key) && $runner_time_key > 0) ? true : false);
         $this->results['runner_exists'] = $runner_exists;
         $this->results['runner_type'] = 'sync';
@@ -324,7 +323,7 @@ class iclicker_controller {
         $pageCount = floor(($totalCount + $perPageNum - 1) / $perPageNum);
         $this->results['total_count'] = $totalCount;
         $this->results['page_count'] = $pageCount;
-        $this->results['registrations'] = iclicker_service::get_all_registrations($first, $perPageNum, $sort, NULL);
+        $this->results['registrations'] = iclicker_service::get_all_registrations($first, $perPageNum, $sort, null);
 
         $pagerHTML = "";
         if ($totalCount > 0) {
@@ -385,7 +384,7 @@ class iclicker_controller {
      * @param string $messageKey the i18n message key
      * @param object $args [optional] args to include
      */
-    public function addMessage($key, $messageKey, $args = NULL) {
+    public function addMessage($key, $messageKey, $args = null) {
         if ($key == null) {
             throw new Exception("key (".$key.") must not be null");
         }
@@ -399,13 +398,13 @@ class iclicker_controller {
      * Get the messages that are currently waiting in this request
      *
      * @param string $key the KEY const
-     * @return the list of messages to display
+     * @return array the list of messages to display
      */
     public function getMessages($key) {
         if ($key == null) {
             throw new Exception("key (".$key.") must not be null");
         }
-        $messages = NULL;
+        $messages = null;
         if (isset($this->messages[$key])) {
             $messages = $this->messages[$key];
             if (!isset($messages)) {

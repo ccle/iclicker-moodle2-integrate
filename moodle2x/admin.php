@@ -45,9 +45,8 @@ $PAGE->set_focuscontrol('');
 $PAGE->set_cacheable(false);
 $PAGE->requires->css(iclicker_service::BLOCK_PATH.'/css/iclicker.css');
 $PAGE->set_url(iclicker_service::BLOCK_PATH.'/admin.php');
-$PAGE->requires->js(iclicker_service::BLOCK_PATH.'/js/jquery.js');
+$PAGE->requires->js( new moodle_url('https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js'), true);
 $PAGE->requires->js(iclicker_service::BLOCK_PATH.'/js/iclicker.js');
-//$PAGE->requires->js('mod/mymod/styles.css');
 echo $OUTPUT->header();
 
 /* TODO
@@ -179,3 +178,18 @@ require ('user_messages.php');
         </ul>
     </fieldset>
 </div>
+
+<div class="nav_links">
+    <?php
+    $reg_link = '<a class="nav_link" href="'.iclicker_service::block_url('registration.php').'">'.iclicker_service::msg('reg.title').'</a>';
+    $nav_links = $reg_link.PHP_EOL;
+    // the other links
+    if (iclicker_service::is_instructor()) {
+        $nav_links .= ' | <a class="nav_link" href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('inst.title').'</a>'.PHP_EOL;
+    }
+    $nav_links .= ' | <a class="nav_link current_nav_link" href="'.iclicker_service::block_url('admin.php').'">'.iclicker_service::msg('admin.title').'</a>'.PHP_EOL;
+    echo $nav_links;
+    ?>
+</div>
+
+<?php echo $OUTPUT->footer(); ?>
