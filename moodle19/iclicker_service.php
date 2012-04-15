@@ -437,9 +437,13 @@ class iclicker_service {
      */
     public static function get_user_displayname($user_id) {
         $name = "UNKNOWN-".$user_id;
-        $users = self::get_users($user_id);
-        if ($users && array_key_exists($user_id, $users)) {
-            $name = self::makeUserDisplayName($users[$user_id]);
+        $user = self::get_users($user_id);
+        if ($user && isset($user->id)) {
+            if (isset($user->display_name)) {
+                $name = $user->display_name;
+            } else {
+                $name = self::makeUserDisplayName($user->id);
+            }
         }
         return $name;
     }

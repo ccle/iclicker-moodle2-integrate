@@ -286,7 +286,7 @@ class iclicker_controller {
                         iclicker_service::remove_registration($reg_id);
                         $args = new stdClass ;
                         $args->cid = $cr->clicker_id;
-                        $args->rid = $cr->registration_id;
+                        $args->rid = $reg_id;
                         $args->user = iclicker_service::get_user_displayname($cr->owner_id);
                         $this->addMessage(self::KEY_INFO, "admin.delete.success", $args);
                     }
