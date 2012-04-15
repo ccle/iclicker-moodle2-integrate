@@ -19,6 +19,8 @@
  */
 /* $Id$ */
 
+defined('MOODLE_INTERNAL') || die();
+
 global $CFG,$USER,$COURSE;
 // link in external libraries
 require_once ($CFG->dirroot.'/blocks/iclicker/iclicker_service.php');
