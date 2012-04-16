@@ -495,7 +495,6 @@ class iclicker_service {
      * @static
      */
     public static function is_instructor($user_id = null) {
-        global $USER;
         if (!isset($user_id)) {
             try {
                 $user_id = self::require_user();
@@ -832,7 +831,7 @@ class iclicker_service {
         if (!isset($activated)) {
             throw new InvalidArgumentException("active must be set");
         }
-        $current_user_id = self::require_user();
+        self::require_user();
         $registration = self::get_registration_by_id($reg_id);
         if (!$registration) {
             throw new InvalidArgumentException("Could not find registration with id ($reg_id)");
@@ -866,7 +865,6 @@ class iclicker_service {
             }
         }
         $clicker_registration->timemodified = time();
-        $reg_id = -1;
         if (!isset($clicker_registration->id)) {
             // new item to save (no perms check)
             $clicker_registration->timecreated = time();
@@ -901,7 +899,7 @@ class iclicker_service {
         global $DB;
         // get_users_by_capability - accesslib - moodle/grade:view
         // search_users - datalib
-        $context = get_context_instance(CONTEXT_COURSE, $course_id); // TODO
+        $context = context_course::instance($course_id); //get_context_instance(CONTEXT_COURSE, $course_id); // deprecated
         $results = get_users_by_capability($context, 'moodle/grade:view', 'u.id, u.username, u.firstname, u.lastname, u.email', 'u.lastname', '', '', '', '', false);
         if (isset($results) && !empty($results)) {
             // get the registrations related to these students
@@ -960,7 +958,6 @@ class iclicker_service {
      * @return array the list of courses (maybe be emtpy array)
      */
     public static function get_courses_for_instructor($user_id = null) {
-        global $USER;
         // make this only get courses for this instructor
         // http://docs.moodle.org/en/Category:Capabilities - moodle/course:update
         if (! isset($user_id)) {
@@ -1229,7 +1226,6 @@ class iclicker_service {
             $number = 0;
             foreach ($gradebook->items as $grade_item) {
                 // check for this category
-                $item_category_id = $default_iclicker_category_id;
                 $item_category_name = self::GRADE_CATEGORY_NAME;
                 if (! empty($grade_item->type) && self::GRADE_CATEGORY_NAME != $grade_item->type) {
                     $item_category_name = $grade_item->type;
@@ -1240,9 +1236,10 @@ class iclicker_service {
                     );
                     if (! $item_category) {
                         // create the category
-                        $params = new stdClass();
-                        $params->courseid = $gradebook->course_id;
-                        $params->fullname = $item_category_name;
+                        $params = array(
+                            'courseid' => $gradebook->course_id,
+                            'fullname' => $item_category_name,
+                        );
                         $grade_category = new grade_category($params, false);
                         $grade_category->insert(self::GRADE_LOCATION_STR);
                         $item_category_id = $grade_category->id;
@@ -1253,9 +1250,10 @@ class iclicker_service {
                     // use default
                     if (! $default_iclicker_category_id) {
                         // create the category
-                        $params = new stdClass();
-                        $params->courseid = $gradebook->course_id;
-                        $params->fullname = self::GRADE_CATEGORY_NAME;
+                        $params = array(
+                            'courseid' => $gradebook->course_id,
+                            'fullname' => self::GRADE_CATEGORY_NAME,
+                        );
                         $grade_category = new grade_category($params, false);
                         $grade_category->insert(self::GRADE_LOCATION_STR);
                         $default_iclicker_category_id = $grade_category->id;
@@ -1480,7 +1478,7 @@ format.
         if (! isset($gradebook_result->course)) {
             throw new InvalidArgumentException("course must be set");
         }
-        $course = $gradebook_result->course;
+        //$course = $gradebook_result->course;
         $course_id = $gradebook_result->course->id;
         // check for any errors
         $has_errors = false;
