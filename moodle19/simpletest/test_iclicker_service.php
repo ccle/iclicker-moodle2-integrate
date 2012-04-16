@@ -238,7 +238,7 @@ class iclicker_services_test extends UnitTestCase {
         $result = iclicker_service::translate_clicker_id("");
         $this->assertEqual(null, $result);
 
-        $result = iclicker_service::translate_clicker_id(IClickerLogic.CLICKERID_SAMPLE);
+        $result = iclicker_service::translate_clicker_id(iclicker_service::CLICKERID_SAMPLE);
         $this->assertEqual(null, $result);
 
         $result = iclicker_service::translate_clicker_id("11111111");
@@ -277,9 +277,11 @@ class iclicker_services_test extends UnitTestCase {
         $reg1 = new stdClass;
         $reg1->clicker_id = '11111111';
         $reg1->owner_id = 'aaronz';
+        $reg1->timecreated = time()-1000;
         $reg2 = new stdClass;
         $reg2->clicker_id = '22222222';
         $reg2->owner_id = 'beckyz';
+        $reg2->timecreated = time()-100;
         $result = NULL;
 
         $clickers = array($reg1);
