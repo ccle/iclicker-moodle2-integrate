@@ -41,20 +41,20 @@ class iclicker_services_test extends UnitTestCase {
     var $studentid1 = 1;
     var $studentid2 = 2;
 
-   	var $cat_name = 'az_category';
-   	var $item_name = 'az_gradeitem';
-   	var $grade_score = 91;
+    var $cat_name = 'az_category';
+    var $item_name = 'az_gradeitem';
+    var $grade_score = 91;
 
     public function cleanup() {
         // cleanup any clickers before the test
         $user_id = iclicker_service::require_user();
         $results = iclicker_service::get_registrations_by_user($user_id);
         if ($results) {
-            echo "cleanup registrations for user: $user_id  ";
+            echo "cleanup registrations for user: $user_id  ".PHP_EOL;
             foreach($results as $reg) {
                 if ($reg->clicker_id == $this->clicker_id) {
                     iclicker_service::remove_registration($reg->id);
-                    echo "cleanup: $reg->id ";
+                    echo "cleanup: $reg->id ".PHP_EOL;
                 }
             }
         }
@@ -697,7 +697,8 @@ echo "</pre>";
 
     }
 
-    function test_save_ws() {
+    // TODO - disabled
+    function disabled_test_save_ws() {
         $result = iclicker_service::ws_get_students();
         $this->assertNotNull($result);
 
