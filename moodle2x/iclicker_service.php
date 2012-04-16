@@ -260,7 +260,6 @@ class iclicker_service {
             $body .= "\nFailure:\n".$exception->message."\n\n".$exception;
         }
         if ($admin_emails) {
-            $sent = false;
             foreach ($admin_emails as $email) {
                 self::send_email($email, 'i>clicker Moodle integrate plugin notification', $body);
             }
@@ -381,7 +380,7 @@ class iclicker_service {
 
     /**
      * Get user records for a set of user ids
-     * @param array $user_ids an array of user ids OR a single user_id
+     * @param array|int $user_ids an array of user ids OR a single user_id
      * @return array|stdClass a map of user_id -> user data OR single user object for single user_id OR empty array if no matches
      */
     public static function get_users($user_ids) {
@@ -505,16 +504,19 @@ class iclicker_service {
                 return false;
             }
         }
-        // sadly this is the only way to do this check: http://moodle.org/mod/forum/discuss.php?d=140383
-        $accessinfo = null;
-        if ($user_id === $USER->id && isset($USER->access)) {
-            $accessinfo = $USER->access;
-        } else {
-            $accessinfo = get_user_access_sitewide($user_id);
+
+        //$results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false, 'c.sortorder', array(), 1);
+        //$result = count($results) > 0;
+        $result = false;
+        $courses = enrol_get_users_courses($user_id, true, null, null);
+        foreach ($courses as $id=>$course) {
+            $context = context_course::instance($id);
+            if (has_capability('moodle/course:update', $context, $user_id)) {
+                //unset($courses[$id]);
+                $result = true;
+                break;
+            }
         }
-        $results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false,
-            'c.sortorder', array(), 1);
-        $result = count($results) > 0;
         return $result;
     }
 
@@ -960,19 +962,18 @@ class iclicker_service {
     public static function get_courses_for_instructor($user_id = null) {
         global $USER;
         // make this only get courses for this instructor
-        // get_user_courses_bycap? - accesslib
         // http://docs.moodle.org/en/Category:Capabilities - moodle/course:update
         if (! isset($user_id)) {
             $user_id = self::get_current_user_id();
         }
-        if ($user_id === $USER->id && isset($USER->access)) {
-            $accessinfo = $USER->access;
-        } else {
-            $accessinfo = get_user_access_sitewide($user_id);
+        //$results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false, 'c.sortorder', array('fullname','summary','timecreated','visible'), 50);
+        $results = enrol_get_users_courses($user_id, true, array('fullname','summary','timecreated','visible'), null);
+        foreach ($results as $id=>$course) {
+            $context = context_course::instance($id);
+            if (!has_capability('moodle/course:update', $context, $user_id)) {
+                unset($results[$id]);
+            }
         }
-        // TODO fix deprecated
-        $results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false,
-            'c.sortorder', array('fullname','summary','timecreated','visible'), 50);
         if (!$results) {
             $results = array();
         }
