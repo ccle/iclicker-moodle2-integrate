@@ -288,17 +288,29 @@ class iclicker_service {
      * Authenticate a user by username and password
      * @param string $username
      * @param string $password
+     * @param $ssoKey [OPTIONAL] the sso key sent in the request OR null if there was not one
      * @return bool true if the authentication is successful
      * @throw SecurityException if auth invalid
      */
-    public static function authenticate_user($username, $password) {
+    public static function authenticate_user($username, $password, $ssoKey) {
         global $USER;
         if (!isset($USER->id) || !$USER->id) {
-            $u = authenticate_user_login($username, $password);
-            if ($u === false) {
-                throw new SecurityException('Could not authenticate username ('.$username.')');
+            // this user is not already logged in
+            if (self::$block_iclicker_sso_enabled) {
+                self::verifyKey($ssoKey); // verify the key is valid
+                $user = self::get_user_by_username($username);
+                if ($user && self::checkUserKey($user->id, $password)) {
+                    complete_user_login($user);
+                } else {
+                    throw new SecurityException('Could not SSO authenticate username ('.$username.')');
+                }
+            } else {
+                $u = authenticate_user_login($username, $password);
+                if ($u === false) {
+                    throw new SecurityException('Could not authenticate username ('.$username.')');
+                }
+                complete_user_login($u);
             }
-            complete_user_login($u);
         }
         return true;
     }
@@ -593,6 +605,209 @@ class iclicker_service {
         return $alternateId;
 
     }
+
+
+    // *******************************************************************************
+    // SSO handling
+
+    /**
+     * Make or find a user key for the given user,
+     * if they don't have one, this will create one, if they do it will retrieve it.
+     * It can also be used to generate a new user key
+     *
+     * @static
+     * @param string $userId [OPTIONAL] the internal user id (if null, use the current user id)
+     * @param bool $makeNew if true, make a new key even if the user already has one, if false, only make a key if they do not have one (default: false)
+     * @return string the user key for the given user
+     * @throws InvalidArgumentException if user is not set or is not an instructor
+     */
+    public static function makeUserKey($userId=null, $makeNew=false) {
+        global $DB;
+        if (!$userId) {
+            $userId = self::get_current_user_id();
+        }
+        if (!$userId) {
+            throw new InvalidArgumentException("no current user, cannot generate a user key");
+        }
+        if (!self::is_admin($userId)
+                && !self::is_instructor($userId)
+                ) {
+            // if user is not an instructor or an admin then we will not make a key for them, this is to block students from getting a pass key
+            throw new InvalidArgumentException("current user ($userId) is not an instructor, cannot generate user key for them");
+        }
+        // find the key for this user if one exists
+        $userKey = null;
+        /* TODO
+        ClickerUserKey cuk = dao.findOneBySearch(ClickerUserKey.class, new Search(
+                new Restriction("userId", userId)
+        ));
+        if (makeNew && cuk != null) {
+            // remove the existing key so we can make a new one
+            dao.delete(cuk);
+            cuk = null;
+        }
+        if (cuk == null) {
+            // make a new key and store it
+            String newKeyValue = RandomStringUtils.randomAlphanumeric(12);
+            cuk = new ClickerUserKey(newKeyValue, userId);
+            try {
+                dao.save(cuk);
+            } catch (DataIntegrityViolationException e) {
+                // this should not have happened but it means the key already exists somehow, probably a sync issue of some kind
+                log.warn("Failed when attempting to create a new clicker user key for :"+userId);
+            }
+        }
+        */
+        return $userKey;
+    }
+
+    /**
+     * Find the user key for a given user if one exists
+     *
+     * @param string $userId [OPTIONAL] the internal user id (if null, use the current user id)
+     * @return string the user key for the given user OR null if there is no key
+     */
+    public static function getUserKey($userId) {
+        if ($userId == null) {
+            $userId = self::get_current_user_id();
+        }
+        if ($userId == null) {
+            throw new InvalidArgumentException("no current user, cannot check user key");
+        }
+        $key = null;
+        /* TODO
+        // find the key for this user if one exists
+        ClickerUserKey cuk = dao.findOneBySearch(ClickerUserKey.class, new Search(
+                new Restriction("userId", userId)
+        ));
+        if (cuk != null) {
+            key = cuk.getUserKey();
+        }
+        */
+        return $key;
+    }
+
+    /**
+     * Checks if the passed in user key is valid compared to the internally stored user key
+     *
+     * @param string $userId [OPTIONAL] the internal user id (if null, use the current user id)
+     * @param string $userKey the passed in SSO key to check for this user
+     * @return bool true if the key is valid OR false if the user has no key or the key is otherwise invalid
+     */
+    public static function checkUserKey($userId, $userKey) {
+        if (empty($userKey)) {
+            throw new InvalidArgumentException("userKey cannot be empty");
+        }
+        if ($userId == null) {
+            $userId = self::get_current_user_id();
+        }
+        if ($userId == null) {
+            throw new InvalidArgumentException("no current user, cannot check user key");
+        }
+        $valid = false;
+        /* TODO
+        ClickerUserKey cuk = dao.findOneBySearch(ClickerUserKey.class, new Search(
+                new Restriction("userId", userId)
+        ));
+        if (cuk != null) {
+            if (userKey.equals(cuk.getUserKey())) {
+                valid = true;
+            }
+        }
+         */
+        return $valid;
+    }
+
+    /**
+     * @param string $sharedKey set and verify the shared key (if invalid, log a warning)
+     */
+    protected static function setSharedKey($sharedKey) {
+        if ($sharedKey != null) {
+            if (strlen($sharedKey) < 10) {
+                error_log("i>clicker shared key ($sharedKey) is too short, must be at least 10 chars long. SSO shared key will be ignored until a longer key is entered.");
+            } else {
+                self::$block_iclicker_sso_enabled = true;
+                self::$block_iclicker_sso_shared_key = $sharedKey;
+                error_log("i>clicker plugin SSO handling enabled by shared key, note that this will disable normal username/password handling");
+            }
+        }
+    }
+
+    /**
+     * @return string the SSO shared key value (or empty string otherwise)
+     * NOTE: this only works if SSO is enabled AND the user is an admin
+     */
+    public static function getSharedKey() {
+        $key = '';
+        if (self::$block_iclicker_sso_enabled && self::is_admin()) {
+            $key = self::$block_iclicker_sso_shared_key;
+        }
+        return $key;
+    }
+
+    /**
+     * @return bool true if SSO handling is enabled, false otherwise
+     */
+    public static function isSingleSignOnEnabled() {
+        return self::$block_iclicker_sso_enabled;
+    }
+
+    /**
+     * Verify the passed in encrypted SSO shared key is valid,
+     * this will return false if the key is not configured
+     *
+     * Key must have been encoded like so (where timestamp is the unix time in seconds):
+     * sentKey = hex(sha1(sharedKey + ":" + timestamp)) + "|" + timestamp
+     *
+     * @static
+     * @param string $key the passed in key (should already be sha-1 and hex encoded with the timestamp appended)
+     * @return bool true if the key is valid, false if SSO shared keys are disabled
+     * @throws InvalidArgumentException if the key format is invalid
+     * @throws SecurityException if the key timestamp has expired or the key does not match
+     */
+    public static function verifyKey($key) {
+        if (empty($key)) {
+            throw new InvalidArgumentException("key must be set in order to verify the key");
+        }
+        $verified = false;
+        if (self::$block_iclicker_sso_enabled) {
+            // encoding process requires the key and timestamp so split them from the passed in key
+            $splitIndex = strrpos($key, '|');
+            if (($splitIndex === -1) || (strlen($key) < $splitIndex + 1)) {
+                throw new InvalidArgumentException("i>clicker shared key format is invalid (no |), must be {encoded key}|{timestamp}");
+            }
+            $actualKey = substr($key, 0, $splitIndex);
+            if (empty($actualKey)) {
+                throw new InvalidArgumentException("i>clicker shared key format is invalid (missing encoded key), must be {encoded key}|{timestamp}");
+            }
+            $timestampStr = substr($key, $splitIndex + 1);
+            if (empty($timestampStr)) {
+                throw new InvalidArgumentException("i>clicker shared key format is invalid (missing timestamp), must be {encoded key}|{timestamp}");
+            } else if (!is_numeric($timestampStr)) {
+                throw new InvalidArgumentException("i>clicker shared key format is invalid (non numeric timestamp), must be {encoded key}|{timestamp}");
+            }
+            $timestamp = (int) $timestampStr;
+
+            // check this key is still good (must be within 5 mins of now)
+            $unixTime = time();
+            $timeDiff = abs($timestamp - $unixTime);
+            if ($timeDiff > 300) {
+                throw new SecurityException("i>clicker shared key timestamp is out of date, this timestamp ($timestamp) is more than 5 minutes different from the current time ($unixTime)");
+            }
+
+            // finally we verify the key with the one in the config
+            $sha1Hex = sha1(self::$block_iclicker_sso_shared_key + ":" + $timestamp);
+            if ($actualKey !== $sha1Hex) {
+                throw new SecurityException("i>clicker encoded shared key ($actualKey) does not match with the key in Sakai");
+            }
+            $verified = true;
+        }
+        return $verified;
+    }
+
+
+
+
 
 
     // CLICKER REGISTRATIONS DATA
