@@ -721,7 +721,7 @@ class iclicker_service {
     /**
      * @param string $sharedKey set and verify the shared key (if invalid, log a warning)
      */
-    protected static function setSharedKey($sharedKey) {
+    public static function setSharedKey($sharedKey) {
         if ($sharedKey != null) {
             if (strlen($sharedKey) < 10) {
                 error_log("i>clicker shared key ($sharedKey) is too short, must be at least 10 chars long. SSO shared key will be ignored until a longer key is entered.");
@@ -796,7 +796,7 @@ class iclicker_service {
             }
 
             // finally we verify the key with the one in the config
-            $sha1Hex = sha1(self::$block_iclicker_sso_shared_key + ":" + $timestamp);
+            $sha1Hex = sha1(self::$block_iclicker_sso_shared_key . ":" . $timestamp);
             if ($actualKey !== $sha1Hex) {
                 throw new SecurityException("i>clicker encoded shared key ($actualKey) does not match with the key in Sakai");
             }

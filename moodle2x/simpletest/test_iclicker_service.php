@@ -300,6 +300,55 @@ class iclicker_services_test extends UnitTestCase {
         $this->assertEqual("22222222,02222202,11111111", $result['clickerid']);
     }
 
+    /**
+     * Sample key:
+     * abcdef1234566890
+     * Sample timestamp:
+     * 1332470760
+     * Encoded key:
+     * cc80462bfc0da7e614237d7cab4b7971b0e71e9f|1332470760
+     */
+    function test_sso_key_encoding() {
+        // TODO verify tests working
+        $key = "abcdef1234566890";
+        iclicker_service::setSharedKey($key);
+
+        // test expired timestamp
+        $encodedKey = "cc80462bfc0da7e614237d7cab4b7971b0e71e9f|1332470760";
+        try {
+            iclicker_service::verifyKey($encodedKey);
+            $this->fail("should have died");
+        } catch (SecurityException $e) {
+            $this->assertNotNull($e->getMessage());
+        }
+
+        // test invalid format
+        try {
+            iclicker_service::verifyKey("xxxxxxxxxxxxx");
+            $this->fail("should have died");
+        } catch (InvalidArgumentException $e) {
+            $this->assertNotNull($e->getMessage());
+        }
+        try {
+            iclicker_service::verifyKey("xxxxxxxxxxxxx|");
+            $this->fail("should have died");
+        } catch (InvalidArgumentException $e) {
+            $this->assertNotNull($e->getMessage());
+        }
+        try {
+            iclicker_service::verifyKey("xxxxxxxx|12344ffff");
+            $this->fail("should have died");
+        } catch (InvalidArgumentException $e) {
+            $this->assertNotNull($e->getMessage());
+        }
+
+        // test valid encoded key
+        $timestamp = time();
+        $encodedKey = sha1($key . ":" . $timestamp) . '|' . $timestamp;
+        $result = iclicker_service::verifyKey($encodedKey);
+        $this->assertTrue($result);
+    }
+
     function test_registrations() {
         $reg = null;
         $user_id = iclicker_service::require_user();
