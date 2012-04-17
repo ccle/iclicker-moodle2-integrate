@@ -49,6 +49,7 @@ if ($ADMIN->fulltree) {
         )
     );
     // WS
+/** webservices code is currently disabled ********************
     $settings->add(
         new admin_setting_heading('block_iclicker_ws_heading',
             get_string('config_webservices', $block_name),
@@ -98,6 +99,7 @@ if ($ADMIN->fulltree) {
             30
         )
     );
+ *******************************************/
     // SSO
     $headerDesc = get_string('config_sso_disabled', $block_name);
     if (iclicker_service::$block_iclicker_sso_enabled) {
