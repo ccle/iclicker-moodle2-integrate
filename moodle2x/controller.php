@@ -235,6 +235,7 @@ class iclicker_controller {
     }
 
     public function processAdmin() {
+        global $CFG;
         $adminPath = iclicker_service::block_url('admin.php');
         $this->results['adminPath'] = $adminPath;
         $this->results['status_url'] = iclicker_service::block_url('runner_status.php');
@@ -306,6 +307,7 @@ class iclicker_controller {
         $this->results['useNationalWebservices'] = iclicker_service::$use_national_webservices;
         $this->results['domainURL'] = iclicker_service::$domain_URL;
         $this->results['disableSyncWithNational'] = iclicker_service::$disable_sync_with_national;
+        $this->results['adminEmailAddress'] = $CFG->block_iclicker_notify_emails;
 
         // put error data into page
         $this->results['recent_failures'] = iclicker_service::get_failures();

@@ -118,6 +118,7 @@ class iclicker_service {
     const BLOCK_PATH = '/blocks/iclicker';
     const REG_TABLENAME = 'iclicker_registration';
     const REG_ORDER = 'timecreated desc';
+    const USER_KEY_TABLENAME = 'iclicker_user_key';
     const GRADE_CATEGORY_NAME = 'iclicker polling scores'; // default category
     const GRADE_ITEM_TYPE = 'blocks';
     const GRADE_ITEM_MODULE = 'iclicker';
@@ -125,6 +126,7 @@ class iclicker_service {
     const DEFAULT_SYNC_HOUR = 3;
     const BLOCK_RUNNER_KEY = 'block_iclicker_runner';
     const DEFAULT_SERVER_URL = "http://moodle.org/"; // "http://epicurus.learningmate.com/";
+
     const NATIONAL_WS_URL = "https://webservices.iclicker.com/iclicker_gbsync_registrations/service.asmx";
     /*
      * iclicker_gbsync_reg / #8d7608e1e7f4@
@@ -133,6 +135,7 @@ class iclicker_service {
     const NATIONAL_WS_BASIC_AUTH_HEADER = 'Basic aWNsaWNrZXJfZ2JzeW5jX3JlZzojOGQ3NjA4ZTFlN2Y0QA==';
     const NATIONAL_WS_AUTH_USERNAME = 'iclicker_gbsync_reg';
     const NATIONAL_WS_AUTH_PASSWORD = '#8d7608e1e7f4@';
+
     // errors constants
     const SCORE_UPDATE_ERRORS = 'ScoreUpdateErrors';
     const POINTS_POSSIBLE_UPDATE_ERRORS = 'PointsPossibleUpdateErrors';
@@ -259,7 +262,7 @@ class iclicker_service {
         if ($exception != null) {
             $body .= "\nFailure:\n".$exception->message."\n\n".$exception;
         }
-        if ($admin_emails) {
+        if (!empty($admin_emails)) {
             foreach ($admin_emails as $email) {
                 self::send_email($email, 'i>clicker Moodle integrate plugin notification', $body);
             }
@@ -2395,7 +2398,6 @@ format.
 
 // load the config into the static vars from the global plugin config settings
 $block_name = iclicker_service::BLOCK_NAME;
-$block_iclicker_notify_emails = get_config($block_name, 'block_iclicker_notify_emails');
 $block_iclicker_disable_alternateid = get_config($block_name, 'block_iclicker_disable_alternateid');
 $block_iclicker_use_national_ws = get_config($block_name, 'block_iclicker_use_national_ws');
 $block_iclicker_domain_url = get_config($block_name, 'block_iclicker_domain_url');

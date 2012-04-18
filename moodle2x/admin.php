@@ -160,11 +160,17 @@ require ('user_messages.php');
             <?php echo iclicker_service::msg('admin.config.header') ?>
         </legend>
         <ul class="tight admin_config_list">
+            <li class="admin_config_list_item">
+                <?php echo iclicker_service::msg('config_notify_emails') ?>:
+                <?php echo !empty($adminEmailAddress) ? iclicker_service::msg('config_notify_emails_enabled', $adminEmailAddress):iclicker_service::msg('config_notify_emails_disabled') ?>
+            </li>
+            <!-- ** Commenting out webservices *********
             <li class="admin_config_list_item"><?php echo iclicker_service::msg('admin.config.usewebservices') ?>: <?php echo $useNationalWebservices ? 'true':'false' ?></li>
             <li class="admin_config_list_item"><?php echo iclicker_service::msg('admin.config.domainurl') ?>: <?php echo $domainURL ?></li>
             <?php if ($useNationalWebservices) { ?>
             <li class="admin_config_list_item"><?php echo iclicker_service::msg('admin.config.syncenabled') ?>: <?php echo !$disableSyncWithNational ? 'true':'false' ?></li>
             <?php } ?>
+            -->
         </ul>
     </fieldset>
 </div>
