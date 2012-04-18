@@ -1,28 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!--
-    Copyright (c) 2012 i>clicker (R) <http://www.iclicker.com/dnn/>
-
-    This file is part of i>clicker Moodle integrate.
-
-    i>clicker Moodle integrate is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    i>clicker Moodle integrate is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
--->
-<XMLDB PATH="blocks/iclicker/db" VERSION="20091128" COMMENT="XMLDB file for Moodle blocks/iclicker"
+<XMLDB PATH="blocks/iclicker/db" VERSION="20120417" COMMENT="XMLDB file for Moodle blocks/iclicker"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="iclicker_registration" COMMENT="iclicker registrations for the current system">
+    <TABLE NAME="iclicker_registration" COMMENT="iclicker registrations for the current system" NEXT="iclicker_user_key">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="timecreated"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="date this was created (unix timestamp)" PREVIOUS="id" NEXT="timemodified"/>
@@ -41,6 +23,19 @@
         <INDEX NAME="owner_id_index" UNIQUE="false" FIELDS="owner_id" PREVIOUS="clicker_id_index" NEXT="activated_index"/>
         <INDEX NAME="activated_index" UNIQUE="false" FIELDS="activated" PREVIOUS="owner_id_index"/>
       </INDEXES>
+    </TABLE>
+    <TABLE NAME="iclicker_user_key" COMMENT="iclicker user keys for SSO" PREVIOUS="iclicker_registration">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="timecreated"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="timecreated" NEXT="user_id"/>
+        <FIELD NAME="user_id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="false" PREVIOUS="timemodified" NEXT="user_key"/>
+        <FIELD NAME="user_key" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="user_id"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="pk_id" TYPE="primary" FIELDS="id" NEXT="uniq_user_id"/>
+        <KEY NAME="uniq_user_id" TYPE="unique" FIELDS="user_id" PREVIOUS="pk_id"/>
+      </KEYS>
     </TABLE>
   </TABLES>
 </XMLDB>

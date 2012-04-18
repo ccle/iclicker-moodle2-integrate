@@ -24,12 +24,30 @@ require_once ($CFG->dirroot.'/blocks/iclicker/iclicker_service.php');
 
 // This file keeps track of upgrades to this block
 function xmldb_block_iclicker_upgrade($oldversion = 0) {
-    global $CFG,$THEME,$DB;
+    global $DB;
     $dbman = $DB->get_manager(); /// loads ddl manager and xmldb classes
-    if ($oldversion < 2009112800) {
-        $table = new xmldb_table(iclicker_service::REG_TABLENAME);
-        // Add stuff here if needed
-        upgrade_mod_savepoint(true, 2009112800, iclicker_service::BLOCK_NAME);
+    if ($oldversion < 2012041700) {
+        // Define table iclicker_user_key to be created
+        $table = new xmldb_table('iclicker_user_key');
+
+        // Adding fields to table iclicker_user_key
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '20', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '20', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0');
+        $table->add_field('user_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('user_key', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+
+        // Adding keys to table iclicker_user_key
+        $table->add_key('pk_id', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_key('uniq_user_id', XMLDB_KEY_UNIQUE, array('user_id'));
+
+        // Conditionally launch create table for iclicker_user_key
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // iclicker savepoint reached
+        upgrade_block_savepoint(true, 2012041700, 'iclicker');
     }
     return true;
 }
