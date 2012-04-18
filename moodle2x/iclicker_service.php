@@ -640,28 +640,42 @@ class iclicker_service {
         }
         // find the key for this user if one exists
         $userKey = null;
-        /* TODO
-        ClickerUserKey cuk = dao.findOneBySearch(ClickerUserKey.class, new Search(
-                new Restriction("userId", userId)
-        ));
-        if (makeNew && cuk != null) {
+        $cuk = $DB->get_record(self::USER_KEY_TABLENAME, array('user_id' => $userId), 'id');
+        if ($makeNew && $cuk !== false) {
             // remove the existing key so we can make a new one
-            dao.delete(cuk);
-            cuk = null;
+            $DB->delete_records(self::USER_KEY_TABLENAME, array('id' => $cuk->id));
+            $cuk = null;
         }
-        if (cuk == null) {
+        if ($cuk == null) {
             // make a new key and store it
-            String newKeyValue = RandomStringUtils.randomAlphanumeric(12);
-            cuk = new ClickerUserKey(newKeyValue, userId);
+            $newKeyValue = self::randomAlphaNumeric(12);
+            $cuk = new stdClass();
+            $cuk->user_id = $userId;
+            $cuk->user_key = $newKeyValue;
             try {
-                dao.save(cuk);
-            } catch (DataIntegrityViolationException e) {
+                $DB->insert_record(self::USER_KEY_TABLENAME, $cuk);
+                $userKey = $newKeyValue;
+            } catch (dml_exception $e) {
                 // this should not have happened but it means the key already exists somehow, probably a sync issue of some kind
-                log.warn("Failed when attempting to create a new clicker user key for :"+userId);
+                error_log("Failed when attempting to create a new clicker user key for :".$userId);
             }
         }
-        */
         return $userKey;
+    }
+
+    /**
+     * @static
+     * @param int $length length of the random string
+     * @return string random alphanumeric string
+     */
+    public static function randomAlphaNumeric($length) {
+        $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        $charactersLength = strlen($characters);
+        $string = '';
+        for ($i = 0; $i < $length; $i++) {
+            $string .= $characters[rand(0, $charactersLength - 1)];
+        }
+        return $string;
     }
 
     /**

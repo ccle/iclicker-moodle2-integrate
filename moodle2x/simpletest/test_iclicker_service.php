@@ -300,6 +300,16 @@ class iclicker_services_test extends UnitTestCase {
         $this->assertEqual("22222222,02222202,11111111", $result['clickerid']);
     }
 
+    function test_alphanumeric_gen() {
+        $rand = iclicker_service::randomAlphaNumeric(10);
+        $this->assertNotNull($rand);
+        $this->assertTrue(strlen($rand) == 10);
+
+        $rand = iclicker_service::randomAlphaNumeric(12);
+        $this->assertNotNull($rand);
+        $this->assertTrue(strlen($rand) == 12);
+    }
+
     /**
      * Sample key:
      * abcdef1234566890
