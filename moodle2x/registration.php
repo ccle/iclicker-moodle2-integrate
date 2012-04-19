@@ -43,6 +43,7 @@ $PAGE->navbar->add(iclicker_service::msg('reg.title'));
 $PAGE->set_focuscontrol('');
 $PAGE->set_cacheable(false);
 $PAGE->requires->css(iclicker_service::BLOCK_PATH.'/css/iclicker.css');
+$PAGE->requires->js( new moodle_url('https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js'), true);
 $PAGE->set_url(iclicker_service::BLOCK_PATH.'/registration.php');
 //$PAGE->requires->js('mod/mymod/styles.css');
 echo $OUTPUT->header();

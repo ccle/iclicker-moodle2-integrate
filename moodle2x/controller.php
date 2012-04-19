@@ -201,6 +201,7 @@ class iclicker_controller {
 
         $this->results['regs'] = iclicker_service::get_registrations_by_user();
         $this->results['is_instructor'] = iclicker_service::is_instructor();
+        $this->results['sso_enabled'] = iclicker_service::$block_iclicker_sso_enabled;
         // added to allow special messages below the forms
         $this->results['below_messages'] = $this->getMessages(self::KEY_BELOW);
     }
@@ -232,6 +233,7 @@ class iclicker_controller {
             $this->results['students'] = $students;
             $this->results['students_count'] = count($students);
         }
+        $this->results['sso_enabled'] = iclicker_service::$block_iclicker_sso_enabled;
     }
 
     public function processAdmin() {
@@ -293,31 +295,19 @@ class iclicker_controller {
                         $this->addMessage(self::KEY_INFO, "admin.delete.success", $args);
                     }
                 }
-            } else if (optional_param('runner', null, PARAM_RAW) != null) {
-                // initiate the runner process if possible
-                $this->addMessage(self::KEY_INFO, 'admin.process.message.sync');
-                iclicker_service::ws_sync_all();
             } else {
                 // invalid POST
-                error('WARN: Invalid POST: does not contain runner, remove, or activate, nothing to do');
+                error('WARN: Invalid POST: does not contain remove, or activate, nothing to do');
             }
         }
 
         // put config data into page
-        $this->results['useNationalWebservices'] = iclicker_service::$use_national_webservices;
+        $this->results['sso_enabled'] = iclicker_service::$block_iclicker_sso_enabled;
         $this->results['domainURL'] = iclicker_service::$domain_URL;
-        $this->results['disableSyncWithNational'] = iclicker_service::$disable_sync_with_national;
         $this->results['adminEmailAddress'] = $CFG->block_iclicker_notify_emails;
 
         // put error data into page
         $this->results['recent_failures'] = iclicker_service::get_failures();
-
-        // put runner status in page (only one runner for moodle and we do not know what the % completed is)
-        $runner_time_key = get_config(iclicker_service::BLOCK_NAME, iclicker_service::BLOCK_RUNNER_KEY);
-        $runner_exists = ((isset($runner_time_key) && $runner_time_key > 0) ? true : false);
-        $this->results['runner_exists'] = $runner_exists;
-        $this->results['runner_type'] = 'sync';
-        $this->results['runner_percent'] = $runner_exists ? 50 : 0;
 
         // handling the calcs for paging
         $first = ($pageNum - 1) * $perPageNum;

@@ -45,34 +45,11 @@ $PAGE->set_focuscontrol('');
 $PAGE->set_cacheable(false);
 $PAGE->requires->css(iclicker_service::BLOCK_PATH.'/css/iclicker.css');
 $PAGE->set_url(iclicker_service::BLOCK_PATH.'/admin.php');
-$PAGE->requires->js( new moodle_url('https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js'), true);
-$PAGE->requires->js(iclicker_service::BLOCK_PATH.'/js/iclicker.js');
 echo $OUTPUT->header();
 
 // show messages if there are any to show
 require ('user_messages.php');
 ?>
-
-<div class="admin_controls">
-    <?php if ($runner_exists) { ?>
-    <div class="process_status">
-        <?php echo iclicker_service::msg('admin.process.header') ?>
-        <span class="runner_type"><?php echo iclicker_service::msg('admin.process.type.'.$runner_type) ?></span> :
-        <span id="runnerStatus" class="runner_status"><?php echo $runner_percent ?>%</span>
-    </div>
-    <?php } ?>
-    <?php if ($useNationalWebservices) { ?>
-    <div class="workspace_form">
-        <form method="post" style="display:inline;">
-            <input type="hidden" name="runner" value="runner" />
-            <input type="submit" class="runner_button" name="syncAll" value="<?php echo iclicker_service::msg('admin.process.sync') ?>" />
-        </form>
-    </div>
-    <?php } ?>
-    <?php if ($runner_exists) { ?>
-    <script type="text/javascript">Iclicker.initStatusChecker("#runnerStatus", "<?php echo $status_url ?>");</script>
-    <?php } ?>
-</div>
 
 <div class="main_content">
     <!-- pager control -->
@@ -164,13 +141,6 @@ require ('user_messages.php');
                 <?php echo iclicker_service::msg('config_notify_emails') ?>:
                 <?php echo !empty($adminEmailAddress) ? iclicker_service::msg('config_notify_emails_enabled', $adminEmailAddress):iclicker_service::msg('config_notify_emails_disabled') ?>
             </li>
-            <!-- ** Commenting out webservices *********
-            <li class="admin_config_list_item"><?php echo iclicker_service::msg('admin.config.usewebservices') ?>: <?php echo $useNationalWebservices ? 'true':'false' ?></li>
-            <li class="admin_config_list_item"><?php echo iclicker_service::msg('admin.config.domainurl') ?>: <?php echo $domainURL ?></li>
-            <?php if ($useNationalWebservices) { ?>
-            <li class="admin_config_list_item"><?php echo iclicker_service::msg('admin.config.syncenabled') ?>: <?php echo !$disableSyncWithNational ? 'true':'false' ?></li>
-            <?php } ?>
-            -->
         </ul>
     </fieldset>
 </div>
