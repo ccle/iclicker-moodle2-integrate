@@ -319,7 +319,6 @@ class iclicker_services_test extends UnitTestCase {
      * cc80462bfc0da7e614237d7cab4b7971b0e71e9f|1332470760
      */
     function test_sso_key_encoding() {
-        // TODO verify tests working
         $key = "abcdef1234566890";
         iclicker_service::setSharedKey($key);
 
@@ -357,6 +356,52 @@ class iclicker_services_test extends UnitTestCase {
         $encodedKey = sha1($key . ":" . $timestamp) . '|' . $timestamp;
         $result = iclicker_service::verifyKey($encodedKey);
         $this->assertTrue($result);
+    }
+
+    function test_user_keys() {
+        global $DB;
+        $user_id = iclicker_service::require_user();
+        $this->assertNotNull($user_id);
+
+        // saving key for user should work
+        $user_key = iclicker_service::makeUserKey($user_id, true);
+        $this->assertNotNull($user_key);
+
+        $keysCount = $DB->count_records(iclicker_service::USER_KEY_TABLENAME, array('user_id' => $user_id));
+        $this->assertEqual(1, $keysCount);
+
+        // getting key for user
+        $user_key1 = iclicker_service::getUserKey($user_id);
+        $this->assertNotNull($user_key1);
+        $this->assertEqual($user_key, $user_key1);
+
+        // update the key should work
+        $user_key2 = iclicker_service::makeUserKey($user_id, true);
+        $this->assertNotNull($user_key2);
+        $this->assertNotEqual($user_key, $user_key2);
+
+        // trying to save another key for this user should fail
+        $dupeUserKey = new stdClass();
+        $dupeUserKey->user_id = $user_id;
+        $dupeUserKey->user_key = 'x12xx3x3x43x44';
+        try {
+            $DB->insert_record(iclicker_service::USER_KEY_TABLENAME, $dupeUserKey);
+            $this->fail("Should have thrown an exception");
+        } catch (dml_exception $e) {
+            $this->assertNotNull($e->getMessage());
+        }
+
+        // delete the key should work
+        $DB->delete_records(iclicker_service::USER_KEY_TABLENAME, array('user_id' => $user_id));
+        $user_key3 = iclicker_service::getUserKey($user_id);
+        $this->assertNull($user_key3);
+
+        // adding key2 should work since key1 is gone
+        $user_key4 = iclicker_service::makeUserKey($user_id, true);
+        $this->assertNotNull($user_key4);
+
+        // cleanup
+        $DB->delete_records(iclicker_service::USER_KEY_TABLENAME, array('user_id' => $user_id));
     }
 
     function test_registrations() {
