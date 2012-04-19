@@ -685,6 +685,7 @@ class iclicker_service {
      * @return string the user key for the given user OR null if there is no key
      */
     public static function getUserKey($userId) {
+        global $DB;
         if ($userId == null) {
             $userId = self::get_current_user_id();
         }
@@ -692,15 +693,10 @@ class iclicker_service {
             throw new InvalidArgumentException("no current user, cannot check user key");
         }
         $key = null;
-        /* TODO
-        // find the key for this user if one exists
-        ClickerUserKey cuk = dao.findOneBySearch(ClickerUserKey.class, new Search(
-                new Restriction("userId", userId)
-        ));
-        if (cuk != null) {
-            key = cuk.getUserKey();
+        $cuk = $DB->get_record(self::USER_KEY_TABLENAME, array('user_id' => $userId), 'id,user_key');
+        if ($cuk !== false) {
+            $key = $cuk->user_key;
         }
-        */
         return $key;
     }
 
@@ -712,6 +708,7 @@ class iclicker_service {
      * @return bool true if the key is valid OR false if the user has no key or the key is otherwise invalid
      */
     public static function checkUserKey($userId, $userKey) {
+        global $DB;
         if (empty($userKey)) {
             throw new InvalidArgumentException("userKey cannot be empty");
         }
@@ -722,16 +719,12 @@ class iclicker_service {
             throw new InvalidArgumentException("no current user, cannot check user key");
         }
         $valid = false;
-        /* TODO
-        ClickerUserKey cuk = dao.findOneBySearch(ClickerUserKey.class, new Search(
-                new Restriction("userId", userId)
-        ));
-        if (cuk != null) {
-            if (userKey.equals(cuk.getUserKey())) {
-                valid = true;
+        $cuk = $DB->get_record(self::USER_KEY_TABLENAME, array('user_id' => $userId), 'id,user_key');
+        if ($cuk !== false) {
+            if ($userKey == $cuk->user_key) {
+                $valid = true;
             }
         }
-         */
         return $valid;
     }
 
@@ -841,8 +834,6 @@ class iclicker_service {
             throw new InvalidArgumentException("reg_id must be set");
         }
         $result = $DB->get_record(self::REG_TABLENAME, array('id' => $reg_id));
-        //$sql = "id = ".addslashes($reg_id);
-        //$result = get_record_select(self::REG_TABLENAME, $sql);
         return $result;
     }
 
@@ -870,8 +861,6 @@ class iclicker_service {
         }
         // NOTE: also returns disabled registrations
         $result = $DB->get_record(self::REG_TABLENAME, array('clicker_id' => $clicker_id, 'owner_id' => $user_id));
-        //$sql = "clicker_id = '".addslashes($clicker_id)."' and owner_id = '".addslashes($user_id)."'";
-        //$result = get_record_select(self::REG_TABLENAME, $sql);
         if ($result) {
             if (!self::can_read_registration($result, $current_user_id)) {
                 throw new SecurityException("User ($current_user_id) not allowed to access registration ($result->id)");
