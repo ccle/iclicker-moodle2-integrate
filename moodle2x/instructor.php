@@ -37,16 +37,6 @@ $cntlr = new iclicker_controller();
 $cntlr->processInstructor();
 extract($cntlr->results);
 
-/* TODO
-$navigation = iclicker_service::msg('inst.title');
-if ($show_students && $course) {
-    $navigation = array(
-        array('name' => iclicker_service::msg('inst.title'), 'link' => $instPath),
-        array('name' => $course->fullname)
-    );
-}
-*/
-
 // begin rendering
 $PAGE->set_title( strip_tags($site->fullname).':'.iclicker_service::msg('app.iclicker').':'.iclicker_service::msg('inst.title') );
 $PAGE->set_heading( iclicker_service::msg('app.iclicker').' '.iclicker_service::msg('inst.title') );
@@ -54,7 +44,7 @@ $PAGE->navbar->add(iclicker_service::msg('inst.title'));
 $PAGE->set_focuscontrol('');
 $PAGE->set_cacheable(false);
 $PAGE->requires->css(iclicker_service::BLOCK_PATH.'/css/iclicker.css');
-$PAGE->set_url(iclicker_service::BLOCK_PATH.'/registration.php');
+$PAGE->set_url(iclicker_service::BLOCK_PATH.'/instructor.php');
 //$PAGE->requires->js('mod/mymod/styles.css');
 echo $OUTPUT->header();
 
@@ -126,6 +116,9 @@ require ('user_messages.php');
     $nav_links = $reg_link.PHP_EOL;
     // the other links
     $nav_links .= ' | <a class="nav_link current_nav_link" href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('inst.title').'</a>'.PHP_EOL;
+    if (iclicker_service::$block_iclicker_sso_enabled) {
+        $nav_links .= ' | <a class="nav_link" href="'.iclicker_service::block_url('instructor_sso.php').'">'.iclicker_service::msg('inst.sso.title').'</a>'.PHP_EOL;
+    }
     if (iclicker_service::is_admin()) {
         $nav_links .= ' | <a class="nav_link" href="'.iclicker_service::block_url('admin.php').'">'.iclicker_service::msg('admin.title').'</a>'.PHP_EOL;
     }

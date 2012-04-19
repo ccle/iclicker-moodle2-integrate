@@ -137,6 +137,12 @@ require ('user_messages.php');
             <?php echo iclicker_service::msg('admin.config.header') ?>
         </legend>
         <ul class="tight admin_config_list">
+            <?php if ($sso_enabled) { ?>
+            <li class="admin_config_list_item">
+                <span class="sso_enabled"><?php echo iclicker_service::msg('admin.config.ssoenabled') ?></span>:
+                <?php echo iclicker_service::msg('admin.config.ssosharedkey') ?>: <span class="sso_shared_key"><?php echo $sso_shared_key ?></span>
+            </li>
+            <? } ?>
             <li class="admin_config_list_item">
                 <?php echo iclicker_service::msg('config_notify_emails') ?>:
                 <?php echo !empty($adminEmailAddress) ? iclicker_service::msg('config_notify_emails_enabled', $adminEmailAddress):iclicker_service::msg('config_notify_emails_disabled') ?>
@@ -152,6 +158,9 @@ require ('user_messages.php');
     // the other links
     if (iclicker_service::is_instructor()) {
         $nav_links .= ' | <a class="nav_link" href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('inst.title').'</a>'.PHP_EOL;
+        if (iclicker_service::$block_iclicker_sso_enabled) {
+            $nav_links .= ' | <a class="nav_link" href="'.iclicker_service::block_url('instructor_sso.php').'">'.iclicker_service::msg('inst.sso.title').'</a>'.PHP_EOL;
+        }
     }
     $nav_links .= ' | <a class="nav_link current_nav_link" href="'.iclicker_service::block_url('admin.php').'">'.iclicker_service::msg('admin.title').'</a>'.PHP_EOL;
     echo $nav_links;

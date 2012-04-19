@@ -236,6 +236,19 @@ class iclicker_controller {
         $this->results['sso_enabled'] = iclicker_service::$block_iclicker_sso_enabled;
     }
 
+    public function processInstructorSSO() {
+        $this->results['instPath'] = iclicker_service::block_url('instructor.php');
+        // admin/instructor check
+        if (!iclicker_service::is_admin() && !iclicker_service::is_instructor()) {
+            throw new SecurityException("Current user is not an instructor and cannot access the instructor view");
+        }
+        $this->results['sso_enabled'] = iclicker_service::$block_iclicker_sso_enabled;
+        $current_user_id = iclicker_service::get_current_user_id();
+        $current_user_key = iclicker_service::makeUserKey($current_user_id);
+        $this->results['sso_user_key'] = $current_user_key;
+        // TODO handle generating a new key
+    }
+
     public function processAdmin() {
         global $CFG;
         $adminPath = iclicker_service::block_url('admin.php');
@@ -303,6 +316,7 @@ class iclicker_controller {
 
         // put config data into page
         $this->results['sso_enabled'] = iclicker_service::$block_iclicker_sso_enabled;
+        $this->results['sso_shared_key'] = iclicker_service::$block_iclicker_sso_shared_key;
         $this->results['domainURL'] = iclicker_service::$domain_URL;
         $this->results['adminEmailAddress'] = $CFG->block_iclicker_notify_emails;
 

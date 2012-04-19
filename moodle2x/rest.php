@@ -45,7 +45,7 @@ require_once ('controller.php');
 /**
  * This will check for a user and return the user_id if one can be found
  * @param string $msg the error message
- * @return the user_id
+ * @return int the user_id
  * @throws SecurityException if no user can be found
  */
 function get_and_check_current_user($msg) {
@@ -54,14 +54,14 @@ function get_and_check_current_user($msg) {
         throw new SecurityException("Only logged in users can $msg");
     }
     if (! iclicker_service::is_admin($user_id) && ! iclicker_service::is_instructor($user_id)) {
-        throw new SecurityException("Only instructors can " + $msg);
+        throw new SecurityException("Only instructors can " . $msg);
     }
     return $user_id;
 }
 
 /**
  * Attempt to authenticate the current request based on request params and basic auth
- * @param object $cntlr the controller instance
+ * @param iclicker_controller $cntlr the controller instance
  * @throws SecurityException if authentication is impossible given the request values
  */
 function handle_authn($cntlr) {
@@ -96,7 +96,7 @@ function handle_authn($cntlr) {
 /**
  * Extracts the XML data from the request
  * @param object $cntlr the controller instance
- * @return the XML data OR null if none can be found
+ * @return string the XML data OR null if none can be found
  */
 function get_xml_data($cntlr) {
     $xml = optional_param(iclicker_controller::XML_DATA, NULL, PARAM_RAW);
@@ -140,7 +140,7 @@ if ($valid
 }
 if ($valid) {
     // check against the ones we know and process
-    $parts = split('/', $cntlr->path);
+    $parts = explode('/', $cntlr->path);
     $pathSeg0 = count($parts) > 0 ? $parts[0] : NULL;
     $pathSeg1 = count($parts) > 1 ? $parts[1] : NULL;
     try {
@@ -251,7 +251,7 @@ if ($valid) {
             } else {
                 // UNKNOWN
                 $valid = false;
-                $output = "Unknown path ($path) specified for method POST";
+                $output = "Unknown path ($cntlr->path) specified for method POST";
                 $status = 404; //NOT_FOUND;
             }
         }

@@ -145,6 +145,9 @@ require ('user_messages.php');
         $nav_links .= ' | <a class="nav_link" href="'.iclicker_service::block_url('admin.php').'">'.iclicker_service::msg('admin.title').'</a>'.PHP_EOL;
     } else if (iclicker_service::is_instructor()) {
         $nav_links .= ' | <a class="nav_link" href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('inst.title').'</a>'.PHP_EOL;
+        if (iclicker_service::$block_iclicker_sso_enabled) {
+            $nav_links .= ' | <a class="nav_link" href="'.iclicker_service::block_url('instructor_sso.php').'">'.iclicker_service::msg('inst.sso.title').'</a>'.PHP_EOL;
+        }
     }
     echo $nav_links;
     ?>

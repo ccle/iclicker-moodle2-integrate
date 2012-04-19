@@ -295,7 +295,7 @@ class iclicker_service {
      * @return bool true if the authentication is successful
      * @throw SecurityException if auth invalid
      */
-    public static function authenticate_user($username, $password, $ssoKey) {
+    public static function authenticate_user($username, $password, $ssoKey=null) {
         global $USER;
         if (!isset($USER->id) || !$USER->id) {
             // this user is not already logged in
