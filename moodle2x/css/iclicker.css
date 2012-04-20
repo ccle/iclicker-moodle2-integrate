@@ -48,12 +48,18 @@ TR.disabled {
 }
 
 .nav_links {
+    padding-top: 1em;
+    padding-bottom: 1em;
     text-align: center;
     font-size: 0.9em;
 }
 
 .current_nav_link {
     font-weight: bold;
+}
+
+.user_message {
+    list-style: none;
 }
 
 /** SPECIFIC styles **/
@@ -170,98 +176,98 @@ UL.actionToolBar {
 /** ICLICKER styles from iclicker html **/
 .columns_container
 {
-	width:100%;
-	display:table;
+    width:100%;
+    display:table;
 }
 
 .left_column
 {
-	width:48%;
-	float:left;
-	display:inline;
+    width:48%;
+    float:left;
+    display:inline;
 
 }
 
 .right_column
 {
-	width:48%;
-	float:right;
-	display:inline;
-	border-left:1px solid #A2A2A2;
-	padding-left:2%;
+    width:48%;
+    float:right;
+    display:inline;
+    border-left:1px solid #A2A2A2;
+    padding-left:2%;
 }
 
 img
 {
-	margin:10px 0;
-	display:block;
-	clear:both;
+    margin:10px 0;
+    display:block;
+    clear:both;
 }
 
 h1
 {
-	font-size:16px;
-	color:#5D5552;
+    font-size:16px;
+    color:#5D5552;
 }
 
 h3
 {
-	font-size:13px;
-	color:#000000;
+    font-size:13px;
+    color:#000000;
 }
 
 p
 {
-	width:96%;
+    width:96%;
 }
 
 p.highlighted
 {
-	background-color:#f2f2f2;
-	padding:2%;
-	width:94%;
+    background-color:#f2f2f2;
+    padding:2%;
+    width:94%;
 }
 
 table.remotes
 {
-	width:98%;
-	text-align:center;
-	border-spacing:0;
-	border:1px solid #777777;
-	border-left:0;
+    width:98%;
+    text-align:center;
+    border-spacing:0;
+    border:1px solid #777777;
+    border-left:0;
 }
 
 table.remotes td
 {
-	border-left:1px solid #777777;
-	border-top:1px solid #777777;
-	padding:4px;
+    border-left:1px solid #777777;
+    border-top:1px solid #777777;
+    padding:4px;
 }
 
 table.remotes th
 {
-	background-color:#666666;
-	color:#ffffff;
-	font-weight:normal;
-	padding:4px;
+    background-color:#666666;
+    color:#ffffff;
+    font-weight:normal;
+    padding:4px;
 }
 
 /*jQUERY OVERRIDES*/
 .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default ,
 .ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active, .ui-widget-content
 {
-	border:0!important;
-	background:none!important;
+    border:0!important;
+    background:none!important;
 }
 
 .ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited,
 .ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited
 {
-	text-decoration:underline;
-	color:#0F197B;
+    text-decoration:underline;
+    color:#0F197B;
 }
 
 .ui-widget
 {
-	font-family:Arial;
+    font-family:Arial;
 }

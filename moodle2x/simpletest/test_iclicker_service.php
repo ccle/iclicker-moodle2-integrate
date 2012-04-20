@@ -356,6 +356,7 @@ class iclicker_services_test extends UnitTestCase {
         $encodedKey = sha1($key . ":" . $timestamp) . '|' . $timestamp;
         $result = iclicker_service::verifyKey($encodedKey);
         $this->assertTrue($result);
+        echo "<div><b>SSO key:</b> key=$key, ts=$timestamp <br/> encoded=<input type='text' size='".(strlen($encodedKey)+2)."' value='$encodedKey'/></div>".PHP_EOL;
     }
 
     function test_user_keys() {
@@ -370,7 +371,12 @@ class iclicker_services_test extends UnitTestCase {
         $keysCount = $DB->count_records(iclicker_service::USER_KEY_TABLENAME, array('user_id' => $user_id));
         $this->assertEqual(1, $keysCount);
 
-        // getting key for user
+        // getting key for user (from make)
+        $user_key1 = iclicker_service::makeUserKey($user_id, false);
+        $this->assertNotNull($user_key1);
+        $this->assertEqual($user_key, $user_key1);
+
+        // getting key for user (from get)
         $user_key1 = iclicker_service::getUserKey($user_id);
         $this->assertNotNull($user_key1);
         $this->assertEqual($user_key, $user_key1);

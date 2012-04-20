@@ -32,6 +32,8 @@ $string['app.remove']       = 'Remove';
 
 // for the main registration page
 $string['reg.title'] = 'Remote Registration';
+$string['reg.remote.instructions'] = 'Enter the 8-character remote ID below to register your i>clicker remote. You may register multiple remotes or remove a remote at any time.';
+$string['reg.remote.id.enter'] = 'Enter Your i>clicker Remote ID';
 $string['reg.remote.id.header'] = 'i>clicker Remote ID';
 $string['reg.registered.date.header'] = 'Registered';
 $string['reg.register.clickers'] = 'Register additional clickers';
@@ -39,6 +41,7 @@ $string['reg.registration.table.summary'] = 'Lists the registered clickers for t
 $string['reg.iclicker.image.alt'] = 'I-clicker Sample Remote showing the back of the remote with the location of the ID';
 $string['reg.register.submit.alt'] = 'Register the clickerId';
 $string['reg.disable.submit.alt'] = 'Disable this registration';
+$string['reg.remove.submit.alt'] = 'Remove this registration';
 $string['reg.reactivate.submit.alt'] = 'Reactivate this registration';
 $string['reg.registration.instructions'] = 'To locate your clicker ID, see the back of your remote and enter the series of numbers (and perhaps letters) on the white sticker on the bottom of your clicker.';
 $string['reg.registered.instructions'] = 'You have successfully registered your i>clicker remote ID with the system. If you lose or need to tie a second clicker to your student/user ID, you can do so here by adding another clicker ID to your registration. As with your other registration, to locate your clicker ID, see the back of your remote and enter the series of numbers (and perhaps letters) on the white sticker on the bottom of your clicker.';
@@ -51,7 +54,23 @@ $string['reg.registered.clickerId.duplicate.notowned'] = 'Your clicker ({$a}) ha
 $string['reg.registered.clickerId.invalid'] = 'The clicker ID ({$a}) is invalid, please correct the entry and try again';
 $string['reg.activate.success.true'] = 'Reactivated clicker ({$a}) registration';
 $string['reg.activate.success.false'] = 'Disabled clicker ({$a}) registration';
+$string['reg.remove.success'] = 'Removed clicker ({$a}) registration';
 $string['reg.activate.registrationId.empty'] = 'The registrationId cannot be empty, internal error in the form';
+$string['reg.remote.faqs'] = 'Remote Registration FAQs';
+$string['reg.remote.faq1.question'] = 'Where do I find my remote ID?';
+$string['reg.remote.faq1.answer'] = 'Your i>clicker remote ID is printed on a sticker located on the back of your remote. The ID is the 8-character code below the barcode.';
+$string['reg.remote.faq2.question'] = 'What do I do if I cannot read the ID printed on my remote?';
+$string['reg.remote.faq2.answer'] = 'If your remote ID has rubbed off or is illegible, go to <a href="http://www.iclicker.com/support/findclickerID/">http://www.iclicker.com/support/findclickerID/</a> for instructions on how to recover your remote ID.';
+$string['reg.remote.faq3.question'] = 'Are there zeros or the letter O in my clicker ID?';
+$string['reg.remote.faq3.answer'] = 'Your clicker ID may contain the number zero; it will never contain the letter O.';
+$string['reg.remote.faq4.question'] = 'I\'ve already used my i>clicker remote in class before registering it. Will I still get credit for my votes?';
+$string['reg.remote.faq4.answer'] = 'Yes, your votes still count. Your in-class votes were recorded by i>clicker and once you register your remote, these votes will be associated with you the next time your instructor syncs their gradebook or roster.';
+$string['reg.remote.faq5.question'] = 'I\'ve lost/broken my remote. Can I register another remote?';
+$string['reg.remote.faq5.answer'] = 'Yes, you may register multiple remotes for any reason. Do not delete your old registration. I>clicker will link both remotes to your name so that you receive credit for votes you made with either remote.';
+$string['reg.remote.faq6.question'] = 'I use my i>clicker remote for multiple classes. Do I need to register my remote for each class?';
+$string['reg.remote.faq6.answer'] = 'No, you only need to register once. Once you register, your registration information will automatically apply to all of the classes in which you are enrolled and using i>clicker.';
+$string['reg.remote.faq7.question'] = 'What do I do if I accidentally registered the wrong remote ID?';
+$string['reg.remote.faq7.answer'] = 'If you register a wrong remote ID, simply remove the incorrect entry and register again with the correct information.';
 
 // for the instructor page
 $string['inst.title'] = 'Instructor Report';
@@ -68,6 +87,16 @@ $string['inst.student.status.header'] = 'Status';
 $string['inst.student.registered.true'] = 'Registered';
 $string['inst.student.registered.false'] = 'Not registered';
 $string['inst.course.view.students'] = 'View Students';
+
+// inst SSO page
+$string['inst.sso.title'] = 'Single Sign-On Security Key';
+$string['inst.sso.instructions'] = 'This installation of Moodle is configured to use Single Sign-On. When synchronizing with i>clicker, you must enter the security key shown here instead of your password.';
+$string['inst.sso.link'] = 'SSO Security Key';
+$string['inst.sso.message'] = 'Single Sign On is enabled for this Moodle installation. You will need to use a Security Key with i>clicker instead of your password.';
+$string['inst.sso.generate.key'] = 'Generate New Key';
+$string['inst.sso.key.message'] = 'Your Security Key';
+$string['inst.sso.generated.new.key'] = 'New Security Key generated';
+$string['inst.sso.disabled'] = 'SSO is not enabled, you cannot access or generate a Security Key';
 
 // for the admin page
 $string['admin.title'] = 'Admin Control';
@@ -99,7 +128,8 @@ $string['admin.config.workspacepagetitle'] = 'Workspace Tool Title';
 $string['admin.config.syncenabled'] = 'National sync enabled';
 $string['admin.config.synchour'] = 'Sync runs at hour';
 $string['admin.errors.header'] = 'Most Recent Failures';
-
+$string['admin.config.ssoenabled'] = 'Single Sign On Enabled';
+$string['admin.config.ssosharedkey'] = 'Shared Key';
 
 // Config
 $string['config_general'] = 'General';

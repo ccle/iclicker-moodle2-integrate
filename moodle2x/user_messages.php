@@ -24,7 +24,7 @@ $infos = $cntlr->getMessages(iclicker_controller::KEY_INFO);
 $alerts = $cntlr->getMessages(iclicker_controller::KEY_ERROR);
 ?>
 <?php if (count($infos) > 0) { ?>
-<div class="alertMessage user_messages alert_messages">
+<div class="information user_messages alert_messages informationbox">
     <ul class="messages_list">
         <?php foreach ($infos as $message) { ?>
         <li class="user_message info_message"><?php echo $message ?></li>
@@ -33,7 +33,7 @@ $alerts = $cntlr->getMessages(iclicker_controller::KEY_ERROR);
 </div>
 <?php } ?>
 <?php if (count($alerts) > 0) { ?>
-<div class="information user_messages info_messages">
+<div class="alertMessage user_messages info_messages errorbox">
     <ul class="messages_list">
         <?php foreach ($alerts as $message) { ?>
         <li class="user_message alert_message"><?php echo $message ?></li>

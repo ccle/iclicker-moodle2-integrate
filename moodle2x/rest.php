@@ -79,7 +79,8 @@ function handle_authn($cntlr) {
     }
     //$session_id = optional_param(iclicker_controller::SESSION_ID, NULL, PARAM_RAW);
     if (!empty($auth_username)) {
-        iclicker_service::authenticate_user($auth_username, $auth_password); // throws exception if fails
+        $sso_key = optional_param(iclicker_controller::SSO_KEY, NULL, PARAM_RAW);
+        iclicker_service::authenticate_user($auth_username, $auth_password, $sso_key); // throws exception if fails
     //} else if ($session_id) {
     //    $valid = FALSE; // validate the session key
     //    if (! $valid) {
@@ -144,115 +145,131 @@ if ($valid) {
     $pathSeg0 = count($parts) > 0 ? $parts[0] : NULL;
     $pathSeg1 = count($parts) > 1 ? $parts[1] : NULL;
     try {
-        // handle the request authn if needed
-        handle_authn($cntlr);
-        if ("GET" == $cntlr->method) {
-            if ("courses" == $pathSeg0) {
-                // handle retrieving the list of courses for an instructor
-                $user_id = get_and_check_current_user("access instructor courses listings");
-                $output = iclicker_service::encode_courses($user_id);
-
-            } else if ("students" == $pathSeg0) {
-                // handle retrieval of the list of students
-                $course_id = $pathSeg1;
-                if ($course_id == null) {
-                    throw new InvalidArgumentException(
-                            "valid course_id must be included in the URL /students/{course_id}");
-                }
-                get_and_check_current_user("access student enrollment listings");
-                $output = iclicker_service::encode_enrollments($course_id);
-
+        if ($pathSeg0 == 'verifykey') {
+            // SPECIAL case handling (no authn handling)
+            $ssoKey = optional_param(iclicker_controller::SSO_KEY, NULL, PARAM_RAW);
+            if (iclicker_service::verifyKey($ssoKey)) {
+                $cntlr->setStatus(200);
+                $output = "Verified";
             } else {
-                // UNKNOWN
-                $valid = false;
-                $output = "Unknown path ($cntlr->path) specified for method GET";
-                $status = 404; //NOT_FOUND
+                $cntlr->setStatus(501);
+                $output = "Disabled";
             }
+            $cntlr->setContentType("text/plain");
+            $cntlr->sendResponse($output);
+            return;
         } else {
-            // POST
-            if ("gradebook" == $pathSeg0) {
-                // handle retrieval of the list of students
-                $course_id = $pathSeg1;
-                if ($course_id == null) {
-                    throw new InvalidArgumentException(
-                            "valid course_id must be included in the URL /gradebook/{course_id}");
-                }
-                get_and_check_current_user("upload grades into the gradebook");
-                $xml = get_xml_data($cntlr);
-                try {
-                    $gradebook = iclicker_service::decode_gradebook($xml);
-                    // process gradebook data
-                    $results = iclicker_service::save_gradebook($gradebook);
-                    // generate the output
-                    $output = iclicker_service::encode_gradebook_results($results);
-                    if (! $output) {
-                        // special RETURN, non-XML, no failures in save
-                        $cntlr->setStatus(200);
-                        $cntlr->setContentType("text/plain");
-                        $output = "True";
-                        $cntlr->sendResponse($output);
-                        return; // SHORT CIRCUIT
-                    } else {
-                        // failures occurred during save
-                        $status = 200; //OK;
-                    }
-                } catch (InvalidArgumentException $e) {
-                    // invalid XML
-                    $valid = false;
-                    $output = "Invalid gradebook XML in request, unable to process:/n $xml";
-                    $status = 400; //BAD_REQUEST;
-                }
+            // NORMAL case handling
+            // handle the request authn if needed
+            handle_authn($cntlr);
+            if ("GET" == $cntlr->method) {
+                if ("courses" == $pathSeg0) {
+                    // handle retrieving the list of courses for an instructor
+                    $user_id = get_and_check_current_user("access instructor courses listings");
+                    $output = iclicker_service::encode_courses($user_id);
 
-            } else if ("authenticate" == $pathSeg0) {
-                get_and_check_current_user("authenticate via iclicker");
-                // special return, non-XML
-                $cntlr->setStatus(204); //No content
-                $cntlr->sendResponse();
-                return; // SHORT CIRCUIT
-
-            } else if ("register" == $pathSeg0) {
-                get_and_check_current_user("upload registrations data");
-                $xml = get_xml_data($cntlr);
-                $cr = iclicker_service::decode_registration($xml);
-                $owner_id = $cr->owner_id;
-                $message = '';
-                $reg_status = false;
-                try {
-                    iclicker_service::create_clicker_registration($cr->clicker_id, $owner_id);
-                    // valid registration
-                    $message = iclicker_service::msg('reg.registered.below.success', $cr->clicker_id);
-                    $reg_status = true;
-                } catch (ClickerIdInvalidException $e) {
-                    // invalid clicker id
-                    $message = iclicker_service::msg('reg.registered.clickerId.invalid', $cr->clicker_id);
-                } catch (InvalidArgumentException $e) {
-                    // invalid user id
-                    $message = "Student not found in the CMS";
-                } catch (ClickerRegisteredException $e) {
-                    // already registered
-                    $key = '';
-                    if ($e->owner_id == $e->registered_owner_id) {
-                        // already registered to this user
-                        $key = 'reg.registered.below.duplicate';
-                    } else {
-                        // already registered to another user
-                        $key = 'reg.registered.clickerId.duplicate.notowned';
+                } else if ("students" == $pathSeg0) {
+                    // handle retrieval of the list of students
+                    $course_id = $pathSeg1;
+                    if ($course_id == null) {
+                        throw new InvalidArgumentException(
+                                "valid course_id must be included in the URL /students/{course_id}");
                     }
-                    $message = iclicker_service::msg($key, $cr->clicker_id);
-                }
-                $registrations = iclicker_service::get_registrations_by_user($owner_id, true);
-                $output = iclicker_service::encode_registration_result($registrations, $reg_status, $message);
-                if ($reg_status) {
-                    $status = 200; //OK;
+                    get_and_check_current_user("access student enrollment listings");
+                    $output = iclicker_service::encode_enrollments($course_id);
+
                 } else {
-                    $status = 400; //BAD_REQUEST;
+                    // UNKNOWN
+                    $valid = false;
+                    $output = "Unknown path ($cntlr->path) specified for method GET";
+                    $status = 404; //NOT_FOUND
                 }
-
             } else {
-                // UNKNOWN
-                $valid = false;
-                $output = "Unknown path ($cntlr->path) specified for method POST";
-                $status = 404; //NOT_FOUND;
+                // POST
+                if ("gradebook" == $pathSeg0) {
+                    // handle retrieval of the list of students
+                    $course_id = $pathSeg1;
+                    if ($course_id == null) {
+                        throw new InvalidArgumentException(
+                                "valid course_id must be included in the URL /gradebook/{course_id}");
+                    }
+                    get_and_check_current_user("upload grades into the gradebook");
+                    $xml = get_xml_data($cntlr);
+                    try {
+                        $gradebook = iclicker_service::decode_gradebook($xml);
+                        // process gradebook data
+                        $results = iclicker_service::save_gradebook($gradebook);
+                        // generate the output
+                        $output = iclicker_service::encode_gradebook_results($results);
+                        if (! $output) {
+                            // special RETURN, non-XML, no failures in save
+                            $cntlr->setStatus(200);
+                            $cntlr->setContentType("text/plain");
+                            $output = "True";
+                            $cntlr->sendResponse($output);
+                            return; // SHORT CIRCUIT
+                        } else {
+                            // failures occurred during save
+                            $status = 200; //OK;
+                        }
+                    } catch (InvalidArgumentException $e) {
+                        // invalid XML
+                        $valid = false;
+                        $output = "Invalid gradebook XML in request, unable to process:/n $xml";
+                        $status = 400; //BAD_REQUEST;
+                    }
+
+                } else if ("authenticate" == $pathSeg0) {
+                    get_and_check_current_user("authenticate via iclicker");
+                    // special return, non-XML
+                    $cntlr->setStatus(204); //No content
+                    $cntlr->sendResponse();
+                    return; // SHORT CIRCUIT
+
+                } else if ("register" == $pathSeg0) {
+                    get_and_check_current_user("upload registrations data");
+                    $xml = get_xml_data($cntlr);
+                    $cr = iclicker_service::decode_registration($xml);
+                    $owner_id = $cr->owner_id;
+                    $message = '';
+                    $reg_status = false;
+                    try {
+                        iclicker_service::create_clicker_registration($cr->clicker_id, $owner_id);
+                        // valid registration
+                        $message = iclicker_service::msg('reg.registered.below.success', $cr->clicker_id);
+                        $reg_status = true;
+                    } catch (ClickerIdInvalidException $e) {
+                        // invalid clicker id
+                        $message = iclicker_service::msg('reg.registered.clickerId.invalid', $cr->clicker_id);
+                    } catch (InvalidArgumentException $e) {
+                        // invalid user id
+                        $message = "Student not found in the CMS";
+                    } catch (ClickerRegisteredException $e) {
+                        // already registered
+                        $key = '';
+                        if ($e->owner_id == $e->registered_owner_id) {
+                            // already registered to this user
+                            $key = 'reg.registered.below.duplicate';
+                        } else {
+                            // already registered to another user
+                            $key = 'reg.registered.clickerId.duplicate.notowned';
+                        }
+                        $message = iclicker_service::msg($key, $cr->clicker_id);
+                    }
+                    $registrations = iclicker_service::get_registrations_by_user($owner_id, true);
+                    $output = iclicker_service::encode_registration_result($registrations, $reg_status, $message);
+                    if ($reg_status) {
+                        $status = 200; //OK;
+                    } else {
+                        $status = 400; //BAD_REQUEST;
+                    }
+
+                } else {
+                    // UNKNOWN
+                    $valid = false;
+                    $output = "Unknown path ($cntlr->path) specified for method POST";
+                    $status = 404; //NOT_FOUND;
+                }
             }
         }
     } catch (SecurityException $e) {
@@ -295,6 +312,8 @@ if ($valid) {
         "Valid request paths include the following (without the block prefix: ".iclicker_service::block_url('rest.php')."):\n".
         "POST /authenticate             - authenticate by sending credentials (".iclicker_controller::LOGIN.",".iclicker_controller::PASSWORD.") \n".
         "                                 return status 204 (valid login) \n".
+        "POST /verifykey                - check the encoded key is valid and matches the shared key \n".
+        "                                 return 200 if valid OR 501 if SSO not enabled OR 400/401 if key is bad \n".
         "POST /register                 - Add a new clicker registration, return 200 for success or 400 with \n".
         "                                 registration response (XML) for failure \n".
         "GET  /courses                  - returns the list of courses for the current user (XML) \n".
@@ -305,7 +324,9 @@ if ($valid) {
         "                                 403 if user is not an instructor in the specified course \n".
         "\n".
         " - Authenticate by sending credentials (".iclicker_controller::LOGIN.",".iclicker_controller::PASSWORD.") in the request parameters \n".
-        " - Invalid credentials will result in a 401 (invalid credentials) or 403 (not authorized) status \n".
+        " -- SSO authentication requires an encoded key (".iclicker_controller::SSO_KEY.") in the request parameters \n".
+        " -- The response headers will include the sessionId when credentials are valid \n".
+        " -- Invalid credentials or sessionId will result in a 401 (invalid credentials) or 403 (not authorized) status \n".
         " - Use ".iclicker_controller::COMPENSATE_METHOD." param to override the http method being used (e.g. POST /courses?".iclicker_controller::COMPENSATE_METHOD."=GET will force the method to be a GET despite sending as a POST) \n".
         " - Send data as the http request BODY or as a form parameter called ".iclicker_controller::XML_DATA." \n".
         " - All endpoints return 403 if user is not an instructor \n";

@@ -36,6 +36,7 @@ class iclicker_controller {
 
     const PASSWORD = '_password';
     const LOGIN = '_login';
+    const SSO_KEY = '_key';
     const SEPARATOR = '/';
     const PERIOD = '.';
     const XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
@@ -152,54 +153,68 @@ class iclicker_controller {
         // process calls to the registration view
         $this->results['new_reg'] = false;
         $this->results['clicker_id_val'] = "";
-        if ("POST" == $this->method) {
+        if ('POST' == $this->method) {
             if (optional_param('register', null, PARAM_RAW) != null) {
                 // we are registering a clicker
                 $clicker_id = optional_param('clickerId', null, PARAM_RAW);
                 if ($clicker_id == null) {
-                    $this->addMessage(self::KEY_ERROR, "reg.registered.clickerId.empty");
+                    $this->addMessage(self::KEY_ERROR, 'reg.registered.clickerId.empty');
                 } else {
                     $this->results['clicker_id_val'] = $clicker_id;
                     // save a new clicker registration
                     try {
                         iclicker_service::create_clicker_registration($clicker_id);
-                        $this->addMessage(self::KEY_INFO, "reg.registered.success", $clicker_id);
-                        $this->addMessage(self::KEY_BELOW, "reg.registered.below.success");
+                        $this->addMessage(self::KEY_INFO, 'reg.registered.success', $clicker_id);
+                        $this->addMessage(self::KEY_BELOW, 'reg.registered.below.success');
                         $this->results['new_reg'] = true;
                     }
                     catch (ClickerRegisteredException $e) {
-                        $this->addMessage(self::KEY_ERROR, "reg.registered.clickerId.duplicate", $clicker_id);
-                        $this->addMessage(self::KEY_BELOW, "reg.registered.below.duplicate", $clicker_id);
+                        $this->addMessage(self::KEY_ERROR, 'reg.registered.clickerId.duplicate', $clicker_id);
+                        $this->addMessage(self::KEY_BELOW, 'reg.registered.below.duplicate', $clicker_id);
                     }
                     catch (ClickerIdInvalidException $e) {
                         if (ClickerIdInvalidException::F_EMPTY == $e->type) {
-                            $this->addMessage(self::KEY_ERROR, "reg.registered.clickerId.empty");
+                            $this->addMessage(self::KEY_ERROR, 'reg.registered.clickerId.empty');
                         } else {
-                            $this->addMessage(self::KEY_ERROR, "reg.registered.clickerId.invalid", $clicker_id);
+                            $this->addMessage(self::KEY_ERROR, 'reg.registered.clickerId.invalid', $clicker_id);
                         }
                     }
                 }
+
             } else if (optional_param('activate', null, PARAM_RAW) != null) {
                 // First arrived at this page
                 $activate = optional_param('activate', 'false', PARAM_RAW);
                 $activate = ($activate == 'true' ? true : false);
                 $reg_id = optional_param('registrationId', null, PARAM_INT);
                 if ($reg_id == null) {
-                    $this->addMessage(self::KEY_ERROR, "reg.activate.registrationId.empty", null);
+                    $this->addMessage(self::KEY_ERROR, 'reg.activate.registrationId.empty', null);
                 } else {
                     // save a new clicker registration
                     $cr = iclicker_service::set_registration_active($reg_id, $activate);
                     if ($cr) {
-                        $this->addMessage(self::KEY_INFO, "reg.activate.success.".($cr->activated ? 'true' : 'false'), $cr->clicker_id);
+                        $this->addMessage(self::KEY_INFO, 'reg.activate.success.'.($cr->activated ? 'true' : 'false'), $cr->clicker_id);
                     }
                 }
+
+            } else if (optional_param('remove', null, PARAM_RAW) != null) {
+                $reg_id = optional_param('registrationId', null, PARAM_INT);
+                if ( ($reg_id == null) ) {
+                    $this->addMessage(self::KEY_ERROR, 'reg.activate.registrationId.empty', null);
+                } else {
+                    // remove a new clicker registration by deactivating it
+                    $cr = iclicker_service::set_registration_active($reg_id, false);
+                    if ($cr) {
+                        $this->addMessage(self::KEY_INFO, 'reg.remove.success', $cr->clicker_id);
+                    }
+                }
+
             } else {
                 // invalid POST
-                echo("WARN: Invalid POST: does not contain register or activate, nothing to do");
+                echo('WARN: Invalid POST: does not contain register or activate, nothing to do');
             }
         }
 
-        $this->results['regs'] = iclicker_service::get_registrations_by_user();
+        $this->results['regs'] = iclicker_service::get_registrations_by_user(null, true);
         $this->results['is_instructor'] = iclicker_service::is_instructor();
         $this->results['sso_enabled'] = iclicker_service::$block_iclicker_sso_enabled;
         // added to allow special messages below the forms
@@ -244,9 +259,22 @@ class iclicker_controller {
         }
         $this->results['sso_enabled'] = iclicker_service::$block_iclicker_sso_enabled;
         $current_user_id = iclicker_service::get_current_user_id();
-        $current_user_key = iclicker_service::makeUserKey($current_user_id);
-        $this->results['sso_user_key'] = $current_user_key;
-        // TODO handle generating a new key
+        if (iclicker_service::$block_iclicker_sso_enabled) {
+            $current_user_key = null;
+            if ('POST' == $this->method) {
+                if ( optional_param('generateKey', false, PARAM_RAW) != null ) {
+                    // handle generating a new key
+                    $current_user_key = iclicker_service::makeUserKey($current_user_id, true);
+                    $this->addMessage(self::KEY_INFO, 'inst.sso.generated.new.key', null);
+                }
+            }
+            if ($current_user_key == null) {
+                $current_user_key = iclicker_service::makeUserKey($current_user_id, false);
+            }
+            $this->results['sso_user_key'] = $current_user_key;
+        }
+        //$current_user_key = iclicker_service::makeUserKey($current_user_id);
+        //$this->results['sso_user_key'] = $current_user_key;
     }
 
     public function processAdmin() {

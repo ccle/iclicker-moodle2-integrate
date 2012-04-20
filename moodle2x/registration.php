@@ -42,8 +42,10 @@ $PAGE->set_heading( iclicker_service::msg('app.iclicker').' '.iclicker_service::
 $PAGE->navbar->add(iclicker_service::msg('reg.title'));
 $PAGE->set_focuscontrol('');
 $PAGE->set_cacheable(false);
+$PAGE->requires->js( new moodle_url('https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js'), true);
+$PAGE->requires->js( new moodle_url('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js'), true);
+$PAGE->requires->css( new moodle_url('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css'), true);
 $PAGE->requires->css(iclicker_service::BLOCK_PATH.'/css/iclicker.css');
-$PAGE->requires->js( new moodle_url('https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js'), true);
 $PAGE->set_url(iclicker_service::BLOCK_PATH.'/registration.php');
 //$PAGE->requires->js('mod/mymod/styles.css');
 echo $OUTPUT->header();
@@ -53,85 +55,88 @@ require ('user_messages.php');
 ?>
 
 <div class="main_content">
-    <div style="float:left; width: 45%;">
-        <!-- column one -->
-        <!-- clicker registration listing -->
-        <table width="100%" border="1" cellspacing="0" cellpadding="0"
-            summary="<?php echo iclicker_service::msg('reg.registration.table.summary') ?>">
-            <thead>
-                <tr class="registration_row header_row">
-                    <th width="30%" scope="col" height="25" valign="middle" bgcolor="#e8e8e8" class="style5">
-                        <?php echo iclicker_service::msg('reg.remote.id.header') ?>
-                    </th>
-                    <th width="30%" scope="col" height="25" valign="middle" bgcolor="#e8e8e8" class="style5">
-                        <?php echo iclicker_service::msg('reg.registered.date.header') ?>
-                    </th>
-                    <th width="40%" scope="col" height="25" valign="middle" bgcolor="#e8e8e8" class="style5">
-                        <?php echo iclicker_service::msg('admin.controls.header') ?>
-                    </th>
+    <div class="columns_container">
+        <div class="left_column">
+            <p><?php echo iclicker_service::msg('reg.remote.instructions') ?></p>
+
+            <form method="post" id="registerForm" style="display: inline;">
+                <input type="hidden" name="register" value="true" />
+                <p class="highlighted">
+                    <strong><?php echo iclicker_service::msg('reg.remote.id.enter') ?>:</strong>
+                    <input name="clickerId" type="text" size="10" maxlength="8" value="<?php echo $clicker_id_val ?>" />
+                    <input type="submit" class="registerButton" value="<?php echo iclicker_service::msg('app.register') ?>"
+                        alt="<?php echo iclicker_service::msg('reg.register.submit.alt') ?>" />
+                </p>
+            </form>
+
+            <table class="remotes" summary="<?php echo iclicker_service::msg('reg.registration.table.summary') ?>">
+                <colgroup>
+                    <col width="40%" />
+                    <col width="40%" />
+                    <col />
+                </colgroup>
+                <tr>
+                    <th><?php echo iclicker_service::msg('reg.remote.id.header') ?></th>
+                    <th><?php echo iclicker_service::msg('reg.registered.date.header') ?></th>
+                    <th>&nbsp;</th>
                 </tr>
-            </thead>
-            <tbody>
                 <?php foreach($regs as $reg) { ?>
-                <tr class="registration_row data_row style1 <?php echo ($reg->activated ? '' : 'disabled') ?>">
-                    <td class="clicker_id" align="center"><?php echo $reg->clicker_id ?></td>
-                    <td class="date" align="center"><?php echo iclicker_service::df($reg->timecreated) ?></td>
-                    <td class="controls" align="center">
-                        <form method="post">
+                <tr>
+                    <td><?php echo $reg->clicker_id ?></td>
+                    <td><?php echo iclicker_service::df($reg->timecreated) ?></td>
+                    <td>
+                        <form method="post" style="display: inline;">
+                            <input type="hidden" name="remove" value="remove" />
                             <input type="hidden" name="registrationId" value="<?php echo $reg->id ?>" />
-                            <?php if ($reg->activated) { ?>
-                            <input type="button" class="small" value="<?php echo iclicker_service::msg('app.activate') ?>" disabled="disabled" />
-                            <input type="submit" class="small" value="<?php echo iclicker_service::msg('app.disable') ?>" alt="<?php echo iclicker_service::msg('reg.disable.submit.alt') ?>" />
-                            <input type="hidden" name="activate" value="false" />
-                            <?php } else { ?>
-                            <input type="submit" class="small" value="<?php echo iclicker_service::msg('app.activate') ?>" alt="<?php echo iclicker_service::msg('reg.reactivate.submit.alt') ?>" />
-                            <input type="button" class="small" value="<?php echo iclicker_service::msg('app.disable') ?>" disabled="disabled" />
-                            <input type="hidden" name="activate" value="true" />
-                            <?php } ?>
+                            <input type="submit" class="small" value="<?php echo iclicker_service::msg('app.remove') ?>" alt="<?php echo iclicker_service::msg('reg.remove.submit.alt') ?>" />
                         </form>
                     </td>
                 </tr>
                 <?php } ?>
-            </tbody>
-        </table>
-        <!-- registration form area -->
-        <div class="registration_entry_holder" style="background-color: #A2CDED; height: 35px; margin-top: 1em;">
-            <div class="registration_entry style5">
-                <?php echo iclicker_service::msg('reg.register.clickers') ?>:
-                &nbsp;
-                <form method="post" id="registerForm">
-                    <input type="hidden" name="register" value="true" />
-                    <input name="clickerId" type="text" size="10" maxlength="8" value="<?php echo $clicker_id_val ?>" />
-                    <input type="submit" class="registerButton" value="<?php echo iclicker_service::msg('app.register') ?>"
-                        alt="<?php echo iclicker_service::msg('reg.register.submit.alt') ?>" />
-                </form>
+            </table>
+
+            <?php if ($below_messages) { ?>
+            <!-- registration below messages area -->
+            <div class="registration_below_messages_holder style5" style="margin-top: 1em;">
+                <div class="registration_below_messages">
+                    <?php foreach ($below_messages as $message) { ?>
+                    <p class="registration_below_message"><?php echo $message ?></p>
+                    <?php } ?>
+                </div>
             </div>
+            <?php } ?>
         </div>
-        <?php if ($below_messages) { ?>
-        <!-- registration below messages area -->
-        <div class="registration_below_messages_holder style5" style="margin-top: 1em;">
-            <div class="registration_below_messages">
-                <?php foreach ($below_messages as $message) { ?>
-                <p class="registration_below_message"><?php echo $message ?></p>
-                <?php } ?>
+
+        <div class="right_column">
+            <h3><?php echo iclicker_service::msg('reg.remote.faqs') ?></h3>
+
+            <div id="accordion">
+                <h3><a href="#"><?php echo iclicker_service::msg('reg.remote.faq1.question') ?></a></h3>
+                <div>
+                <?php echo iclicker_service::msg('reg.remote.faq1.answer') ?>
+                <img src="img/clickers.jpg" alt="<?php echo iclicker_service::msg('reg.iclicker.image.alt') ?>" />
+                </div>
+
+                <h3><a href="#"><?php echo iclicker_service::msg('reg.remote.faq2.question') ?></a></h3>
+                <div><?php echo iclicker_service::msg('reg.remote.faq2.answer') ?></div>
+
+                <h3><a href="#"><?php echo iclicker_service::msg('reg.remote.faq3.question') ?></a></h3>
+                <div><?php echo iclicker_service::msg('reg.remote.faq3.answer') ?></div>
+
+                <h3><a href="#"><?php echo iclicker_service::msg('reg.remote.faq4.question') ?></a></h3>
+                <div><?php echo iclicker_service::msg('reg.remote.faq4.answer') ?></div>
+
+                <h3><a href="#"><?php echo iclicker_service::msg('reg.remote.faq5.question') ?></a></h3>
+                <div><?php echo iclicker_service::msg('reg.remote.faq5.answer') ?></div>
+
+                <h3><a href="#"><?php echo iclicker_service::msg('reg.remote.faq6.question') ?></a></h3>
+                <div><?php echo iclicker_service::msg('reg.remote.faq6.answer') ?></div>
+
+                <h3><a href="#"><?php echo iclicker_service::msg('reg.remote.faq7.question') ?></a></h3>
+                <div><?php echo iclicker_service::msg('reg.remote.faq7.answer') ?></div>
+
             </div>
-        </div>
-        <?php } ?>
-    </div>
-    <!-- column two -->
-    <!-- instructions and image -->
-    <div style="margin-left: 45%; width: 40%;">
-        <div style="padding-left:10px;">
-            <div class="instructions style2" style="margin-bottom: 1em;">
-                <?php
-                    if ($new_reg) {
-                        echo iclicker_service::msg('reg.registered.instructions');
-                    } else {
-                        echo iclicker_service::msg('reg.registration.instructions');
-                    }
-                ?>
-            </div>
-            <img src="<?php echo iclicker_service::block_url('img/Iclicker.jpg') ?>" border="0" alt="<?php echo iclicker_service::msg('reg.iclicker.image.alt') ?>" />
+
         </div>
     </div>
 </div>
@@ -152,5 +157,15 @@ require ('user_messages.php');
     echo $nav_links;
     ?>
 </div>
+
+<script>
+    $(document).ready(function() {
+        $("#accordion").accordion({ active: 0,
+            alwaysOpen: false,
+            animated: false,
+            autoHeight: false,
+            collapsible: true });
+    });
+</script>
 
 <?php echo $OUTPUT->footer(); ?>

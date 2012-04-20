@@ -33,7 +33,7 @@ if ($ADMIN->fulltree) {
         )
     );
     $settings->add(
-        new admin_setting_configtext('block_iclicker_notify_emails',
+        new admin_setting_configtext(iclicker_service::BLOCK_NAME.'/block_iclicker_notify_emails',
             get_string('config_notify_emails', $block_name),
             get_string('config_notify_emails_desc', $block_name),
             '', //50,200
@@ -42,7 +42,7 @@ if ($ADMIN->fulltree) {
         )
     );
     $settings->add(
-        new admin_setting_configcheckbox('block_iclicker_disable_alternateid',
+        new admin_setting_configcheckbox(iclicker_service::BLOCK_NAME.'/block_iclicker_disable_alternateid',
             get_string('config_disable_alternateid', $block_name),
             get_string('config_disable_alternateid_desc', $block_name),
             0
@@ -102,7 +102,8 @@ if ($ADMIN->fulltree) {
  *******************************************/
     // SSO
     $headerDesc = get_string('config_sso_disabled', $block_name);
-    if (iclicker_service::$block_iclicker_sso_enabled) {
+    $currentSSOkey = get_config($block_name, 'block_iclicker_sso_shared_key');
+    if (!empty($currentSSOkey)) {
         $headerDesc = get_string('config_sso_enabled', $block_name);
     }
     $settings->add(
@@ -112,7 +113,7 @@ if ($ADMIN->fulltree) {
         )
     );
     $settings->add(
-        new admin_setting_configtext('block_iclicker_sso_shared_key',
+        new admin_setting_configtext(iclicker_service::BLOCK_NAME.'/block_iclicker_sso_shared_key',
             get_string('config_shared_key', $block_name),
             get_string('config_shared_key_desc', $block_name),
             '', //50,200

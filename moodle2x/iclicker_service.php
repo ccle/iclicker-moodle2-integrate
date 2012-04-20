@@ -640,7 +640,7 @@ class iclicker_service {
         }
         // find the key for this user if one exists
         $userKey = null;
-        $cuk = $DB->get_record(self::USER_KEY_TABLENAME, array('user_id' => $userId), 'id');
+        $cuk = $DB->get_record(self::USER_KEY_TABLENAME, array('user_id' => $userId), 'id, user_key');
         if ($makeNew && $cuk !== false) {
             // remove the existing key so we can make a new one
             $DB->delete_records(self::USER_KEY_TABLENAME, array('id' => $cuk->id));
@@ -659,6 +659,8 @@ class iclicker_service {
                 // this should not have happened but it means the key already exists somehow, probably a sync issue of some kind
                 error_log("Failed when attempting to create a new clicker user key for :".$userId);
             }
+        } else {
+            $userKey = $cuk->user_key;
         }
         return $userKey;
     }
@@ -1023,7 +1025,15 @@ class iclicker_service {
         $registration = self::get_registration_by_clicker_id($clicker_id, $user_id);
         // NOTE: we probably want to check the national system here to see if this is already registered
         if ($registration) {
-            throw new ClickerRegisteredException('Clicker '.$registration->clicker_id.' already registered', $user_id, $registration->clicker_id, $registration->owner_id);
+            if ($registration->owner_id == $current_user_id) {
+                // reactivate the clicker if needed
+                if (!$registration->activated) {
+                    $registration->activated = true;
+                    self::save_registration($registration);
+                }
+            } else {
+                throw new ClickerRegisteredException('Clicker '.$registration->clicker_id.' already registered', $user_id, $registration->clicker_id, $registration->owner_id);
+            }
         } else {
             $clicker_registration = new stdClass ;
             $clicker_registration->clicker_id = $clicker_id;
@@ -2408,7 +2418,6 @@ $block_iclicker_webservices_url = get_config($block_name, 'block_iclicker_webser
 $block_iclicker_webservices_username = get_config($block_name, 'block_iclicker_webservices_username');
 $block_iclicker_webservices_password = get_config($block_name, 'block_iclicker_webservices_password');
 $block_iclicker_disable_sync = get_config($block_name, 'block_iclicker_disable_sync');
-$block_iclicker_sso_enabled = false;
 $block_iclicker_sso_shared_key = get_config($block_name, 'block_iclicker_sso_shared_key');
 
 iclicker_service::$server_URL = $CFG->wwwroot;
