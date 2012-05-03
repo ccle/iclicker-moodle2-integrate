@@ -106,26 +106,30 @@ class block_iclicker extends block_base {
             // also show the list of currently registered clickers
             $clicker_list_html = '';
             if ($clickers = iclicker_service::get_registrations_by_user(null, true)) {
-                $clicker_list_html .= "  <ul class='iclicker_clickerids'>\n";
+                $clicker_list_html .= "  <ul class='iclicker_clickerids'>".PHP_EOL;
                 foreach ($clickers as $clicker) {
-                    $clicker_list_html .= "    <li class='iclicker_clickerid'>$clicker->clicker_id</li>\n";
+                    $clicker_list_html .= "    <li class='iclicker_clickerid'>$clicker->clicker_id</li>".PHP_EOL;
                 }
                 $clicker_list_html .= "  </ul>\n";
             }
             $this->content->text .= $clicker_list_html;
             // the other links
             if (iclicker_service::is_admin()) {
-                $link = '<a href="'.iclicker_service::block_url('admin.php').'">'.iclicker_service::msg('admin.title').'</a><br/>';
+                $link = '<a href="'.iclicker_service::block_url('admin.php').'">'.iclicker_service::msg('admin.title').'</a><br/>'.PHP_EOL;
                 $this->content->text .= "  ".$link."\n";
                 // remove inst link after testing complete
                 //$link = '<b><i>remove inst link</i></b> <a href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('inst.title').'</a>';
                 //$this->content->text .= "  ".$link."\n";
             } else if (iclicker_service::is_instructor()) {
-                $link = '<a href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('inst.title').'</a><br/>';
-                $this->content->text .= "  ".$link."\n";
+                $link = '<a href="'.iclicker_service::block_url('instructor.php').'">'.iclicker_service::msg('inst.title').'</a><br/>'.PHP_EOL;
+                $sso_link = '';
+                if (iclicker_service::$block_iclicker_sso_enabled) {
+                    $sso_link = '<a class="nav_link" href="'.iclicker_service::block_url('instructor_sso.php').'">'.iclicker_service::msg('inst.sso.title').'</a><br/>'.PHP_EOL;
+                }
+                $this->content->text .= ' '.$link.$sso_link;
             }
             // close out the html
-            $this->content->text .= "</div>\n";
+            $this->content->text .= "</div>".PHP_EOL;
         }
 
         // FOOTER

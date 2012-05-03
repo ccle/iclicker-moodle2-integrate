@@ -69,6 +69,7 @@ require ('user_messages.php');
                 </p>
             </form>
 
+            <?php if (!empty($regs)) { ?>
             <table class="remotes" summary="<?php echo iclicker_service::msg('reg.registration.table.summary') ?>">
                 <colgroup>
                     <col width="40%" />
@@ -94,6 +95,7 @@ require ('user_messages.php');
                 </tr>
                 <?php } ?>
             </table>
+            <?php } ?>
 
             <?php if ($below_messages) { ?>
             <!-- registration below messages area -->
