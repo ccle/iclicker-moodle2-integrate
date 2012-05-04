@@ -202,7 +202,7 @@ class iclicker_service {
     }
 
     public static function df($time) {
-        return strftime('%Y/%m/%d', $time); //userdate($time, '%Y/%m/%d');
+        return userdate($time, get_string('strftimedaydate', 'langconfig')); //strftime('%Y/%m/%d', $time); //userdate($time, '%Y/%m/%d');
     }
 
     /**
