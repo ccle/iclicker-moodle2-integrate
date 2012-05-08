@@ -96,6 +96,8 @@ class iclicker_controller {
                     $current_method = 'GET';
                 } else if ('DELETE' == $comp_method) {
                     $current_method = 'DELETE';
+                } else if ('POST' == $comp_method) {
+                    $current_method = 'POST';
                 }
             }
         }
@@ -126,8 +128,20 @@ class iclicker_controller {
      * @param string $content [optional] the content to send
      * @param string $message [optional] the message to send, defaults to "Invalid request"
      */
-    public function sendResponse($content = NULL, $message = "Invalid request parameters") {
+    public function sendResponse($content = NULL, $message = null) {
         $code = $this->status;
+        if (!isset($message)) {
+            switch ($code) {
+                case 200: $message='OK'; break;
+                case 204: $message='No Content'; break;
+                case 302: $message='Found'; break;
+                case 400: $message='Bad Request'; break;
+                case 401: $message='Unauthorized'; break;
+                case 403: $message='Forbidden'; break;
+                case 404: $message='Not Found'; break;
+                default: $message='Internal Server Error';
+            }
+        }
         header("HTTP/1.0 $code ".str_replace("\n", "", $message));
         if ($code >= 400) {
             // force plain text encoding when errors occur

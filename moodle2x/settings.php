@@ -105,6 +105,8 @@ if ($ADMIN->fulltree) {
     $currentSSOkey = get_config($block_name, 'block_iclicker_sso_shared_key');
     if (!empty($currentSSOkey)) {
         $headerDesc = get_string('config_sso_enabled', $block_name);
+        $timestamp = time();
+        $headerDesc .= ' [Sample encoded key: '.iclicker_service::makeEncodedKey($timestamp).'|'.$timestamp.']';
     }
     $settings->add(
         new admin_setting_heading('block_iclicker_sso_heading',

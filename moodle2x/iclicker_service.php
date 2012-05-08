@@ -808,7 +808,7 @@ class iclicker_service {
             }
 
             // finally we verify the key with the one in the config
-            $sha1Hex = sha1(self::$block_iclicker_sso_shared_key . ":" . $timestamp);
+            $sha1Hex = self::makeEncodedKey($timestamp);
             if ($actualKey !== $sha1Hex) {
                 throw new SecurityException("i>clicker encoded shared key ($actualKey) does not match with the key in Sakai");
             }
@@ -817,8 +817,22 @@ class iclicker_service {
         return $verified;
     }
 
-
-
+    /**
+     * Creates a key using the current $block_iclicker_sso_shared_key
+     * @static
+     * @param int $timestamp [OPTIONAL] the unix timestamp OR uses now if it is not set
+     * @return string the encoded key OR null if SSO is disabled
+     */
+    public static function makeEncodedKey($timestamp=-1) {
+        $encodedKey = null;
+        if (self::$block_iclicker_sso_enabled) {
+            if ($timestamp < 1) {
+                $timestamp = time();
+            }
+            $encodedKey = sha1(self::$block_iclicker_sso_shared_key . ":" . $timestamp);
+        }
+        return $encodedKey;
+    }
 
 
 
