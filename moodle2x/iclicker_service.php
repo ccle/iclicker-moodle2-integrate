@@ -289,11 +289,12 @@ class iclicker_service {
 
     /**
      * Authenticate a user by username and password
-     * @param string $username
-     * @param string $password
-     * @param $ssoKey [OPTIONAL] the sso key sent in the request OR null if there was not one
+     * @static
+     * @param $username
+     * @param $password
+     * @param string $ssoKey [OPTIONAL] the sso key sent in the request OR null if there was not one
      * @return bool true if the authentication is successful
-     * @throw SecurityException if auth invalid
+     * @throws SecurityException  if auth invalid
      */
     public static function authenticate_user($username, $password, $ssoKey=null) {
         global $USER;
@@ -301,7 +302,7 @@ class iclicker_service {
             // this user is not already logged in
             if (self::$block_iclicker_sso_enabled) {
                 self::verifyKey($ssoKey); // verify the key is valid
-                $user = self::get_user_by_username($username);
+                $user = self::get_user_by_username($username, true);
                 if ($user && self::checkUserKey($user->id, $password)) {
                     complete_user_login($user);
                 } else {
@@ -348,14 +349,20 @@ class iclicker_service {
 
     /**
      * Gets a user by their username
+     * @static
      * @param string $username the username (i.e. login name)
+     * @param bool $allFields default false, if true then return all user fields, otherwise just the ones needed for iclicker handling
      * @return stdClass|bool the user object OR false if none can be found
      */
-    public static function get_user_by_username($username) {
+    public static function get_user_by_username($username, $allFields=false) {
         global $DB;
         $user = false;
         if ($username) {
-            $user = $DB->get_record('user', array('username' => $username), self::USER_FIELDS);
+            $fields = self::USER_FIELDS;
+            if ($allFields) {
+                $fields = '*';
+            }
+            $user = $DB->get_record('user', array('username' => $username), $fields);
             // TESTING handling
             if (self::$test_mode && !$user) {
                 // test users
