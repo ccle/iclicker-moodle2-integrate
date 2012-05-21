@@ -114,6 +114,8 @@ class WebservicesException extends Exception {
 class iclicker_service {
 
     // CONSTANTS
+    const VERSION = '1.0';
+    const BLOCK_VERSION = 2012041700; // MUST match version.php
     const BLOCK_NAME = 'block_iclicker';
     const BLOCK_PATH = '/blocks/iclicker';
     const REG_TABLENAME = 'iclicker_registration';

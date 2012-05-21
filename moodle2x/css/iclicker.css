@@ -62,6 +62,11 @@ TR.disabled {
     list-style: none;
 }
 
+.iclicker_version {
+    font-size: 0.7em;
+    text-align: center;
+}
+
 /** SPECIFIC styles **/
 .messages_list {
     margin: 0px;
