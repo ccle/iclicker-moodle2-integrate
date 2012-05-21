@@ -23,7 +23,7 @@
  * Handles rendering the form for creating new pages and the submission of the form as well
  * NOTE: table is named iclicker
  */
- 
+
 require_once ('../../config.php');
 global $CFG, $USER, $COURSE;
 require_once ('iclicker_service.php');
@@ -52,11 +52,11 @@ param: string  $bodytags This text will be included verbatim in the <body> tag (
 param: bool    $return If true, return the visible elements of the header instead of echoing them.
  */
 print_header(
-    strip_tags($site->fullname).':'.iclicker_service::msg('app.iclicker').':'.iclicker_service::msg('reg.title'), 
+    strip_tags($site->fullname).':'.iclicker_service::msg('app.iclicker').':'.iclicker_service::msg('reg.title'),
     iclicker_service::msg('app.iclicker').' '.iclicker_service::msg('reg.title'),
 	build_navigation(iclicker_service::msg('reg.title')), // '<a href="'.$CFG->wwwroot.'/course/view.php?id='.$COURSE->id.'">'.$COURSE->shortname.'</a> ->'.get_string('formtitle', 'block_iclicker'),
-	'', 
-	"<meta name=\"description\" content=\"".s(strip_tags($site->summary))."\">\n<link rel=\"stylesheet\" type=\"text/css\" href=\"".iclicker_service::block_url('css/iclicker.css')."\" />", 
+	'',
+	"<meta name=\"description\" content=\"".s(strip_tags($site->summary))."\">\n<link rel=\"stylesheet\" type=\"text/css\" href=\"".iclicker_service::block_url('css/iclicker.css')."\" />",
     false
 );
 
@@ -68,7 +68,7 @@ require ('user_messages.php');
     <div style="float:left; width: 45%;">
         <!-- column one -->
         <!-- clicker registration listing -->
-        <table width="100%" border="1" cellspacing="0" cellpadding="0" 
+        <table width="100%" border="1" cellspacing="0" cellpadding="0"
             summary="<?php echo iclicker_service::msg('reg.registration.table.summary') ?>">
             <thead>
                 <tr class="registration_row header_row">
@@ -114,7 +114,7 @@ require ('user_messages.php');
                 <form method="post" id="registerForm">
                     <input type="hidden" name="register" value="true" />
                     <input name="clickerId" type="text" size="10" maxlength="8" value="<?php echo $clicker_id_val ?>" />
-                    <input type="submit" class="registerButton" value="<?php echo iclicker_service::msg('app.register') ?>" 
+                    <input type="submit" class="registerButton" value="<?php echo iclicker_service::msg('app.register') ?>"
                         alt="<?php echo iclicker_service::msg('reg.register.submit.alt') ?>" />
                 </form>
             </div>
@@ -135,7 +135,7 @@ require ('user_messages.php');
     <div style="margin-left: 45%; width: 40%;">
         <div style="padding-left:10px;">
             <div class="instructions style2" style="margin-bottom: 1em;">
-                <?php 
+                <?php
                     if ($new_reg) {
                         echo iclicker_service::msg('reg.registered.instructions');
                     } else {
@@ -147,5 +147,7 @@ require ('user_messages.php');
         </div>
     </div>
 </div>
+
+<div class="iclicker_version">Version <?php echo iclicker_service::VERSION ?> (<?php echo iclicker_service::BLOCK_VERSION ?>)</div>
 
 <?php print_footer(); ?>

@@ -107,6 +107,8 @@ class WebservicesException extends Exception {
 class iclicker_service {
 
     // CONSTANTS
+    const VERSION = '1.1';
+    const BLOCK_VERSION = 2009112700;
     const BLOCK_NAME = 'block_iclicker';
     const BLOCK_PATH = '/blocks/iclicker';
     const REG_TABLENAME = 'iclicker_registration';

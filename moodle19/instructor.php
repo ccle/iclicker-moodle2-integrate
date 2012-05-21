@@ -131,3 +131,7 @@ require ('user_messages.php');
     </table>
 <?php } ?>
 </div>
+
+<div class="iclicker_version">Version <?php echo iclicker_service::VERSION ?> (<?php echo iclicker_service::BLOCK_VERSION ?>)</div>
+
+<?php print_footer(); ?>

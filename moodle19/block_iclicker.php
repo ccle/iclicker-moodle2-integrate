@@ -27,31 +27,31 @@ class block_iclicker extends block_base {
 
 	/**
 	 * Executed on block startup for setting up these variables:
-	 * $this->title is the title displayed in the header of our block. 
-	 * We can set it to whatever we like; in this case it's set to read the actual title 
-	 * from a language file we are presumably distributing together with the block. 
-	 * If you want your block to display no title at all, 
-	 * then you should set this to any descriptive value you want 
-	 * (but not make it an empty string, it must be set) and 
+	 * $this->title is the title displayed in the header of our block.
+	 * We can set it to whatever we like; in this case it's set to read the actual title
+	 * from a language file we are presumably distributing together with the block.
+	 * If you want your block to display no title at all,
+	 * then you should set this to any descriptive value you want
+	 * (but not make it an empty string, it must be set) and
 	 * then disable title display:
 	 * function hide_header() {
 	 *   return true;
 	 * }
-	 * 
-	 * $this->version is the version of our block. 
-	 * This actually would only make a difference if your block wanted to keep its own 
-	 * data in special tables in the database (i.e. for very complex blocks). 
-	 * In that case the version number is used exactly as it's used in activities; an upgrade script 
+	 *
+	 * $this->version is the version of our block.
+	 * This actually would only make a difference if your block wanted to keep its own
+	 * data in special tables in the database (i.e. for very complex blocks).
+	 * In that case the version number is used exactly as it's used in activities; an upgrade script
 	 * uses it to incrementally upgrade an "old" version of the block's data to the latest.
 	 */
     function init() {
         $this->title = get_string('app.iclicker', iclicker_service::BLOCK_NAME);
         $this->cron = 86400; // in seconds
-        $this->version = 2009112700;
+        $this->version = iclicker_service::BLOCK_VERSION;
     }
 
 	/**
-	 * Executed by Moodle as soon as our instance configuration is loaded and available 
+	 * Executed by Moodle as soon as our instance configuration is loaded and available
 	 * (that is, immediately after init() is called).
 	 * NOTE: we can use $this->config in all methods except init()
 	 */
@@ -60,31 +60,31 @@ class block_iclicker extends block_base {
 
 	/**
 	 * Determines the content to display in a block
-	 * 
-	 * Blocks use two properties of $this->content: "text" and "footer". 
-	 * The text is displayed as-is as the block content, and the footer is displayed below the content in a smaller font size. 
-	 * 
-	 * List blocks use $this->content->footer in the exact same way, 
+	 *
+	 * Blocks use two properties of $this->content: "text" and "footer".
+	 * The text is displayed as-is as the block content, and the footer is displayed below the content in a smaller font size.
+	 *
+	 * List blocks use $this->content->footer in the exact same way,
 	 * but they ignore $this->content->text.
-	 * Moodle expects such blocks to set two other properties when the get_content() method is called: 
-	 * $this->content->items and $this->content->icons. 
-	 * $this->content->items should be a numerically indexed array containing elements that 
-	 * represent the HTML for each item in the list that is going to be displayed. 
-	 * Usually these items will be HTML anchor tags which provide links to some page. 
-	 * $this->content->icons should also be a numerically indexed array, with exactly as many items 
-	 * as $this->content->items has. Each of these items should be a fully qualified HTML <img> tag, 
-	 * with "src", "height", "width" and "alt" attributes. Obviously, it makes sense to keep the images 
+	 * Moodle expects such blocks to set two other properties when the get_content() method is called:
+	 * $this->content->items and $this->content->icons.
+	 * $this->content->items should be a numerically indexed array containing elements that
+	 * represent the HTML for each item in the list that is going to be displayed.
+	 * Usually these items will be HTML anchor tags which provide links to some page.
+	 * $this->content->icons should also be a numerically indexed array, with exactly as many items
+	 * as $this->content->items has. Each of these items should be a fully qualified HTML <img> tag,
+	 * with "src", "height", "width" and "alt" attributes. Obviously, it makes sense to keep the images
 	 * small and of a uniform size.
-	 * In order to tell Moodle that we want to have a list block instead of the standard text block, 
-	 * we need to make a small change to our block class declaration. 
+	 * In order to tell Moodle that we want to have a list block instead of the standard text block,
+	 * we need to make a small change to our block class declaration.
 	 * Instead of extending class block_base, our block will extend class block_list.
-	 * 
-	 * You can hide the block by displaying nothing. That means that both 
-	 * $this->content->text and $this->content->footer are each equal to the 
-	 * empty string (''). Moodle performs this check by calling the block's 
-	 * is_empty() method, and if the block is indeed empty then it is not 
+	 *
+	 * You can hide the block by displaying nothing. That means that both
+	 * $this->content->text and $this->content->footer are each equal to the
+	 * empty string (''). Moodle performs this check by calling the block's
+	 * is_empty() method, and if the block is indeed empty then it is not
 	 * displayed at all.
-	 * 
+	 *
 	 * @return the content to display in the block
 	 */
     function get_content() {
@@ -94,7 +94,7 @@ class block_iclicker extends block_base {
         if ($this->content !== NULL) {
             return $this->content;
         }
-        
+
         $this->content = new stdClass;
         $this->content->text = '';
 
@@ -163,9 +163,9 @@ class block_iclicker extends block_base {
 	/**
 	 * Allows us to use the persistent instance configuration for this block,
 	 * this allows storage of values in $this->config for each instance of the block.
-	 * 
+	 *
 	 * Requires the config_instance.html file to be present
-	 * 
+	 *
 	 * @return true if this block has some persistent storage in the instance configuration
 	 */
     function instance_allow_config() {
@@ -176,7 +176,7 @@ class block_iclicker extends block_base {
     function instance_config_save($data) {
         $data = stripslashes_recursive($data);
         $this->config = $data;
-        return set_field('block_instance', 'configdata', 
+        return set_field('block_instance', 'configdata',
 			base64_encode(serialize($data)), 'id', $this->instance->id);
     }
 */
@@ -197,7 +197,7 @@ class block_iclicker extends block_base {
 
 	/**
 	 * Requires a config_global.html file
-	 * 
+	 *
 	 * @return true if this block is configurable
 	 */
 	function has_config() {
@@ -249,7 +249,7 @@ class block_iclicker extends block_base {
     	// an array of html attributes to add to the container which holds the block
         $myAttrs = array(
         	'id' => 'inst'.$this->instance->id,
-            'class' => 'sideblock block_'.$this->name(), 
+            'class' => 'sideblock block_'.$this->name(),
 			'onmouseover' => "alert('Mouseover on our block!');"
         );
         return array_merge($myAttrs, $attrs);
@@ -261,7 +261,7 @@ class block_iclicker extends block_base {
 	 * course-view - the main course page
 	 * The format name for course types: course-view-weeks, course-view-topics, course-view-social, etc.
 	 * mod - a module, (mod-quiz is a specific module)
-	 * 
+	 *
 	 * @return an array of all course areas this block should be allowed to appear
 	 */
     function applicable_formats() {

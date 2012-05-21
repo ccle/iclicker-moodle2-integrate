@@ -1,4 +1,4 @@
-<?php 
+<?php
 /**
  * Copyright (c) 2009 i>clicker (R) <http://www.iclicker.com/dnn/>
  *
@@ -22,7 +22,7 @@
 /**
  * Handles controller functions related to the views
  */
- 
+
 require_once ('../../config.php');
 global $CFG,$USER,$COURSE;
 require_once ('iclicker_service.php');
@@ -58,7 +58,7 @@ class iclicker_controller {
 
     public $results = array(
     );
-    
+
     public function __construct($getBody = false) {
         // set some headers
         $this->headers['Content-Encoding'] = 'UTF8';
@@ -87,7 +87,7 @@ class iclicker_controller {
         }
         // allow for method overrides
         $current_method = $_SERVER['REQUEST_METHOD'];
-        $comp_method = $_REQUEST[self::COMPENSATE_METHOD];
+        $comp_method = isset($_REQUEST[self::COMPENSATE_METHOD]) ? $_REQUEST[self::COMPENSATE_METHOD] : null;
         if (! empty($comp_method)) {
             // Allows override to GET or DELETE
             $comp_method = strtoupper(trim($comp_method));
@@ -144,9 +144,9 @@ class iclicker_controller {
         }
     }
 
-    
+
     // XHTML view processors
-    
+
     public function processRegistration() {
         // process calls to the registration view
         $this->results['new_reg'] = false;
@@ -197,13 +197,13 @@ class iclicker_controller {
                 echo("WARN: Invalid POST: does not contain register or activate, nothing to do");
             }
         }
-        
+
         $this->results['regs'] = iclicker_service::get_registrations_by_user();
         $this->results['is_instructor'] = iclicker_service::is_instructor();
         // added to allow special messages below the forms
         $this->results['below_messages'] = $this->getMessages(self::KEY_BELOW);
     }
-    
+
     public function processInstructor() {
         $this->results['instPath'] = iclicker_service::block_url('instructor.php');
         // admin/instructor check
@@ -232,7 +232,7 @@ class iclicker_controller {
             $this->results['students_count'] = count($students);
         }
     }
-    
+
     public function processAdmin() {
         $adminPath = iclicker_service::block_url('admin.php');
         $this->results['adminPath'] = $adminPath;
@@ -241,7 +241,7 @@ class iclicker_controller {
         if (!iclicker_service::is_admin()) {
             throw new SecurityException("Current user is not an admin and cannot access the admin view");
         }
-        
+
         // get sorting params
         $pageNum = 1;
         $perPageNum = 20; // does not change
@@ -258,7 +258,7 @@ class iclicker_controller {
             $sort = required_param('sort', PARAM_ALPHAEXT);
         }
         $this->results['sort'] = $sort;
-        
+
         if ("POST" == $this->method) {
             if (optional_param('activate', NULL) != NULL) {
                 // First arrived at this page
@@ -300,22 +300,22 @@ class iclicker_controller {
                 error('WARN: Invalid POST: does not contain runner, remove, or activate, nothing to do');
             }
         }
-        
+
         // put config data into page
         $this->results['useNationalWebservices'] = iclicker_service::$use_national_webservices;
         $this->results['domainURL'] = iclicker_service::$domain_URL;
         $this->results['disableSyncWithNational'] = iclicker_service::$disable_sync_with_national;
-        
+
         // put error data into page
         $this->results['recent_failures'] = iclicker_service::get_failures();
-        
+
         // put runner status in page (only one runner for moodle and we do not know what the % completed is)
         $runner_time_key = get_config(iclicker_service::BLOCK_RUNNER_KEY);
         $runner_exists = ((isset($runner_time_key) && $runner_time_key > 0) ? true : false);
         $this->results['runner_exists'] = $runner_exists;
         $this->results['runner_type'] = 'sync';
         $this->results['runner_percent'] = $runner_exists ? 50 : 0;
-        
+
         // handling the calcs for paging
         $first = ($pageNum - 1) * $perPageNum;
         $totalCount = iclicker_service::count_all_registrations();
@@ -323,7 +323,7 @@ class iclicker_controller {
         $this->results['total_count'] = $totalCount;
         $this->results['page_count'] = $pageCount;
         $this->results['registrations'] = iclicker_service::get_all_registrations($first, $perPageNum, $sort, NULL);
-        
+
         $pagerHTML = "";
         if ($totalCount > 0) {
             $timestamp = microtime();
@@ -347,16 +347,16 @@ class iclicker_controller {
         }
     }
 
-    
+
     // MESSAGING
-    
+
     var $messages = array(
     );
-    
+
     const KEY_INFO = "INFO";
     const KEY_ERROR = "ERROR";
     const KEY_BELOW = "BELOW";
-    
+
     /**
      * Adds a message
      *
@@ -375,7 +375,7 @@ class iclicker_controller {
             $this->messages[$key][] = $message;
         }
     }
-    
+
     /**
      * Add an i18n message based on a key
      *
@@ -392,7 +392,7 @@ class iclicker_controller {
             $this->addMessageStr($key, $message);
         }
     }
-    
+
     /**
      * Get the messages that are currently waiting in this request
      *
@@ -416,6 +416,6 @@ class iclicker_controller {
         }
         return $messages;
     }
-    
+
 }
 ?>
