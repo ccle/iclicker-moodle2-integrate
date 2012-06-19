@@ -19,6 +19,8 @@
  */
 /* $Id$ */
 
+// AZ test and force UTF-8 - 吞下玻璃 - Iñtërnâtiônàlizætiøn
+
 // i18n file
 $string['app.iclicker']     = 'i>clicker';
 $string['app.title']        = 'i>clicker Moodle integrate';
