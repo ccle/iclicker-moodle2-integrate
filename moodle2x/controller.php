@@ -174,9 +174,9 @@ class iclicker_controller {
         $this->results['new_reg'] = false;
         $this->results['clicker_id_val'] = "";
         if ('POST' == $this->method) {
-            if (optional_param('register', null, PARAM_RAW) != null) {
+            if (optional_param('register', null, PARAM_ALPHANUM) != null) {
                 // we are registering a clicker
-                $clicker_id = optional_param('clickerId', null, PARAM_RAW);
+                $clicker_id = optional_param('clickerId', null, PARAM_ALPHANUMEXT);
                 if ($clicker_id == null) {
                     $this->addMessage(self::KEY_ERROR, 'reg.registered.clickerId.empty');
                 } else {
@@ -202,9 +202,9 @@ class iclicker_controller {
                 }
 
             } else {
-                if (optional_param('activate', null, PARAM_RAW) != null) {
+                if (optional_param('activate', null, PARAM_ALPHANUM) != null) {
                     // First arrived at this page
-                    $activate = optional_param('activate', 'false', PARAM_RAW);
+                    $activate = optional_param('activate', 'false', PARAM_ALPHANUM);
                     $activate = ($activate == 'true' ? true : false);
                     $reg_id = optional_param('registrationId', null, PARAM_INT);
                     if ($reg_id == null) {
@@ -218,8 +218,8 @@ class iclicker_controller {
                     }
 
                 } else {
-                    if (optional_param('remove', null, PARAM_RAW) != null) {
-                        $reg_id = optional_param('registrationId', null, PARAM_INT);
+                    if (optional_param('remove', null, PARAM_ALPHANUM) != null) {
+                        $reg_id = optional_param('registrationId', null, PARAM_ALPHANUMEXT);
                         if (($reg_id == null)) {
                             $this->addMessage(self::KEY_ERROR, 'reg.activate.registrationId.empty', null);
                         } else {
@@ -286,7 +286,7 @@ class iclicker_controller {
         if (iclicker_service::$block_iclicker_sso_enabled) {
             $current_user_key = null;
             if ('POST' == $this->method) {
-                if ( optional_param('generateKey', false, PARAM_RAW) != null ) {
+                if ( optional_param('generateKey', false, PARAM_ALPHANUM) != null ) {
                     // handle generating a new key
                     $current_user_key = iclicker_service::makeUserKey($current_user_id, true);
                     $this->addMessage(self::KEY_INFO, 'inst.sso.generated.new.key', null);
@@ -314,7 +314,7 @@ class iclicker_controller {
         // get sorting params
         $pageNum = 1;
         $perPageNum = 20; // does not change
-        if (optional_param('page', null, PARAM_RAW) != null) {
+        if (optional_param('page', null, PARAM_ALPHANUM) != null) {
             $pageNum = required_param('page', PARAM_INT);
             if ($pageNum < 1) {
                 $pageNum = 1;
@@ -323,16 +323,16 @@ class iclicker_controller {
         $this->results['page'] = $pageNum;
         $this->results['perPage'] = $perPageNum;
         $sort = 'clicker_id';
-        if (optional_param('sort', null, PARAM_RAW) != null) {
-            $sort = required_param('sort', PARAM_ALPHAEXT);
+        if (optional_param('sort', null, PARAM_ALPHANUM) != null) {
+            $sort = required_param('sort', PARAM_ALPHANUMEXT);
         }
         $this->results['sort'] = $sort;
 
         if ("POST" == $this->method) {
-            if (optional_param('activate', null, PARAM_RAW) != null) {
+            if (optional_param('activate', null, PARAM_ALPHANUM) != null) {
                 // First arrived at this page
                 $activate = required_param('activate', PARAM_BOOL);
-                if (optional_param('registrationId', null, PARAM_RAW) == null) {
+                if (optional_param('registrationId', null, PARAM_ALPHANUMEXT) == null) {
                     $this->addMessage(self::KEY_ERROR, "reg.activate.registrationId.empty", null);
                 } else {
                     $reg_id = required_param('registrationId', PARAM_INT);
@@ -346,8 +346,8 @@ class iclicker_controller {
                     }
                 }
             } else {
-                if (optional_param('remove', null, PARAM_RAW) != null) {
-                    if (optional_param('registrationId', null, PARAM_RAW) == null) {
+                if (optional_param('remove', null, PARAM_ALPHANUM) != null) {
+                    if (optional_param('registrationId', null, PARAM_ALPHANUMEXT) == null) {
                         $this->addMessage(self::KEY_ERROR, "reg.activate.registrationId.empty", null);
                     } else {
                         $reg_id = required_param('registrationId', PARAM_INT);

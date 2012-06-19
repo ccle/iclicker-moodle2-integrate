@@ -66,8 +66,8 @@ function get_and_check_current_user($msg) {
  */
 function handle_authn($cntlr) {
     // extract the authn params
-    $auth_username = optional_param(iclicker_controller::LOGIN, NULL, PARAM_RAW);
-    $auth_password = optional_param(iclicker_controller::PASSWORD, NULL, PARAM_RAW);
+    $auth_username = optional_param(iclicker_controller::LOGIN, NULL, PARAM_NOTAGS);
+    $auth_password = optional_param(iclicker_controller::PASSWORD, NULL, PARAM_NOTAGS);
     if (empty($auth_username) && isset($_SERVER['PHP_AUTH_USER'])) {
         // no username found in normal params so try to get basic auth
         $auth_username = $_SERVER['PHP_AUTH_USER'];
@@ -77,9 +77,9 @@ function handle_authn($cntlr) {
             list($auth_username, $auth_password) = explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)));
         }
     }
-    //$session_id = optional_param(iclicker_controller::SESSION_ID, NULL, PARAM_RAW);
+    //$session_id = optional_param(iclicker_controller::SESSION_ID, NULL, PARAM_NOTAGS);
     if (!empty($auth_username)) {
-        $sso_key = optional_param(iclicker_controller::SSO_KEY, NULL, PARAM_RAW);
+        $sso_key = optional_param(iclicker_controller::SSO_KEY, NULL, PARAM_NOTAGS);
         iclicker_service::authenticate_user($auth_username, $auth_password, $sso_key); // throws exception if fails
     //} else if ($session_id) {
     //    $valid = FALSE; // validate the session key
@@ -100,7 +100,7 @@ function handle_authn($cntlr) {
  * @return string the XML data OR null if none can be found
  */
 function get_xml_data($cntlr) {
-    $xml = optional_param(iclicker_controller::XML_DATA, NULL, PARAM_RAW);
+    $xml = optional_param(iclicker_controller::XML_DATA, NULL, PARAM_RAW_TRIMMED);
     if (empty($xml)) {
         $xml = $cntlr->body;
     } else {
@@ -147,7 +147,7 @@ if ($valid) {
     try {
         if ($pathSeg0 == 'verifykey') {
             // SPECIAL case handling (no authn handling)
-            $ssoKey = optional_param(iclicker_controller::SSO_KEY, NULL, PARAM_RAW);
+            $ssoKey = optional_param(iclicker_controller::SSO_KEY, NULL, PARAM_NOTAGS);
             if (iclicker_service::verifyKey($ssoKey)) {
                 $cntlr->setStatus(200);
                 $output = "Verified";
