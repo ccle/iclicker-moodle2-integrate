@@ -166,5 +166,3 @@ $string['confirmdelete']    = 'Confirm Delete';
 $string['deletepage']       = 'Do you really want to delete \'{$a}\'';
 $string['inserterror']      = 'Insert failed';
 $string['updateerror']      = 'Update failed';
-
-?>

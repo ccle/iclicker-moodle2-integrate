@@ -83,7 +83,9 @@ class iclicker_controller {
         }
         // get the body
         if ($getBody) {
-            $this->body = @file_get_contents('php://input');
+            // Moodlerooms does not allow use of php://input
+            //$this->body = @file_get_contents('php://input');
+            $this->body = stream_get_contents(STDIN);
         }
         // allow for method overrides
         $current_method = $_SERVER['REQUEST_METHOD'];
@@ -94,10 +96,14 @@ class iclicker_controller {
                 $comp_method = strtoupper(trim($comp_method));
                 if ('GET' == $comp_method) {
                     $current_method = 'GET';
-                } else if ('DELETE' == $comp_method) {
-                    $current_method = 'DELETE';
-                } else if ('POST' == $comp_method) {
-                    $current_method = 'POST';
+                } else {
+                    if ('DELETE' == $comp_method) {
+                        $current_method = 'DELETE';
+                    } else {
+                        if ('POST' == $comp_method) {
+                            $current_method = 'POST';
+                        }
+                    }
                 }
             }
         }
@@ -195,36 +201,40 @@ class iclicker_controller {
                     }
                 }
 
-            } else if (optional_param('activate', null, PARAM_RAW) != null) {
-                // First arrived at this page
-                $activate = optional_param('activate', 'false', PARAM_RAW);
-                $activate = ($activate == 'true' ? true : false);
-                $reg_id = optional_param('registrationId', null, PARAM_INT);
-                if ($reg_id == null) {
-                    $this->addMessage(self::KEY_ERROR, 'reg.activate.registrationId.empty', null);
-                } else {
-                    // save a new clicker registration
-                    $cr = iclicker_service::set_registration_active($reg_id, $activate);
-                    if ($cr) {
-                        $this->addMessage(self::KEY_INFO, 'reg.activate.success.'.($cr->activated ? 'true' : 'false'), $cr->clicker_id);
-                    }
-                }
-
-            } else if (optional_param('remove', null, PARAM_RAW) != null) {
-                $reg_id = optional_param('registrationId', null, PARAM_INT);
-                if ( ($reg_id == null) ) {
-                    $this->addMessage(self::KEY_ERROR, 'reg.activate.registrationId.empty', null);
-                } else {
-                    // remove a new clicker registration by deactivating it
-                    $cr = iclicker_service::set_registration_active($reg_id, false);
-                    if ($cr) {
-                        $this->addMessage(self::KEY_INFO, 'reg.remove.success', $cr->clicker_id);
-                    }
-                }
-
             } else {
-                // invalid POST
-                echo('WARN: Invalid POST: does not contain register or activate, nothing to do');
+                if (optional_param('activate', null, PARAM_RAW) != null) {
+                    // First arrived at this page
+                    $activate = optional_param('activate', 'false', PARAM_RAW);
+                    $activate = ($activate == 'true' ? true : false);
+                    $reg_id = optional_param('registrationId', null, PARAM_INT);
+                    if ($reg_id == null) {
+                        $this->addMessage(self::KEY_ERROR, 'reg.activate.registrationId.empty', null);
+                    } else {
+                        // save a new clicker registration
+                        $cr = iclicker_service::set_registration_active($reg_id, $activate);
+                        if ($cr) {
+                            $this->addMessage(self::KEY_INFO, 'reg.activate.success.' . ($cr->activated ? 'true' : 'false'), $cr->clicker_id);
+                        }
+                    }
+
+                } else {
+                    if (optional_param('remove', null, PARAM_RAW) != null) {
+                        $reg_id = optional_param('registrationId', null, PARAM_INT);
+                        if (($reg_id == null)) {
+                            $this->addMessage(self::KEY_ERROR, 'reg.activate.registrationId.empty', null);
+                        } else {
+                            // remove a new clicker registration by deactivating it
+                            $cr = iclicker_service::set_registration_active($reg_id, false);
+                            if ($cr) {
+                                $this->addMessage(self::KEY_INFO, 'reg.remove.success', $cr->clicker_id);
+                            }
+                        }
+
+                    } else {
+                        // invalid POST
+                        echo('WARN: Invalid POST: does not contain register or activate, nothing to do');
+                    }
+                }
             }
         }
 
@@ -335,24 +345,26 @@ class iclicker_controller {
                         $this->addMessage(self::KEY_INFO, "admin.activate.success.".($cr->activated ? 'true' : 'false'), $args);
                     }
                 }
-            } else if (optional_param('remove', null, PARAM_RAW) != null) {
-                if (optional_param('registrationId', null, PARAM_RAW) == null) {
-                    $this->addMessage(self::KEY_ERROR, "reg.activate.registrationId.empty", null);
-                } else {
-                    $reg_id = required_param('registrationId', PARAM_INT);
-                    $cr = iclicker_service::get_registration_by_id($reg_id);
-                    if ($cr) {
-                        iclicker_service::remove_registration($reg_id);
-                        $args = new stdClass();
-                        $args->cid = $cr->clicker_id;
-                        $args->rid = $reg_id;
-                        $args->user = iclicker_service::get_user_displayname($cr->owner_id);
-                        $this->addMessage(self::KEY_INFO, "admin.delete.success", $args);
-                    }
-                }
             } else {
-                // invalid POST
-                error('WARN: Invalid POST: does not contain remove, or activate, nothing to do');
+                if (optional_param('remove', null, PARAM_RAW) != null) {
+                    if (optional_param('registrationId', null, PARAM_RAW) == null) {
+                        $this->addMessage(self::KEY_ERROR, "reg.activate.registrationId.empty", null);
+                    } else {
+                        $reg_id = required_param('registrationId', PARAM_INT);
+                        $cr = iclicker_service::get_registration_by_id($reg_id);
+                        if ($cr) {
+                            iclicker_service::remove_registration($reg_id);
+                            $args = new stdClass();
+                            $args->cid = $cr->clicker_id;
+                            $args->rid = $reg_id;
+                            $args->user = iclicker_service::get_user_displayname($cr->owner_id);
+                            $this->addMessage(self::KEY_INFO, "admin.delete.success", $args);
+                        }
+                    }
+                } else {
+                    // invalid POST
+                    error('WARN: Invalid POST: does not contain remove, or activate, nothing to do');
+                }
             }
         }
 
@@ -411,6 +423,7 @@ class iclicker_controller {
      *
      * @param string $key the KEY const
      * @param string $message the message to add
+     * @throws Exception if the key is invalid
      */
     public function addMessageStr($key, $message) {
         if ($key == null) {
@@ -431,6 +444,7 @@ class iclicker_controller {
      * @param string $key the KEY const
      * @param string $messageKey the i18n message key
      * @param object $args [optional] args to include
+     * @throws Exception if the key is invalid
      */
     public function addMessage($key, $messageKey, $args = null) {
         if ($key == null) {
@@ -447,6 +461,7 @@ class iclicker_controller {
      *
      * @param string $key the KEY const
      * @return array the list of messages to display
+     * @throws Exception if the key is invalid
      */
     public function getMessages($key) {
         if ($key == null) {
@@ -467,4 +482,3 @@ class iclicker_controller {
     }
 
 }
-?>

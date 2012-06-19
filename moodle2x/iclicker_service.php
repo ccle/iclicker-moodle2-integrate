@@ -2471,5 +2471,3 @@ if (!empty($block_iclicker_sso_shared_key)) {
     iclicker_service::$block_iclicker_sso_enabled = true;
     iclicker_service::$block_iclicker_sso_shared_key = $block_iclicker_sso_shared_key;
 }
-
-?>

@@ -51,4 +51,3 @@ function xmldb_block_iclicker_upgrade($oldversion = 0) {
     }
     return true;
 }
-?>

@@ -278,4 +278,3 @@ class block_iclicker extends block_base {
     }
 
 }
-?>
