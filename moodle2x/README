@@ -1,22 +1,30 @@
-i>clicker Moodle integrate
-==========================
-This is the Moodle i>clicker integrate plugin which integrates Moodle with iClicker (http://www.iclicker.com/dnn/)
-The plugin (block) allows students to register their clickers with the Moodle installation.
-It provides an administrative interface for managing the registrations for Moodle admins. 
-Instructors are provided with a reporting view which allows them to view a listing of the students in their courses which have and have not registered clickers.
-The plugin also provides integration with the i>clicker and i>grader desktop applications and allows direct grade import and export from the Moodle course gradebook.
+i>clicker integrate for Moodle 2
+================================
+The >clicker integrate for Moodle 2 plug-in allows instructors to easily synchronize their i>clicker and i>grader data with
+their campus Moodle server. Learn more about i>clicker products and features from the i>clicker website. (http://www.iclicker.com)
+
+Features
+--------
+Students
+   * Register and manage their remotes from within Moodle
+Instructors
+   * View reports within Moodle showing the status of student registrations in their classes
+   * Download their Moodle roster and registrations directly into i>grader
+   * Upload i>clicker scores from i>grader directly into Moodle's Gradebook
+Administrators
+   * Configurable for SSO
+   * View and manage remote registrations
 
 Moodle Compatibility
 --------------------
+This version of the plug-in works with Moodle 2.x and supports single sign-on. Users running Moodle v1.8-1.9
+without SSO may use the previous version of the plug-in. Installations of Moodle older than version 1.8 are not supported by the i>clicker integrate plug-in.
+
 This plugin will work with Moodle 2.x. It is developed as a Moodle plugin/block.
 
 Download Binary
 ---------------
-The plugin will be made available via the moodle plugins listing::
-
-    http://moodle.org/mod/data/view.php?id=6009
-
-It can also be downloaded from the project site::
+The plugin can also be downloaded from the project site::
 
     http://code.google.com/p/iclicker-moodle-integrate/
 
@@ -104,7 +112,7 @@ Create a new tag of the code to release, then create a new binary and place it o
 Help
 ----
 Send questions or comments to:
-http://www.iclicker.com/contact/
+Chad Moeller (chad.moeller@macmillan.com), i>clicker Sales Engineer
 
 This document is in `reST (reStructuredText) <http://docutils.sourceforge.net/rst.html>`_ format
 and can be converted to html using the `online converter <http://www.tele3.cz/jbar/rest/rest.html>`_
