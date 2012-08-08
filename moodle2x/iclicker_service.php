@@ -1444,6 +1444,7 @@ class iclicker_service {
      * scores should contain grade_grade (user_id, score)
      * @return stdClass the saved gradebook with all items and scores in the same structure,
      * errors are recorded as grade_item->errors and score->error
+     * @throws InvalidArgumentException
      */
     public static function save_gradebook($gradebook) {
         if (! $gradebook) {
@@ -1463,6 +1464,13 @@ class iclicker_service {
             throw new InvalidArgumentException("No course found with course_id ($gradebook->course_id)");
         }
         $gb_saved->course = $course;
+
+        // extra permissions check on gradebook manage/update
+        $user_id = self::require_user();
+        $context = context_course::instance($course->id);
+        if (!has_capability('moodle/grade:manage', $context, $user_id)) {
+            throw new InvalidArgumentException("User ($user_id) cannot manage the gradebook in course $course->name (id: $course->id), content=$context");
+        }
 
         // attempt to get the default iclicker category first
         $default_iclicker_category = grade_category::fetch(array(
