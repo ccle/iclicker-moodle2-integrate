@@ -21,6 +21,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2012041700;        // The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2010090501;        // moodle 2.0.1 - Requires this Moodle version
-$plugin->component = 'block_iclicker';  // Full name of the plugin (used for diagnostics)
+$plugin->version    = 2012061800;        // The current plugin version (Date: YYYYMMDDXX)
+$plugin->requires   = 2010090501;        // moodle 2.0.1 - Requires this Moodle version
+$plugin->component  = 'block_iclicker';  // Full name of the plugin (used for diagnostics)
+$plugin->cron       = 86400; // in seconds

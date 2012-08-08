@@ -35,15 +35,13 @@ require_once ($CFG->libdir.'/accesslib.php');
  * @return bool
  * @throws DOMException
  */
-function HandleXmlError($errno, $errstr, $errfile, $errline) {
+function iclicker_HandleXmlError($errno, $errstr, $errfile, $errline) {
     if ($errno==E_WARNING && (substr_count($errstr,"DOMDocument::loadXML()")>0)) {
         throw new DOMException($errstr);
     } else {
         return false;
     }
 }
-
-// TODO http://docs.moodle.org/dev/DB_layer_2.0_migration_docs
 
 /**
  * Defines an exception which can occur when validating clicker ids
@@ -1863,7 +1861,7 @@ format.
             throw new InvalidArgumentException("xml must be set");
         }
         // read the xml (try to anyway)
-        set_error_handler('HandleXmlError');
+        set_error_handler('iclicker_HandleXmlError');
         $doc = new DOMDocument();
         $doc->preserveWhiteSpace = false;
         if (! $doc->loadXML($xml, LIBXML_NOWARNING) ) {
