@@ -63,8 +63,10 @@ function get_and_check_current_user($msg) {
  * Attempt to authenticate the current request based on request params and basic auth
  * @param iclicker_controller $cntlr the controller instance
  * @throws SecurityException if authentication is impossible given the request values
+ * @throws InvalidArgumentException if the auth request is bad (requires SSL but SSL not used)
  */
 function handle_authn($cntlr) {
+    global $CFG;
     // extract the authn params
     $auth_username = optional_param(iclicker_controller::LOGIN, NULL, PARAM_NOTAGS);
     $auth_password = optional_param(iclicker_controller::PASSWORD, NULL, PARAM_NOTAGS);
@@ -75,6 +77,16 @@ function handle_authn($cntlr) {
         if (empty($auth_username)) {
             // attempt to get it from the header as a final try
             list($auth_username, $auth_password) = explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)));
+        }
+    }
+    if (iclicker_service::$block_iclicker_sso_enabled && !empty($auth_password)) {
+        // when SSO is enabled and the password is set it means this is not actually a user password so we can proceed without requiring SSL
+    } else {
+        // this is a user password so https must be used if the loginhttps option is enabled
+        $ssl_request = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+        $ssl_required = (isset($CFG->forcehttps) && $CFG->forcehttps == true) || (isset($CFG->loginhttps) && $CFG->loginhttps == true);
+        if ($ssl_required && !$ssl_request) {
+            throw new InvalidArgumentException('SSL is required when performing a user login (and sending user passwords)');
         }
     }
     //$session_id = optional_param(iclicker_controller::SESSION_ID, NULL, PARAM_NOTAGS);
