@@ -41,25 +41,20 @@ require_once ('iclicker_service.php');
 require_once ('controller.php');
 
 
-/**
- * Indicates that this connection requires SSL
- */
-class IclickerSSLRequiredException extends Exception {}
-
 // INTERNAL METHODS
 /**
  * This will check for a user and return the user_id if one can be found
  * @param string $msg the error message
  * @return int the user_id
- * @throws SecurityException if no user can be found
+ * @throws ClickerSecurityException if no user can be found
  */
 function iclicker_get_and_check_current_user($msg) {
     $user_id = iclicker_service::get_current_user_id();
     if (! $user_id) {
-        throw new SecurityException("Only logged in users can $msg");
+        throw new ClickerSecurityException("Only logged in users can $msg");
     }
     if (! iclicker_service::is_admin($user_id) && ! iclicker_service::is_instructor($user_id)) {
-        throw new SecurityException("Only instructors can " . $msg);
+        throw new ClickerSecurityException("Only instructors can " . $msg);
     }
     return $user_id;
 }
@@ -67,8 +62,8 @@ function iclicker_get_and_check_current_user($msg) {
 /**
  * Attempt to authenticate the current request based on request params and basic auth
  * @param iclicker_controller $cntlr the controller instance
- * @throws SecurityException if authentication is impossible given the request values
- * @throws IclickerSSLRequiredException if the auth request is bad (requires SSL but SSL not used)
+ * @throws ClickerSecurityException if authentication is impossible given the request values
+ * @throws ClickerSSLRequiredException if the auth request is bad (requires SSL but SSL not used)
  */
 function iclicker_handle_authn($cntlr) {
     global $CFG;
@@ -91,7 +86,7 @@ function iclicker_handle_authn($cntlr) {
         $ssl_request = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
         $ssl_required = (isset($CFG->forcehttps) && $CFG->forcehttps == true) || (isset($CFG->loginhttps) && $CFG->loginhttps == true);
         if ($ssl_required && !$ssl_request) {
-            throw new IclickerSSLRequiredException('SSL is required when performing a user login (and sending user passwords)');
+            throw new ClickerSSLRequiredException('SSL is required when performing a user login (and sending user passwords)');
         }
     }
     //$session_id = optional_param(iclicker_controller::SESSION_ID, NULL, PARAM_NOTAGS);
@@ -289,7 +284,7 @@ if ($valid) {
                 }
             }
         }
-    } catch (SecurityException $e) {
+    } catch (ClickerSecurityException $e) {
         $valid = false;
         $current_user_id = iclicker_service::get_current_user_id();
         if (! $current_user_id) {
@@ -304,7 +299,7 @@ if ($valid) {
         $output = "Invalid request: " . $e;
         //log.warn("i>clicker: " + $output, $e);
         $status = 400; //BAD_REQUEST;
-    } catch (IclickerSSLRequiredException $e) {
+    } catch (ClickerSSLRequiredException $e) {
         $valid = false;
         $output = "SSL_REQUIRED: " . $e;
         //log.warn("i>clicker: " + $output, $e);

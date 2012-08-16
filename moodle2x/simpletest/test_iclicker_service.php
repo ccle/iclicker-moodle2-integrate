@@ -327,7 +327,7 @@ class iclicker_services_test extends UnitTestCase {
         try {
             iclicker_service::verifyKey($encodedKey);
             $this->fail("should have died");
-        } catch (SecurityException $e) {
+        } catch (ClickerSecurityException $e) {
             $this->assertNotNull($e->getMessage());
         }
 

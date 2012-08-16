@@ -250,7 +250,7 @@ class iclicker_controller {
         $this->results['instPath'] = iclicker_service::block_url('instructor.php');
         // admin/instructor check
         if (!iclicker_service::is_admin() && !iclicker_service::is_instructor()) {
-            throw new SecurityException("Current user is not an instructor and cannot access the instructor view");
+            throw new ClickerSecurityException("Current user is not an instructor and cannot access the instructor view");
         }
         $course_id = optional_param('courseId', false, PARAM_INT);
         $this->results['course_id'] = $course_id;
@@ -280,7 +280,7 @@ class iclicker_controller {
         $this->results['instPath'] = iclicker_service::block_url('instructor.php');
         // admin/instructor check
         if (!iclicker_service::is_admin() && !iclicker_service::is_instructor()) {
-            throw new SecurityException("Current user is not an instructor and cannot access the instructor view");
+            throw new ClickerSecurityException("Current user is not an instructor and cannot access the instructor view");
         }
         $this->results['sso_enabled'] = iclicker_service::$block_iclicker_sso_enabled;
         $current_user_id = iclicker_service::get_current_user_id();
@@ -309,7 +309,7 @@ class iclicker_controller {
         $this->results['status_url'] = iclicker_service::block_url('runner_status.php');
         // admin check
         if (!iclicker_service::is_admin()) {
-            throw new SecurityException("Current user is not an admin and cannot access the admin view");
+            throw new ClickerSecurityException("Current user is not an admin and cannot access the admin view");
         }
 
         // get sorting params

@@ -42,9 +42,13 @@ $PAGE->set_heading( iclicker_service::msg('app.iclicker').' '.iclicker_service::
 $PAGE->navbar->add(iclicker_service::msg('reg.title'));
 $PAGE->set_focuscontrol('');
 $PAGE->set_cacheable(false);
-$PAGE->requires->js( new moodle_url('https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js'), true);
-$PAGE->requires->js( new moodle_url('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js'), true);
-$PAGE->requires->css( new moodle_url('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css'), true);
+// NOTE: switching over to locally hosted JS and CSS files
+$PAGE->requires->js(iclicker_service::BLOCK_PATH.'/js/jquery-1.5.2.min.js');
+$PAGE->requires->js(iclicker_service::BLOCK_PATH.'/js/jquery-ui-1.8.min.js');
+//$PAGE->requires->js( new moodle_url('https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js'), true);
+//$PAGE->requires->js( new moodle_url('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js'), true);
+$PAGE->requires->css(iclicker_service::BLOCK_PATH.'/css/jquery-ui-1.8.css');
+//$PAGE->requires->css( new moodle_url('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css'), true);
 $PAGE->requires->css(iclicker_service::BLOCK_PATH.'/css/iclicker.css');
 $PAGE->set_url(iclicker_service::BLOCK_PATH.'/registration.php');
 //$PAGE->requires->js('mod/mymod/styles.css');
