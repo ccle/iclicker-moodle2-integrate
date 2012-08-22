@@ -85,7 +85,15 @@ class iclicker_controller {
         if ($getBody) {
             // Moodlerooms does not allow use of php://input
             //$this->body = @file_get_contents('php://input');
-            $this->body = stream_get_contents(STDIN);
+            if (defined('STDIN')) {
+                $this->body = @stream_get_contents(STDIN);
+            } else if (function_exists('http_get_request_body')) {
+                $this->body = http_get_request_body();
+            } else {
+                // cannot get the body
+                $this->setHeader('NO_BODY','Cannot retrieve request body content');
+                $this->body = null;
+            }
         }
         // allow for method overrides
         $current_method = $_SERVER['REQUEST_METHOD'];

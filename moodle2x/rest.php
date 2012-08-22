@@ -346,6 +346,7 @@ if ($valid) {
         " -- Invalid credentials or sessionId will result in a 401 (invalid credentials) or 403 (not authorized) status \n".
         " - Use ".iclicker_controller::COMPENSATE_METHOD." param to override the http method being used (e.g. POST /courses?".iclicker_controller::COMPENSATE_METHOD."=GET will force the method to be a GET despite sending as a POST) \n".
         " - Send data as the http request BODY or as a form parameter called ".iclicker_controller::XML_DATA." \n".
-        " - All endpoints return 403 if user is not an instructor \n";
+        " - All endpoints return 403 if user is not an instructor \n".
+        " - Version: ".iclicker_service::VERSION." (".iclicker_service::BLOCK_VERSION.") \n";
     $cntlr->sendResponse($msg);
 }
