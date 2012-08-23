@@ -83,13 +83,13 @@ class iclicker_controller {
         }
         // get the body
         if ($getBody) {
-            // Moodlerooms does not allow use of php://input
-            //$this->body = @file_get_contents('php://input');
-            if (defined('STDIN')) {
-                $this->body = @stream_get_contents(STDIN);
-            } else if (function_exists('http_get_request_body')) {
+            if (function_exists('http_get_request_body')) {
                 $this->body = http_get_request_body();
+            } else if (defined('STDIN')) {
+                $this->body = @stream_get_contents(STDIN);
             } else {
+            // Moodlerooms does not allow use of php://input
+            //  $this->body = @file_get_contents('php://input');
                 // cannot get the body
                 $this->setHeader('NO_BODY','Cannot retrieve request body content');
                 $this->body = null;
