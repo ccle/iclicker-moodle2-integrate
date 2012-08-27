@@ -118,8 +118,9 @@ class ClickerWebservicesException extends Exception {
 class iclicker_service {
 
     // CONSTANTS
-    const VERSION = '1.1';
-    const BLOCK_VERSION = 2012082200; // MUST match version.php
+    const VERSION = '1.1'; // MUST match version.php
+    const BLOCK_VERSION = 2012082700; // MUST match version.php
+
     const BLOCK_NAME = 'block_iclicker';
     const BLOCK_PATH = '/blocks/iclicker';
     const REG_TABLENAME = 'iclicker_registration';
@@ -1175,7 +1176,7 @@ class iclicker_service {
                         } else {
                             $query .= ',';
                         }
-                        $query .= $student->id;
+                        $query .= '\''.$student->id.'\'';
                     }
                     $query .= ')';
                 }
