@@ -121,6 +121,9 @@ class iclicker_service {
     const VERSION = '1.1'; // MUST match version.php
     const BLOCK_VERSION = 2012082700; // MUST match version.php
 
+    // Moodle 2.0 = 2010112400; Moodle 2.1 = 2011070100; Moodle 2.2 = 2011120100; Moodle 2.3 = 2012062500
+    //const MOODLE_VERSION_22 = 2011120100; // compare to $CFG->version
+
     const BLOCK_NAME = 'block_iclicker';
     const BLOCK_PATH = '/blocks/iclicker';
     const REG_TABLENAME = 'iclicker_registration';
@@ -164,6 +167,7 @@ class iclicker_service {
     public static $block_iclicker_sso_enabled = false;
     public static $block_iclicker_sso_shared_key = null;
     public static $test_mode = false;
+
 
     // STATIC METHODS
 
@@ -533,17 +537,31 @@ class iclicker_service {
             }
         }
 
-        //$results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false, 'c.sortorder', array(), 1);
-        //$result = count($results) > 0;
+
         $result = false;
-        $courses = enrol_get_users_courses($user_id, true, null, null);
-        foreach ($courses as $id=>$course) {
-            $context = context_course::instance($id);
-            if (has_capability('moodle/course:update', $context, $user_id)) {
-                //unset($courses[$id]);
-                $result = true;
-                break;
+        if (class_exists('context_course')) {
+            // for Moodle 2.2+
+            $courses = enrol_get_users_courses($user_id, true, null, null);
+            foreach ($courses as $id=>$course) {
+                $context = context_course::instance($id);
+                if (has_capability('moodle/course:update', $context, $user_id)) {
+                    //unset($courses[$id]);
+                    $result = true;
+                    break;
+                }
             }
+        } else {
+            // for Moodle before 2.2
+            global $USER;
+            // sadly this is the only way to do this check: http://moodle.org/mod/forum/discuss.php?d=140383
+            $accessinfo = null;
+            if ($user_id === $USER->id && isset($USER->access)) {
+                $accessinfo = $USER->access;
+            } else {
+                $accessinfo = get_user_access_sitewide($user_id);
+            }
+            $results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false, 'c.sortorder', array(), 1);
+            $result = count($results) > 0;
         }
         return $result;
     }
@@ -1158,7 +1176,12 @@ class iclicker_service {
         global $DB;
         // get_users_by_capability - accesslib - moodle/grade:view
         // search_users - datalib
-        $context = context_course::instance($course_id); //get_context_instance(CONTEXT_COURSE, $course_id); // deprecated
+        if (class_exists('context_course')) {
+            // for Moodle 2.2+
+            $context = context_course::instance($course_id);
+        } else {
+            $context = get_context_instance(CONTEXT_COURSE, $course_id); // deprecated
+        }
         $results = get_users_by_capability($context, 'moodle/grade:view', 'u.id, u.username, u.firstname, u.lastname, u.email', 'u.lastname', '', '', '', '', false);
         if (isset($results) && !empty($results)) {
             // get the registrations related to these students
@@ -1222,13 +1245,25 @@ class iclicker_service {
         if (! isset($user_id)) {
             $user_id = self::get_current_user_id();
         }
-        //$results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false, 'c.sortorder', array('fullname','summary','timecreated','visible'), 50);
-        $results = enrol_get_users_courses($user_id, true, array('fullname','summary','timecreated','visible'), null);
-        foreach ($results as $id=>$course) {
-            $context = context_course::instance($id);
-            if (!has_capability('moodle/course:update', $context, $user_id)) {
-                unset($results[$id]);
+        if (class_exists('context_course')) {
+            // for Moodle 2.2+
+            $results = enrol_get_users_courses($user_id, true, array('fullname','summary','timecreated','visible'), null);
+            foreach ($results as $id=>$course) {
+                $context = context_course::instance($id);
+                if (!has_capability('moodle/course:update', $context, $user_id)) {
+                    unset($results[$id]);
+                }
             }
+        } else {
+            // Moodle pre 2.2
+            global $USER;
+            if ($user_id === $USER->id && isset($USER->access)) {
+                $accessinfo = $USER->access;
+            } else {
+                $accessinfo = get_user_access_sitewide($user_id);
+            }
+            $results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false,
+                'c.sortorder', array('fullname','summary','timecreated','visible'), 50);
         }
         if (!$results) {
             $results = array();
@@ -1474,7 +1509,12 @@ class iclicker_service {
 
         // extra permissions check on gradebook manage/update
         $user_id = self::require_user();
-        $context = context_course::instance($course->id);
+        if (class_exists('context_course')) {
+            // for Moodle 2.2+
+            $context = context_course::instance($course->id);
+        } else {
+            $context = get_context_instance(CONTEXT_COURSE, $course->id); // deprecated
+        }
         if (!has_capability('moodle/grade:manage', $context, $user_id)) {
             throw new InvalidArgumentException("User ($user_id) cannot manage the gradebook in course $course->name (id: $course->id), content=$context");
         }
