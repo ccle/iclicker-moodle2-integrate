@@ -22,7 +22,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 // http://docs.moodle.org/dev/version.php
-$plugin->version    = 2012082700;        // The current plugin version (Date: YYYYMMDDXX) - must match iclicker_service constant
+$plugin->version    = 2012092900;        // The current plugin version (Date: YYYYMMDDXX) - must match iclicker_service constant
 $plugin->requires   = 2010112400;        // moodle 2.0 - Requires this Moodle version - Moodle 2.0 = 2010112400; Moodle 2.1 = 2011070100; Moodle 2.2 = 2011120100; Moodle 2.3 = 2012062500
 $plugin->cron       = 86400;
 $plugin->component  = 'block_iclicker';    // Full name of the plugin (used for diagnostics)
