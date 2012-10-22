@@ -180,6 +180,9 @@ class iclicker_controller {
 
     public function processRegistration() {
         // process calls to the registration view
+        if (!iclicker_service::get_current_user_id()) {
+            throw new ClickerSecurityException('Current user is not logged in and cannot access the registration view');
+        }
         $this->results['new_reg'] = false;
         $this->results['clicker_id_val'] = "";
         if ('POST' == $this->method) {

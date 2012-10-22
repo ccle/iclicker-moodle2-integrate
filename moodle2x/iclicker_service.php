@@ -118,8 +118,8 @@ class ClickerWebservicesException extends Exception {
 class iclicker_service {
 
     // CONSTANTS
-    const VERSION = '1.1'; // MUST match version.php
-    const BLOCK_VERSION = 2012082700; // MUST match version.php
+    const VERSION = '1.2'; // MUST match version.php
+    const BLOCK_VERSION = 2012102100; // MUST match version.php
 
     // Moodle 2.0 = 2010112400; Moodle 2.1 = 2011070100; Moodle 2.2 = 2011120100; Moodle 2.3 = 2012062500
     //const MOODLE_VERSION_22 = 2011120100; // compare to $CFG->version
@@ -340,6 +340,8 @@ class iclicker_service {
         global $USER;
         if (!isset($USER->id) || !$USER->id) {
             throw new ClickerSecurityException('User must be logged in');
+        } else if (isguestuser($USER->id)) {
+            throw new ClickerSecurityException('Guest users ('.$USER->id.') are not allowed to access the clicker tool');
         }
         return $USER->id;
     }
@@ -963,18 +965,20 @@ class iclicker_service {
      */
     public static function get_registrations_by_user($user_id = null, $activated = null) {
         global $DB;
+        $results = array();
         $current_user_id = self::require_user();
-        if (!isset($user_id)) {
+        if (!isset($user_id) && $current_user_id) {
             $user_id = $current_user_id;
         }
-        $sql = 'owner_id = ?'; //'".$user_id."'";
-        if (isset($activated)) {
-            $sql .= ' and activated = '.($activated ? 1 : 0);
-        }
-        $results = $DB->get_records_select(self::REG_TABLENAME, $sql, array($user_id), self::REG_ORDER);
-        if (!$results) {
-            $results = array(
-            );
+        if (isset($user_id)) {
+            $sql = 'owner_id = ?'; //'".$user_id."'";
+            if (isset($activated)) {
+                $sql .= ' and activated = '.($activated ? 1 : 0);
+            }
+            $results = $DB->get_records_select(self::REG_TABLENAME, $sql, array($user_id), self::REG_ORDER);
+            if (!$results) {
+                $results = array();
+            }
         }
         return $results;
     }
@@ -987,6 +991,7 @@ class iclicker_service {
      * @param string $order [optional] the order by string
      * @param string $search [optional] search string for clickers
      * @return array the list of clicker registrations
+     * @throws ClickerSecurityException if the current user is not allowed
      */
     public static function get_all_registrations($start = 0, $max = 0, $order = 'clicker_id', $search = '') {
         global $DB;
