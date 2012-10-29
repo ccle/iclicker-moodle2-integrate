@@ -105,19 +105,11 @@ $string['inst.sso.disabled'] = 'SSO is not enabled, you cannot access or generat
 
 // for the admin page
 $string['admin.title'] = 'Admin Control';
-$string['admin.process.header'] = 'Running process status:';
-$string['admin.process.add'] = 'Add i>clicker to all workspaces';
-$string['admin.process.remove'] = 'Remove i>clicker from all workspaces';
-$string['admin.process.sync'] = 'Sync with Webservices';
-$string['admin.process.type.add'] = 'Adding to workspaces';
-$string['admin.process.type.remove'] = 'Removing from workspaces';
-$string['admin.process.type.sync'] = 'Syncing with Webservices';
-$string['admin.process.message.add'] = 'Adding i>clicker tool to all workspaces';
-$string['admin.process.message.remove'] = 'Removing i>clicker tool from all workspaces';
-$string['admin.process.message.sync'] = 'Syncing all clicker registrations with Webservices';
-$string['admin.process.message.locked'] = 'Cannot start long running process ({$a}) because there is already one running on another server';
-$string['admin.process.message.inprogress'] = 'Cannot start long running process ({$a}) because there is already one running';
 $string['admin.paging'] = 'Paging:';
+$string['admin.search.id'] = 'ID:';
+$string['admin.search.start'] = 'Start:';
+$string['admin.search.end'] = 'End:';
+$string['admin.search.search'] = 'Search';
 $string['admin.no.regs'] = 'No registrations';
 $string['admin.regs.table.summary'] = 'Lists the registered clickers for all users for the admin; user name, clickerId, date registered, and controls';
 $string['admin.remove.submit.alt'] = 'Remove this registration permanently';

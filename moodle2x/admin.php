@@ -43,6 +43,13 @@ $PAGE->set_heading( iclicker_service::msg('app.iclicker').' '.iclicker_service::
 $PAGE->navbar->add(iclicker_service::msg('admin.title'));
 $PAGE->set_focuscontrol('');
 $PAGE->set_cacheable(false);
+// NOTE: switching over to locally hosted JS and CSS files
+$PAGE->requires->js(iclicker_service::BLOCK_PATH.'/js/jquery-1.5.2.min.js', true);
+$PAGE->requires->js(iclicker_service::BLOCK_PATH.'/js/jquery-ui-1.8.min.js', true);
+//$PAGE->requires->js( new moodle_url('https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js'), true);
+//$PAGE->requires->js( new moodle_url('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js'), true);
+$PAGE->requires->css(iclicker_service::BLOCK_PATH.'/css/jquery-ui-1.8.css');
+//$PAGE->requires->css( new moodle_url('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css'), true);
 $PAGE->requires->css(iclicker_service::BLOCK_PATH.'/css/iclicker.css');
 $PAGE->set_url(iclicker_service::BLOCK_PATH.'/admin.php');
 echo $OUTPUT->header();
@@ -55,14 +62,33 @@ echo $OUTPUT->header();
     ?>
 
     <div class="main_content">
-        <!-- pager control -->
-        <div class="paging_bar">
-            <?php echo iclicker_service::msg('admin.paging') ?>
-            <?php if ($total_count > 0) {
-            echo $pagerHTML;
-        } else {
-            echo '<i>'.iclicker_service::msg('admin.no.regs').'</i>';
-        } ?>
+
+        <div class="main_content_header">
+            <!-- pager control -->
+            <div class="paging_bar" style="float:left;">
+                <?php echo iclicker_service::msg('admin.paging') ?>
+                <?php if ($total_count > 0) {
+                echo $pagerHTML;
+            } else {
+                echo '<i>'.iclicker_service::msg('admin.no.regs').'</i>';
+            } ?>
+            </div>
+            <div class="search_filters" style="float:right;">
+                <form method="get" style="margin:0;">
+                    <input type="hidden" name="page" value="<?php echo $page ?>" />
+                    <input type="hidden" name="sort" value="<?php echo $sort ?>" />
+
+                    <span><?php echo iclicker_service::msg('admin.search.id') ?></span>
+                    <input name="search" value="<?php echo $search ?>" class="clicker_id_filter" type="text" size="8" maxlength="12" />
+
+                    <span><?php echo iclicker_service::msg('admin.search.start') ?></span>
+                    <input name="start_date" value="<?php echo $startDate ?>" class="datepicker startdate date_picker_marker" type="text" size="8" maxlength="12" title="yyyy-mm-dd" />
+                    <span><?php echo iclicker_service::msg('admin.search.end') ?></span>
+                    <input name="end_date" value="<?php echo $endDate ?>" class="datepicker enddate date_picker_marker" type="text" size="8" maxlength="12" title="yyyy-mm-dd" />
+
+                    <input type="submit" class="small" value="<?php echo iclicker_service::msg('admin.search.search') ?>" alt="<?php echo iclicker_service::msg('admin.search.search') ?>" />
+                </form>
+            </div>
         </div>
 
         <!-- clicker registration listing -->
@@ -94,6 +120,9 @@ echo $OUTPUT->header();
                     <form method="post">
                         <input type="hidden" name="page" value="<?php echo $page ?>" />
                         <input type="hidden" name="sort" value="<?php echo $sort ?>" />
+                        <input type="hidden" name="search" value="<?php echo $search ?>" />
+                        <input type="hidden" name="start_date" value="<?php echo $startDate ?>" />
+                        <input type="hidden" name="end_date" value="<?php echo $endDate ?>" />
                         <input type="hidden" name="registrationId" value="<?php echo $registration->id ?>" />
                         <?php if ($registration->activated) { ?>
                         <input type="button" class="small" value="<?php echo iclicker_service::msg('app.activate') ?>" disabled="disabled" />
@@ -173,5 +202,15 @@ echo $OUTPUT->header();
     <div class="iclicker_version">Version <?php echo iclicker_service::VERSION ?> (<?php echo iclicker_service::BLOCK_VERSION ?>)</div>
 
 </div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $( ".iclicker .date_picker_marker" ).datepicker({
+            dateFormat: "yy-mm-dd",
+            changeMonth: true,
+            changeYear: true
+        });
+    });
+</script>
 
 <?php echo $OUTPUT->footer(); ?>

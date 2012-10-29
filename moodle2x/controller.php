@@ -334,11 +334,45 @@ class iclicker_controller {
         }
         $this->results['page'] = $pageNum;
         $this->results['perPage'] = $perPageNum;
+
         $sort = 'clicker_id';
         if (optional_param('sort', null, PARAM_ALPHANUM) != null) {
             $sort = required_param('sort', PARAM_ALPHANUMEXT);
         }
         $this->results['sort'] = $sort;
+
+        // get filtering params
+        $search = optional_param('search', null, PARAM_ALPHANUMEXT);
+        if (empty($search)) {
+            $search = null;
+        }
+        $this->results['search'] = $search;
+
+        $startDate = null;
+        $startDateText = '';
+        if (optional_param('start_date', null, PARAM_ALPHANUMEXT) != null) {
+            $startDate = required_param('start_date', PARAM_ALPHANUMEXT);
+            $startDate = strtotime($startDate);
+            if ($startDate) {
+                $startDateText = date('Y-m-d', $startDate);
+            } else {
+                $startDate = null;
+            }
+        }
+        $this->results['startDate'] = $startDateText;
+        $endDate = null;
+        $endDateText = '';
+        if (optional_param('end_date', null, PARAM_ALPHANUMEXT) != null) {
+            $endDate = required_param('end_date', PARAM_ALPHANUMEXT);
+            $endDate = strtotime($endDate);
+            if ($endDate) {
+                $endDateText = date('Y-m-d', $endDate);
+            } else {
+                $endDate = null;
+            }
+        }
+        $this->results['endDate'] = $endDateText;
+
 
         if ("POST" == $this->method) {
             if (optional_param('activate', null, PARAM_ALPHANUM) != null) {
@@ -391,11 +425,11 @@ class iclicker_controller {
 
         // handling the calcs for paging
         $first = ($pageNum - 1) * $perPageNum;
-        $totalCount = iclicker_service::count_all_registrations();
+        $totalCount = iclicker_service::count_all_registrations($search, $startDate, $endDate);
         $pageCount = floor(($totalCount + $perPageNum - 1) / $perPageNum);
         $this->results['total_count'] = $totalCount;
         $this->results['page_count'] = $pageCount;
-        $this->results['registrations'] = iclicker_service::get_all_registrations($first, $perPageNum, $sort, null);
+        $this->results['registrations'] = iclicker_service::get_all_registrations($first, $perPageNum, $sort, $search, $startDate, $endDate);
 
         $pagerHTML = "";
         if ($totalCount > 0) {
@@ -413,7 +447,18 @@ class iclicker_controller {
                     $pagerHTML .= '<span class="paging_current paging_item">'.$marker.'</span>'."\n";
                 } else {
                     // make it a link
-                    $pagerHTML .= '<a class="paging_link paging_item" href="'.$adminPath.'&page='.$currentPage.'&sort='.$sort.'&nc='.($timestamp.$currentPage).'">'.$marker.'</a>'."\n";
+                    $pagingURL = $adminPath.'&page='.$currentPage.'&sort='.$sort;
+                    if (isset($search)) {
+                        $pagingURL .= '&search='.urlencode($search);
+                    }
+                    if (!empty($startDateText)) {
+                        $pagingURL .= '&start_date='.urlencode($startDateText);
+                    }
+                    if (!empty($endDateText)) {
+                        $pagingURL .= '&end_date='.urlencode($endDateText);
+                    }
+                    $pagingURL .= '&nc='.($timestamp.$currentPage);
+                    $pagerHTML .= '<a class="paging_link paging_item" href="'.$pagingURL.'">'.$marker.'</a>'."\n";
                 }
             }
             $this->results['pagerHTML'] = $pagerHTML;

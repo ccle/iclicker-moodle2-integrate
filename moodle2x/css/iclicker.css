@@ -76,10 +76,14 @@
     margin-top: 0.5em;
 }
 
+.iclicker .main_content_header {
+    padding: 0.2em;
+    overflow: hidden;
+    width: 89%;
+}
+
 .iclicker .paging_bar {
     font-size: 0.8em;
-    padding: 0.5em;
-    width: 90%
 }
 
 .iclicker .paging_current {
@@ -269,4 +273,8 @@
 {
     text-decoration:underline;
     color:#0F197B;
+}
+
+.ui-datepicker-calendar {
+    background-color: white;
 }

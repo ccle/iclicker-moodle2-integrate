@@ -719,6 +719,7 @@ class iclicker_service {
      *
      * @param string $userId [OPTIONAL] the internal user id (if null, use the current user id)
      * @return string the user key for the given user OR null if there is no key
+     * @throws InvalidArgumentException
      */
     public static function getUserKey($userId) {
         global $DB;
@@ -742,6 +743,7 @@ class iclicker_service {
      * @param string $userId [OPTIONAL] the internal user id (if null, use the current user id)
      * @param string $userKey the passed in SSO key to check for this user
      * @return bool true if the key is valid OR false if the user has no key or the key is otherwise invalid
+     * @throws InvalidArgumentException
      */
     public static function checkUserKey($userId, $userKey) {
         global $DB;
@@ -990,10 +992,12 @@ class iclicker_service {
      * @param int $max [optional] max value for paging
      * @param string $order [optional] the order by string
      * @param string $search [optional] search string for clickers
+     * @param int $startDate [optional] starting registration date in unix seconds
+     * @param int $endDate [optional] ending registration date in unix seconds
      * @return array the list of clicker registrations
      * @throws ClickerSecurityException if the current user is not allowed
      */
-    public static function get_all_registrations($start = 0, $max = 0, $order = 'clicker_id', $search = '') {
+    public static function get_all_registrations($start = 0, $max = 0, $order = 'clicker_id', $search = '', $startDate=null, $endDate=null) {
         global $DB;
         if (!self::is_admin()) {
             throw new ClickerSecurityException("Only admins can use this function");
@@ -1001,13 +1005,7 @@ class iclicker_service {
         if ($max <= 0) {
             $max = 10;
         }
-        $query = '';
-        $params = null;
-        if ($search) {
-            // build a search query
-            $query = $DB->sql_like('clicker_id', '?%', false, false, false); // clicker_id like {search}%
-            $params = array($search);
-        }
+        list($query, $params) = self::makeRegFilterQuery($search, $startDate, $endDate);
         $results = $DB->get_records_select(self::REG_TABLENAME, $query, $params, $order, '*', $start, $max);
         if (!$results) {
             $results = array();
@@ -1031,11 +1029,47 @@ class iclicker_service {
     }
 
     /**
+     * @param string $search [optional] search string for clickers
+     * @param int $startDate [optional] starting registration date in unix seconds
+     * @param int $endDate [optional] ending registration date in unix seconds
      * @return int the count of the total number of registered clickers
      */
-    public static function count_all_registrations() {
+    public static function count_all_registrations($search = '', $startDate=null, $endDate=null) {
         global $DB;
-        return $DB->count_records(self::REG_TABLENAME);
+        list($query, $params) = self::makeRegFilterQuery($search, $startDate, $endDate);
+        return $DB->count_records_select(self::REG_TABLENAME, $query, $params);
+    }
+
+    /**
+     * @param string $search [optional] search string for clickers
+     * @param int $startDate [optional] starting registration date in unix seconds
+     * @param int $endDate [optional] ending registration date in unix seconds
+     * @return array of $query, $params
+     */
+    protected static function makeRegFilterQuery($search, $startDate, $endDate) {
+        global $DB;
+        $query = '';
+        $params = array();
+        if (!empty($search)) {
+            // build a search query
+            $query .= $DB->sql_like('clicker_id', '?', false, false, false); // clicker_id like {search}%
+            $params[] = $search . '%';
+        }
+        if (is_numeric($startDate) && is_numeric($endDate)) {
+            $query .= (empty($query) ? '' : ' AND ') . '(timecreated >= ? AND timecreated <= ?)';
+            $params[] = $startDate;
+            $params[] = $endDate;
+
+        } else if (is_numeric($startDate)) {
+            $query .= (empty($query) ? '' : ' AND ') . 'timecreated >= ?';
+            $params[] = $startDate;
+
+        } else if (is_numeric($endDate)) {
+            $query .= (empty($query) ? '' : ' AND ') . 'timecreated <= ?';
+            $params[] = $endDate;
+
+        }
+        return array($query, $params);
     }
 
     /**
@@ -1044,6 +1078,7 @@ class iclicker_service {
      *
      * @param int $reg_id id of the clicker registration
      * @return bool true if removed OR false if not found or not removed
+     * @throws ClickerSecurityException
      */
     public static function remove_registration($reg_id) {
         global $DB;
@@ -1065,6 +1100,7 @@ class iclicker_service {
      * @param string $owner_id [optional] the user_id OR current user if not set
      * @param boolean $local_only [optional] create this clicker in the local system only if true, otherwise sync to national system as well
      * @return stdClass the clicker_registration object
+     * @throws ClickerRegisteredException
      */
     public static function create_clicker_registration($clicker_id, $owner_id = null, $local_only = false) {
         $clicker_id = self::validate_clicker_id($clicker_id);
@@ -1105,6 +1141,7 @@ class iclicker_service {
      * @param int $reg_id id of the clicker registration
      * @param boolean $activated true to enable, false to disable
      * @return stdClass the clicker_registration object
+     * @throws InvalidArgumentException
      */
     public static function set_registration_active($reg_id, $activated) {
         if (!isset($reg_id)) {
@@ -1126,8 +1163,9 @@ class iclicker_service {
     /**
      * Saves the clicker registration data (create or update)
      * @param object $clicker_registration the registration data as an object
-     * @return int id of the saved registration
-     * @throw InvalidArgumentException if the registration is invalid (missing data or invalid data)
+     * @return bool|int id of the saved registration
+     * @throws ClickerSecurityException
+     * @throws InvalidArgumentException if the registration is invalid (missing data or invalid data)
      */
     public static function save_registration(&$clicker_registration) {
         global $DB;
