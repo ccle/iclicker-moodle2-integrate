@@ -68,10 +68,10 @@ echo $OUTPUT->header();
             <div class="paging_bar" style="float:left;">
                 <?php echo iclicker_service::msg('admin.paging') ?>
                 <?php if ($total_count > 0) {
-                echo $pagerHTML;
-            } else {
-                echo '<i>'.iclicker_service::msg('admin.no.regs').'</i>';
-            } ?>
+                    echo $pagerHTML;
+                } else {
+                    echo '<i>'.iclicker_service::msg('admin.no.regs').'</i>';
+                } ?>
             </div>
             <div class="search_filters" style="float:right;">
                 <form method="get" style="margin:0;">
@@ -87,6 +87,7 @@ echo $OUTPUT->header();
                     <input name="end_date" value="<?php echo $endDate ?>" class="datepicker enddate date_picker_marker" type="text" size="8" maxlength="12" title="yyyy-mm-dd" />
 
                     <input type="submit" class="small" value="<?php echo iclicker_service::msg('admin.search.search') ?>" alt="<?php echo iclicker_service::msg('admin.search.search') ?>" />
+                    <input id="purgeFormSubmit" type="submit" class="small" value="<?php echo iclicker_service::msg('admin.search.purge') ?>" alt="<?php echo iclicker_service::msg('admin.search.purge') ?>" />
                 </form>
             </div>
         </div>
@@ -204,11 +205,20 @@ echo $OUTPUT->header();
 </div>
 
 <script type="text/javascript">
-    $(document).ready(function() {
-        $( ".iclicker .date_picker_marker" ).datepicker({
+    jQuery(document).ready(function() {
+        // date pickers
+        jQuery( ".iclicker .date_picker_marker" ).datepicker({
             dateFormat: "yy-mm-dd",
             changeMonth: true,
             changeYear: true
+        });
+        // purge confirmation
+        jQuery("#purgeFormSubmit").click(function(e) {
+            if (!confirm("<?php echo iclicker_service::msg('admin.search.purge.confirm', $total_count) ?>")) {
+                e.preventDefault();
+                return false;
+            }
+            return true;
         });
     });
 </script>

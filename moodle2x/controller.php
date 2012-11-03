@@ -391,26 +391,33 @@ class iclicker_controller {
                         $this->addMessage(self::KEY_INFO, "admin.activate.success.".($cr->activated ? 'true' : 'false'), $args);
                     }
                 }
-            } else {
-                if (optional_param('remove', null, PARAM_ALPHANUM) != null) {
-                    if (optional_param('registrationId', null, PARAM_ALPHANUMEXT) == null) {
-                        $this->addMessage(self::KEY_ERROR, "reg.activate.registrationId.empty", null);
-                    } else {
-                        $reg_id = required_param('registrationId', PARAM_INT);
-                        $cr = iclicker_service::get_registration_by_id($reg_id);
-                        if ($cr) {
-                            iclicker_service::remove_registration($reg_id);
-                            $args = new stdClass();
-                            $args->cid = $cr->clicker_id;
-                            $args->rid = $reg_id;
-                            $args->user = iclicker_service::get_user_displayname($cr->owner_id);
-                            $this->addMessage(self::KEY_INFO, "admin.delete.success", $args);
-                        }
-                    }
+
+            } else if (optional_param('remove', null, PARAM_ALPHANUM) != null) {
+                if (optional_param('registrationId', null, PARAM_ALPHANUMEXT) == null) {
+                    $this->addMessage(self::KEY_ERROR, "reg.activate.registrationId.empty", null);
                 } else {
-                    // invalid POST
-                    error('WARN: Invalid POST: does not contain remove, or activate, nothing to do');
+                    $reg_id = required_param('registrationId', PARAM_INT);
+                    $cr = iclicker_service::get_registration_by_id($reg_id);
+                    if ($cr) {
+                        iclicker_service::remove_registration($reg_id);
+                        $args = new stdClass();
+                        $args->cid = $cr->clicker_id;
+                        $args->rid = $reg_id;
+                        $args->user = iclicker_service::get_user_displayname($cr->owner_id);
+                        $this->addMessage(self::KEY_INFO, "admin.delete.success", $args);
+                    }
                 }
+
+            } else if (optional_param('purge', null, PARAM_ALPHANUM) != null) {
+                // TODO make this actually do the purging
+                $count = $this->results['registrations'] = iclicker_service::get_all_registrations(0, 0, $sort, $search, $startDate, $endDate);
+                $args = new stdClass();
+                $args->count = $count;
+                $this->addMessage(self::KEY_INFO, "admin.purge.success", $args);
+
+            } else {
+                // invalid POST
+                error('WARN: Invalid POST: does not contain remove, purge, or activate, nothing to do');
             }
         }
 
