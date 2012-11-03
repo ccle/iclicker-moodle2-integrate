@@ -410,10 +410,9 @@ class iclicker_controller {
 
             } else if (optional_param('purge', null, PARAM_ALPHANUM) != null) {
                 // TODO make this actually do the purging
-                $count = $this->results['registrations'] = iclicker_service::get_all_registrations(0, 0, $sort, $search, $startDate, $endDate);
-                $args = new stdClass();
-                $args->count = $count;
-                $this->addMessage(self::KEY_INFO, "admin.purge.success", $args);
+                $clickers = iclicker_service::get_all_registrations(0, 0, $sort, $search, $startDate, $endDate);
+                $count = count($clickers);
+                $this->addMessage(self::KEY_INFO, "admin.purge.success", $count);
 
             } else {
                 // invalid POST
