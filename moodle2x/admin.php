@@ -185,6 +185,10 @@ echo $OUTPUT->header();
                     <?php echo iclicker_service::msg('config_notify_emails') ?>:
                     <?php echo (!empty($adminEmailAddress) ? iclicker_service::msg('config_notify_emails_enabled', $adminEmailAddress) : iclicker_service::msg('config_notify_emails_disabled')) ?>
                 </li>
+                <li class="admin_config_list_item">
+                    <?php echo iclicker_service::msg('config_allow_sharing') ?>:
+                    <?php echo (iclicker_service::$allow_remote_sharing) ? iclicker_service::msg('app.allowed') : iclicker_service::msg('config_notify_emails_disabled') ?>
+                </li>
             </ul>
         </fieldset>
     </div>

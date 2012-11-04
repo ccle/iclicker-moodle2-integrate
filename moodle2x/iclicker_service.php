@@ -158,6 +158,7 @@ class iclicker_service {
     // CONFIG
     public static $server_URL = self::DEFAULT_SERVER_URL;
     public static $domain_URL = self::DEFAULT_SERVER_URL;
+    public static $allow_remote_sharing = false;
     public static $disable_alternateid = false;
     public static $use_national_webservices = false;
     public static $webservices_URL = self::NATIONAL_WS_URL;
@@ -901,10 +902,6 @@ class iclicker_service {
         if (!$clicker_id) {
             throw new InvalidArgumentException("clicker_id must be set");
         }
-        $current_user_id = self::require_user();
-        if (!isset($user_id)) {
-            $user_id = $current_user_id;
-        }
         try {
             $clicker_id = self::validate_clicker_id($clicker_id);
         }
@@ -912,8 +909,13 @@ class iclicker_service {
             return false;
         }
         // NOTE: also returns disabled registrations
-        $result = $DB->get_record(self::REG_TABLENAME, array('clicker_id' => $clicker_id, 'owner_id' => $user_id));
-        if ($result) {
+        $params = array('clicker_id' => $clicker_id);
+        if (!empty($user_id)) {
+            $params['owner_id'] = $user_id;
+        }
+        $result = $DB->get_record(self::REG_TABLENAME, $params, $fields='*', $strictness=IGNORE_MULTIPLE); // only get the first one
+        if ($result && !empty($user_id)) {
+            $current_user_id = self::require_user();
             if (!self::can_read_registration($result, $current_user_id)) {
                 throw new ClickerSecurityException("User ($current_user_id) not allowed to access registration ($result->id)");
             }
@@ -1143,9 +1145,15 @@ class iclicker_service {
     public static function create_clicker_registration($clicker_id, $owner_id = null, $local_only = false) {
         $clicker_id = self::validate_clicker_id($clicker_id);
         $current_user_id = self::require_user();
-        $user_id = $owner_id;
-        if (!isset($owner_id)) {
-            $user_id = $current_user_id;
+        if (iclicker_service::$allow_remote_sharing) {
+            // when remote sharing is enabled we only look to see if this user has registered the remote
+            $user_id = $owner_id;
+            if (!isset($owner_id)) {
+                $user_id = $current_user_id;
+            }
+        } else {
+            // when remote sharing is disabled we fetch any that exist
+            $user_id = null;
         }
         $registration = self::get_registration_by_clicker_id($clicker_id, $user_id);
         // NOTE: we probably want to check the national system here to see if this is already registered
@@ -1157,7 +1165,7 @@ class iclicker_service {
                     self::save_registration($registration);
                 }
             } else {
-                throw new ClickerRegisteredException('Clicker '.$registration->clicker_id.' already registered', $user_id, $registration->clicker_id, $registration->owner_id);
+                throw new ClickerRegisteredException('Clicker '.$registration->clicker_id.' already registered to '.$registration->owner_id, $user_id, $registration->clicker_id, $registration->owner_id);
             }
         } else {
             $clicker_registration = new stdClass ;
@@ -2568,6 +2576,7 @@ format.
 
 // load the config into the static vars from the global plugin config settings
 $block_name = iclicker_service::BLOCK_NAME;
+$block_iclicker_allow_sharing = get_config($block_name, 'block_iclicker_allow_sharing');
 $block_iclicker_disable_alternateid = get_config($block_name, 'block_iclicker_disable_alternateid');
 $block_iclicker_use_national_ws = get_config($block_name, 'block_iclicker_use_national_ws');
 $block_iclicker_domain_url = get_config($block_name, 'block_iclicker_domain_url');
@@ -2585,6 +2594,9 @@ if (!empty($block_iclicker_domain_url)) {
 }
 if (!empty($block_iclicker_disable_alternateid)) {
     iclicker_service::$disable_alternateid = true;
+}
+if (!empty($block_iclicker_allow_sharing)) {
+    iclicker_service::$allow_remote_sharing = true;
 }
 if (!empty($block_iclicker_use_national_ws)) {
     iclicker_service::$use_national_webservices = true;

@@ -31,6 +31,7 @@ $string['app.register']     = 'Register';
 $string['app.activate']     = 'Activate';
 $string['app.disable']      = 'Disable';
 $string['app.remove']       = 'Remove';
+$string['app.allowed']      = 'Allowed';
 
 // for the main registration page
 $string['reg.title'] = 'Remote Registration';
@@ -52,6 +53,7 @@ $string['reg.registered.below.success'] = 'Congratulations; you\'ve successfully
 $string['reg.registered.clickerId.empty'] = 'The clicker ID cannot be empty, please fill in the box and try again';
 $string['reg.registered.clickerId.duplicate'] = 'Clicker ID ({$a}) is already registered';
 $string['reg.registered.below.duplicate'] = 'You have already successfully registered this clicker ({$a}) and it is tied to your user ID.';
+$string['reg.registered.below.duplicate.noshare'] = 'Someone else has already registered this clicker ({$a}) and you cannot register it as well.';
 $string['reg.registered.clickerId.duplicate.notowned'] = 'Your clicker ({$a}) has already been registered, but to another student. This could be a result of two possibilities: 1) You are sharing a clicker remote with another student in the same course. You may share your i>clicker remote with another student on campus as long as s/he is not in the same course. You cannot share i>clicker remotes with students in the same course/section. 2) You simply mis-entered your remote ID. Please try again. If you receive this message a second time, contact support@iclicker.com for additional help.';
 $string['reg.registered.clickerId.invalid'] = 'The clicker ID ({$a}) is invalid, please correct the entry and try again';
 $string['reg.activate.success.true'] = 'Reactivated clicker ({$a}) registration';
@@ -139,6 +141,8 @@ $string['config_notify_emails'] = 'Failure notification email';
 $string['config_notify_emails_desc'] = 'The email addresses to send notifications to on failures. Blank indicates disabled.';
 $string['config_notify_emails_enabled'] = 'Emails will be sent to {$a}';
 $string['config_notify_emails_disabled'] = 'DISABLED';
+$string['config_allow_sharing'] = 'i>clicker remote sharing';
+$string['config_allow_sharing_desc'] = 'Allow students to share i>clicker remotes, DEFAULT: false (sharing not allowed - only 1 student can register each remote)';
 $string['config_disable_alternateid'] = 'Alternate Id disabled';
 $string['config_disable_alternateid_desc'] = 'Whether to disable the use of alternate clicker IDs, DEFAULT: false (enable alternate clicker IDs)';
 $string['config_webservices'] = 'WebServices';

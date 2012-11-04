@@ -42,6 +42,13 @@ if ($ADMIN->fulltree) {
         )
     );
     $settings->add(
+        new admin_setting_configcheckbox(iclicker_service::BLOCK_NAME.'/block_iclicker_allow_sharing',
+            get_string('config_allow_sharing', $block_name),
+            get_string('config_allow_sharing_desc', $block_name),
+            0
+        )
+    );
+    $settings->add(
         new admin_setting_configcheckbox(iclicker_service::BLOCK_NAME.'/block_iclicker_disable_alternateid',
             get_string('config_disable_alternateid', $block_name),
             get_string('config_disable_alternateid_desc', $block_name),

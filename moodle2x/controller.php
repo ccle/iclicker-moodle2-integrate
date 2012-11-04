@@ -202,7 +202,11 @@ class iclicker_controller {
                     }
                     catch (ClickerRegisteredException $e) {
                         $this->addMessage(self::KEY_ERROR, 'reg.registered.clickerId.duplicate', $clicker_id);
-                        $this->addMessage(self::KEY_BELOW, 'reg.registered.below.duplicate', $clicker_id);
+                        if (iclicker_service::$allow_remote_sharing) {
+                            $this->addMessage(self::KEY_BELOW, 'reg.registered.below.duplicate', $clicker_id);
+                        } else {
+                            $this->addMessage(self::KEY_BELOW, 'reg.registered.below.duplicate.noshare', $clicker_id);
+                        }
                     }
                     catch (ClickerIdInvalidException $e) {
                         if (ClickerIdInvalidException::F_EMPTY == $e->type) {
