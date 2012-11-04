@@ -986,6 +986,20 @@ class iclicker_service {
     }
 
     /**
+     * Convert an array of row data (one entry per field) into a CSV compatible string representing the row
+     * @param array $row array of row data (one entry per field)
+     * @return string CSV compatible row (includes the line breaks)
+     */
+    public static function make_CSV_row($row) {
+        $escapedRow = array();
+        foreach ($row as $value) {
+            $escapedRow[] = '"'.str_replace('"', '""', $value).'"';
+        }
+        $rowString = implode(',', $escapedRow)."\r\n";
+        return $rowString;
+    }
+
+    /**
      * ADMIN ONLY
      * This is a method to get all the clickers for the clicker admin view
      * @param int $start [optional] start value for paging
@@ -1019,10 +1033,13 @@ class iclicker_service {
             $users = self::get_users($user_ids);
             foreach ($results as $reg) {
                 $name = 'UNKNOWN-'.$reg->owner_id;
+                $email = 'UNKNOWN@unknown.com';
                 if (array_key_exists($reg->owner_id, $users)) {
                     $name = $users[$reg->owner_id]->name;
+                    $email = $users[$reg->owner_id]->email;
                 }
                 $reg->user_display_name = $name;
+                $reg->user_email = $email;
             }
         }
         return $results;

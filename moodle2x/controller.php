@@ -481,6 +481,14 @@ class iclicker_controller {
         }
     }
 
+    public function processAdminCSV() {
+        global $CFG;
+        // admin check
+        if (!iclicker_service::is_admin()) {
+            throw new ClickerSecurityException("Current user is not an admin and cannot make CSV of all regs");
+        }
+        $this->results['registrations'] = iclicker_service::get_all_registrations();
+    }
 
     // MESSAGING
 

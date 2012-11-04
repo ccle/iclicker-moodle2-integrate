@@ -167,6 +167,8 @@ echo $OUTPUT->header();
     </div>
     <?php } ?>
 
+    <div class="download_link"><a href="<?php echo iclicker_service::block_url('adminCSV.php') ?>"><?php echo iclicker_service::msg('admin.csv.download') ?></a></div>
+
     <div class="admin_config">
         <fieldset class="visibleFS">
             <legend class="admin_config_header">

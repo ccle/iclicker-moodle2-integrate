@@ -167,6 +167,11 @@
     color: red;
 }
 
+.iclicker .download_link {
+    text-align: center;
+    width: 100%;
+    font-size: 0.9em;
+}
 
 /* sakai fieldsets are invisible */
 .iclicker .visibleFS {

@@ -131,6 +131,7 @@ $string['admin.config.synchour'] = 'Sync runs at hour';
 $string['admin.errors.header'] = 'Most Recent Failures';
 $string['admin.config.ssoenabled'] = 'Single Sign On Enabled';
 $string['admin.config.ssosharedkey'] = 'Shared Key';
+$string['admin.csv.download'] = 'Download CSV file of all clicker registrations';
 
 // Config
 $string['config_general'] = 'General';
