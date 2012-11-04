@@ -332,8 +332,6 @@ class iclicker_controller {
                 $pageNum = 1;
             }
         }
-        $this->results['page'] = $pageNum;
-        $this->results['perPage'] = $perPageNum;
 
         $sort = 'clicker_id';
         if (optional_param('sort', null, PARAM_ALPHANUM) != null) {
@@ -346,7 +344,6 @@ class iclicker_controller {
         if (empty($search)) {
             $search = null;
         }
-        $this->results['search'] = $search;
 
         $startDate = null;
         $startDateText = '';
@@ -359,7 +356,7 @@ class iclicker_controller {
                 $startDate = null;
             }
         }
-        $this->results['startDate'] = $startDateText;
+
         $endDate = null;
         $endDateText = '';
         if (optional_param('end_date', null, PARAM_ALPHANUMEXT) != null) {
@@ -371,7 +368,6 @@ class iclicker_controller {
                 $endDate = null;
             }
         }
-        $this->results['endDate'] = $endDateText;
 
 
         if ("POST" == $this->method) {
@@ -409,16 +405,30 @@ class iclicker_controller {
                 }
 
             } else if (optional_param('purge', null, PARAM_ALPHANUM) != null) {
-                // TODO make this actually do the purging
-                $clickers = iclicker_service::get_all_registrations(0, 0, $sort, $search, $startDate, $endDate);
-                $count = count($clickers);
+                // actually do the purging
+                $count = iclicker_service::purge_registrations($search, $startDate, $endDate);
                 $this->addMessage(self::KEY_INFO, "admin.purge.success", $count);
+                // reset all search params to defaults
+                $search = null;
+                $startDate = null;
+                $endDate = null;
+                $pageNum = 1;
+                $perPageNum = 20;
+                $sort = 'clicker_id';
 
             } else {
                 // invalid POST
                 error('WARN: Invalid POST: does not contain remove, purge, or activate, nothing to do');
             }
         }
+
+        // put search and sort data into the page
+        $this->results['search'] = $search;
+        $this->results['startDate'] = $startDate;
+        $this->results['endDate'] = $endDate;
+        $this->results['page'] = $pageNum;
+        $this->results['perPage'] = $perPageNum;
+        $this->results['sort'] = $sort;
 
         // put config data into page
         $this->results['sso_enabled'] = iclicker_service::$block_iclicker_sso_enabled;

@@ -1029,6 +1029,27 @@ class iclicker_service {
     }
 
     /**
+     * ADMIN ONLY
+     * This is a method to get all the clickers for the clicker admin view
+     * @param string $search [optional] search string for clickers
+     * @param int $startDate [optional] starting registration date in unix seconds
+     * @param int $endDate [optional] ending registration date in unix seconds
+     * @return int the count of clicker registrations which were removed
+     * @throws ClickerSecurityException if the current user is not allowed
+     */
+    public static function purge_registrations($search = '', $startDate=null, $endDate=null) {
+        global $DB;
+        if (!self::is_admin()) {
+            throw new ClickerSecurityException("Only admins can use this function");
+        }
+        list($query, $params) = self::makeRegFilterQuery($search, $startDate, $endDate);
+        $count = $DB->count_records_select(self::REG_TABLENAME, $query, $params);
+        // delete_records_select will throw an exception if the deletion fails
+        $DB->delete_records_select(self::REG_TABLENAME, $query, $params);
+        return $count;
+    }
+
+    /**
      * @param string $search [optional] search string for clickers
      * @param int $startDate [optional] starting registration date in unix seconds
      * @param int $endDate [optional] ending registration date in unix seconds

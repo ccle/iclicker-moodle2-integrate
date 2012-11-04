@@ -113,6 +113,7 @@ $string['admin.search.search'] = 'Search';
 $string['admin.search.purge'] = 'Purge';
 $string['admin.search.purge.confirm'] = 'Are you sure you want to permanently purge {$a} clicker registrations based on the current search?';
 $string['admin.purge.success'] = 'Successfully purged {$a} clicker registrations';
+$string['admin.search.reset'] = 'Reset';
 $string['admin.no.regs'] = 'No registrations';
 $string['admin.regs.table.summary'] = 'Lists the registered clickers for all users for the admin; user name, clickerId, date registered, and controls';
 $string['admin.remove.submit.alt'] = 'Remove this registration permanently';

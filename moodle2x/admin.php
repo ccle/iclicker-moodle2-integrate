@@ -74,7 +74,7 @@ echo $OUTPUT->header();
                 } ?>
             </div>
             <div class="search_filters" style="float:right;">
-                <form method="get" style="margin:0;">
+                <form method="get" action="<?php echo iclicker_service::block_url('admin.php') ?>" style="margin:0;">
                     <input type="hidden" name="page" value="<?php echo $page ?>" />
                     <input type="hidden" name="sort" value="<?php echo $sort ?>" />
 
@@ -87,7 +87,10 @@ echo $OUTPUT->header();
                     <input name="end_date" value="<?php echo $endDate ?>" class="datepicker enddate date_picker_marker" type="text" size="8" maxlength="12" title="yyyy-mm-dd" />
 
                     <input type="submit" class="small" value="<?php echo iclicker_service::msg('admin.search.search') ?>" alt="<?php echo iclicker_service::msg('admin.search.search') ?>" />
-                    <input id="purgeFormSubmit" type="submit" class="small" value="<?php echo iclicker_service::msg('admin.search.purge') ?>" alt="<?php echo iclicker_service::msg('admin.search.purge') ?>" />
+                    <input name="purge" id="purgeFormSubmit" type="submit" class="small" value="<?php echo iclicker_service::msg('admin.search.purge') ?>" alt="<?php echo iclicker_service::msg('admin.search.purge') ?>" />
+                </form>
+                <form method="get" style="margin:0;">
+                    <input type="submit" class="small" value="<?php echo iclicker_service::msg('admin.search.reset') ?>" alt="<?php echo iclicker_service::msg('admin.search.reset') ?>" />
                 </form>
             </div>
         </div>
@@ -217,6 +220,9 @@ echo $OUTPUT->header();
             if (!confirm("<?php echo iclicker_service::msg('admin.search.purge.confirm', $total_count) ?>")) {
                 e.preventDefault();
                 return false;
+            } else {
+                // switch the form to POST for purge submission
+                $(this).closest("form").attr("method", "POST");
             }
             return true;
         });
