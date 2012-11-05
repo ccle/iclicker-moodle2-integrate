@@ -158,7 +158,7 @@ class iclicker_service {
     // CONFIG
     public static $server_URL = self::DEFAULT_SERVER_URL;
     public static $domain_URL = self::DEFAULT_SERVER_URL;
-    public static $allow_remote_sharing = false;
+    public static $allow_remote_sharing = true; // FORCE this to true
     public static $disable_alternateid = false;
     public static $use_national_webservices = false;
     public static $webservices_URL = self::NATIONAL_WS_URL;
@@ -2576,7 +2576,7 @@ format.
 
 // load the config into the static vars from the global plugin config settings
 $block_name = iclicker_service::BLOCK_NAME;
-$block_iclicker_allow_sharing = get_config($block_name, 'block_iclicker_allow_sharing');
+//$block_iclicker_allow_sharing = get_config($block_name, 'block_iclicker_allow_sharing');
 $block_iclicker_disable_alternateid = get_config($block_name, 'block_iclicker_disable_alternateid');
 $block_iclicker_use_national_ws = get_config($block_name, 'block_iclicker_use_national_ws');
 $block_iclicker_domain_url = get_config($block_name, 'block_iclicker_domain_url');
@@ -2595,9 +2595,10 @@ if (!empty($block_iclicker_domain_url)) {
 if (!empty($block_iclicker_disable_alternateid)) {
     iclicker_service::$disable_alternateid = true;
 }
+/* cannot change this for now
 if (!empty($block_iclicker_allow_sharing)) {
     iclicker_service::$allow_remote_sharing = true;
-}
+}*/
 if (!empty($block_iclicker_use_national_ws)) {
     iclicker_service::$use_national_webservices = true;
 }
