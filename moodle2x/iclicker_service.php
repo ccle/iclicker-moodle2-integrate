@@ -119,7 +119,7 @@ class iclicker_service {
 
     // CONSTANTS
     const VERSION = '1.2'; // MUST match version.php
-    const BLOCK_VERSION = 2012110400; // MUST match version.php
+    const BLOCK_VERSION = 2012110500; // MUST match version.php
 
     // Moodle 2.0 = 2010112400; Moodle 2.1 = 2011070100; Moodle 2.2 = 2011120100; Moodle 2.3 = 2012062500
     //const MOODLE_VERSION_22 = 2011120100; // compare to $CFG->version
