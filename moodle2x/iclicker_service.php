@@ -167,6 +167,7 @@ class iclicker_service {
     public static $disable_sync_with_national = false;
     public static $block_iclicker_sso_enabled = false;
     public static $block_iclicker_sso_shared_key = null;
+    public static $enable_course_shortname = false;
     public static $test_mode = false;
 
 
@@ -1356,6 +1357,14 @@ class iclicker_service {
         }
         if (!$results) {
             $results = array();
+        } else {
+            // update the course titles
+            foreach ($results as $course) {
+                $course->title = $course->fullname;
+                if (iclicker_service::$enable_course_shortname && !empty($course->shortname)) {
+                    $course->title = $course->fullname.' ('.$course->shortname.')';
+                }
+            }
         }
         return $results;
     }
@@ -1378,6 +1387,10 @@ class iclicker_service {
         }
         if (!$course) {
             $course = false;
+        }
+        $course->title = $course->fullname;
+        if (iclicker_service::$enable_course_shortname && !empty($course->shortname)) {
+            $course->title = $course->fullname.' ('.$course->shortname.')';
         }
         return $course;
     }
@@ -1758,6 +1771,7 @@ format.
      * @param int $instructor_id unique user id
      * @return string the XML
      * @throws InvalidArgumentException if the id is invalid
+     * @throws ClickerSecurityException
      */
     public static function encode_courses($instructor_id) {
         if (! isset($instructor_id)) {
@@ -1776,7 +1790,11 @@ format.
         $encoded .= '">'.PHP_EOL;
         // loop through courses
         foreach ($courses as $course) {
-            $encoded .= '  <course id="'.$course->id.'" name="'.self::encode_for_xml($course->fullname)
+            $courseName = $course->fullname;
+            if (iclicker_service::$enable_course_shortname && !empty($course->shortname)) {
+                $courseName .= '-'.$course->shortname;
+            }
+            $encoded .= '  <course id="'.$course->id.'" name="'.self::encode_for_xml($courseName)
                     .'" created="'.$course->timecreated
                     .'" published="'.($course->visible  ? 'True' : 'False')
                     .'" usertype="I" />'.PHP_EOL;
@@ -2585,6 +2603,7 @@ $block_iclicker_webservices_username = get_config($block_name, 'block_iclicker_w
 $block_iclicker_webservices_password = get_config($block_name, 'block_iclicker_webservices_password');
 $block_iclicker_disable_sync = get_config($block_name, 'block_iclicker_disable_sync');
 $block_iclicker_sso_shared_key = get_config($block_name, 'block_iclicker_sso_shared_key');
+$block_iclicker_enable_shortname = get_config($block_name, 'block_iclicker_enable_shortname');
 
 iclicker_service::$server_URL = $CFG->wwwroot;
 if (!empty($block_iclicker_domain_url)) {
@@ -2617,4 +2636,7 @@ if (!empty($block_iclicker_disable_sync)) {
 if (!empty($block_iclicker_sso_shared_key)) {
     iclicker_service::$block_iclicker_sso_enabled = true;
     iclicker_service::$block_iclicker_sso_shared_key = $block_iclicker_sso_shared_key;
+}
+if (!empty($block_iclicker_enable_shortname)) {
+    iclicker_service::$enable_course_shortname = true;
 }

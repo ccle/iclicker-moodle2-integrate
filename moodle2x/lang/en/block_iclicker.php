@@ -163,6 +163,8 @@ $string['config_sso_enabled'] = 'Single Sign On support is enabled.';
 $string['config_sso_disabled'] = 'Single Sign On support is currently disabled. Enter a key below to enable SSO support.';
 $string['config_shared_key'] = 'SSO Shared Key';
 $string['config_shared_key_desc'] = 'Enable Single Sign On support by setting a shared key (must be at least 10 chars long). Set this to blank to disable SSO support';
+$string['config_enable_shortname'] = 'Enable Course Short Name';
+$string['config_enable_shortname_desc'] = 'Enable use of the course short name as part of the displayed course name in the iclicker app';
 
 // Main block
 $string['leaveblanktohide'] = 'leave blank to hide';

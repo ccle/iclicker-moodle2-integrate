@@ -272,7 +272,6 @@ class iclicker_controller {
         $courses = array();
         if ($course_id) {
             $course = iclicker_service::get_course($course_id);
-            $this->results['course_title'] = $course->fullname;
             $courses[] = $course;
         } else {
             $courses = iclicker_service::get_courses_for_instructor();
