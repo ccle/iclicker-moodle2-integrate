@@ -25,6 +25,9 @@
 $string['app.iclicker']     = 'i>clicker';
 $string['app.title']        = 'i>clicker Moodle integrate';
 $string['pluginname']       = 'i>clicker Moodle integrate';
+// special capabilities
+$string['iclicker:addinstance']     = 'Add a new i>clicker block';
+$string['iclicker:myaddinstance']   = 'Add a new i>clicker block to the My Moodle page';
 
 // form controls
 $string['app.register']     = 'Register';

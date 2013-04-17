@@ -203,7 +203,8 @@ class block_iclicker extends block_base {
     }
 
     /**
-     * Requires a config_global.html file
+     * Required for moodle 2.4+
+     * Checks for the settings.php file
      *
      * @return bool true if this block is configurable
      */
