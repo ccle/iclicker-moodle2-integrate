@@ -118,11 +118,10 @@ class ClickerWebservicesException extends Exception {
 class iclicker_service {
 
     // CONSTANTS
-    const VERSION = '1.3'; // MUST match version.php
-    const BLOCK_VERSION = 2013012500; // MUST match version.php
+    const VERSION = '1.4'; // MUST match version.php
+    const BLOCK_VERSION = 2013041500; // MUST match version.php
 
-    // Moodle 2.0 = 2010112400; Moodle 2.1 = 2011070100; Moodle 2.2 = 2011120100; Moodle 2.3 = 2012062500
-    //const MOODLE_VERSION_22 = 2011120100; // compare to $CFG->version
+    // Moodle version - 2.0 = 2010112400; 2.1 = 2011070100; 2.2 = 2011120100; 2.3 = 2012062500; 2.4 = 2012120300
 
     const BLOCK_NAME = 'block_iclicker';
     const BLOCK_PATH = '/blocks/iclicker';
