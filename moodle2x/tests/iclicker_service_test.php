@@ -73,6 +73,8 @@ class iclicker_services_test extends advanced_testcase {
 
     var $studentid1 = 1;
     var $studentid2 = 2;
+    var $instructorid = 3;
+    var $instructorRole = 3;
 
     var $cat_name = 'az_category';
     var $item_name = 'az_gradeitem';
@@ -84,10 +86,14 @@ class iclicker_services_test extends advanced_testcase {
         $this->studentid1 = $student1->id;
         $student2 = $this->getDataGenerator()->create_user(array('email'=>'user2@iclicker.com', 'username'=>'user2'));
         $this->studentid2 = $student2->id;
+        $instructor = $this->getDataGenerator()->create_user(array('email'=>'inst1@iclicker.com', 'username'=>'inst1'));
+        $this->instructorid = $instructor->id;
         $category1 = $this->getDataGenerator()->create_category();
         $course1 = $this->getDataGenerator()->create_course(array('name'=>'iclicker course', 'category'=>$category1->id));
         $this->courseid = $course1->id;
         $this->getDataGenerator()->enrol_user($this->studentid1, $this->courseid);
+        $this->getDataGenerator()->enrol_user($this->studentid1, $this->courseid);
+        $this->getDataGenerator()->enrol_user($this->instructorid, $this->courseid, $this->instructorRole);
 
         iclicker_service::$test_mode = true;
     }
@@ -97,6 +103,8 @@ class iclicker_services_test extends advanced_testcase {
     }
 
     function test_arrays_subtract() {
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+
         // array_diff and array_diff_key are the same as a subtract when used with 2 arrays -- array_diff(A1, A2) => A1 - A2
         $a1 = array(1,2,3,4,5);
         $a2 = array(3,4,5,6,7);
@@ -146,28 +154,38 @@ class iclicker_services_test extends advanced_testcase {
     }
 
     function test_assert() {
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+
         $this->assertEquals("AZ", "AZ");
         $this->assertEquals(iclicker_service::$test_mode, true);
     }
 
     function test_require_user() {
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+        $this->setUser($this->studentid1);
+
         $user_id = iclicker_service::require_user();
-        $this->assertTrue($user_id);
+        $this->assertTrue(is_numeric($user_id));
+        $this->assertEquals($this->studentid1, $user_id);
     }
 
     function test_get_users() {
         global $DB;
         $this->resetAfterTest(true); // reset all changes automatically after this test
+        $this->setUser($this->studentid1);
 
         $user_id = iclicker_service::require_user();
-        $this->assertTrue($user_id);
+        $this->assertTrue(is_numeric($user_id));
+        $this->assertEquals($this->studentid1, $user_id);
         $results = iclicker_service::get_users(array($user_id));
-        $this->assertTrue($results);
+        $this->assertTrue(!empty($results));
         $this->assertTrue(count($results) == 1);
         $this->assertEquals($results[$user_id]->id, $user_id);
     }
 
     function test_validate_clickerid() {
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+
         $clicker_id = null;
         try {
             iclicker_service::validate_clicker_id($clicker_id);
@@ -218,6 +236,8 @@ class iclicker_services_test extends advanced_testcase {
     }
 
     function test_alternate_clickerid() {
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+
         $result = NULL;
 
         $result = iclicker_service::translate_clicker_id(null);
@@ -261,6 +281,9 @@ class iclicker_services_test extends advanced_testcase {
     }
 
     function test_make_clickerid_dates() {
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+        $this->setUser($this->studentid1);
+
         $user_id = iclicker_service::require_user();
         $reg1 = new stdClass;
         $reg1->clicker_id = '11111111';
@@ -289,6 +312,8 @@ class iclicker_services_test extends advanced_testcase {
     }
 
     function test_alphanumeric_gen() {
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+
         $rand = iclicker_service::randomAlphaNumeric(10);
         $this->assertNotNull($rand);
         $this->assertTrue(strlen($rand) == 10);
@@ -307,6 +332,8 @@ class iclicker_services_test extends advanced_testcase {
      * cc80462bfc0da7e614237d7cab4b7971b0e71e9f|1332470760
      */
     function test_sso_key_encoding() {
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+
         $key = "abcdef1234566890";
         iclicker_service::setSharedKey($key);
 
@@ -344,12 +371,13 @@ class iclicker_services_test extends advanced_testcase {
         $encodedKey = sha1($key . ":" . $timestamp) . '|' . $timestamp;
         $result = iclicker_service::verifyKey($encodedKey);
         $this->assertTrue($result);
-        echo "<div><b>SSO key:</b> key=$key, ts=$timestamp <br/> encoded=<input type='text' size='".(strlen($encodedKey)+2)."' value='$encodedKey'/></div>".PHP_EOL;
+        //echo "<div><b>SSO key:</b> key=$key, ts=$timestamp <br/> encoded=<input type='text' size='".(strlen($encodedKey)+2)."' value='$encodedKey'/></div>".PHP_EOL;
     }
 
     function test_user_keys() {
         global $DB;
         $this->resetAfterTest(true); // reset all changes automatically after this test
+        $this->setUser($this->instructorid);
 
         $user_id = iclicker_service::require_user();
         $this->assertNotNull($user_id);
@@ -403,6 +431,7 @@ class iclicker_services_test extends advanced_testcase {
     function test_registrations() {
         global $DB;
         $this->resetAfterTest(true); // reset all changes automatically after this test
+        $this->setUser($this->instructorid);
 
         $reg = null;
         $user_id = iclicker_service::require_user();
@@ -413,65 +442,66 @@ class iclicker_services_test extends advanced_testcase {
 
         // create registration
         $reg = iclicker_service::create_clicker_registration($this->clicker_id, $user_id);
-        $this->assertTrue($reg);
+        $this->assertTrue(!empty($reg));
         $this->assertEquals($this->clicker_id, $reg->clicker_id);
         $reg_id = $reg->id;
-        $this->assertTrue($reg_id);
-        $this->assertFalse($reg->from_national);
+        $this->assertTrue(!empty($reg_id));
+        $this->assertEquals(0, $reg->from_national);
 
         // get registration
         $reg1 = iclicker_service::get_registration_by_clicker_id($this->clicker_id, $user_id);
-        $this->assertTrue($reg1);
+        $this->assertTrue(!empty($reg1));
         $this->assertEquals($this->clicker_id, $reg1->clicker_id);
         $this->assertEquals($reg_id, $reg1->id);
 
         $reg2 = iclicker_service::get_registration_by_id($reg_id);
-        $this->assertTrue($reg2);
+        $this->assertTrue(!empty($reg2));
         $this->assertEquals($this->clicker_id, $reg2->clicker_id);
         $this->assertEquals($reg_id, $reg2->id);
 
         // save registration
         $reg->from_national = 1;
         $save_id = iclicker_service::save_registration($reg);
-        $this->assertTrue($save_id);
+        $this->assertTrue(!empty($save_id));
         $this->assertEquals($reg_id, $save_id);
 
         // check it changed
         $reg3 = iclicker_service::get_registration_by_id($reg_id);
-        $this->assertTrue($reg3);
+        $this->assertTrue(!empty($reg3));
         $this->assertEquals($reg_id, $reg3->id);
-        $this->assertTrue($reg3->from_national);
+        $this->assertEquals(1, $reg3->from_national);
         // too fast $this->assertNotEquals($reg->timemodified, $reg3->timemodified);
 
         // make registration inactive
-        $this->assertTrue($reg->activated);
+        $this->assertEquals(1, $reg->activated);
         $reg4 = iclicker_service::set_registration_active($reg_id, false);
-        $this->assertTrue($reg4);
-        $this->assertFalse($reg4->activated);
+        $this->assertTrue(!empty($reg4));
+        $this->assertEquals(0, $reg4->activated);
         // check it changed
         $reg5 = iclicker_service::get_registration_by_id($reg_id);
-        $this->assertTrue($reg5);
+        $this->assertTrue(!empty($reg5));
         $this->assertEquals($reg_id, $reg5->id);
         $this->assertEquals($reg4->id, $reg5->id);
-        $this->assertFalse($reg5->activated);
+        $this->assertEquals(0, $reg5->activated);
 
         // get all registration
         $results = iclicker_service::get_registrations_by_user($user_id);
-        $this->assertTrue($results);
+        $this->assertTrue(!empty($results));
         $this->assertEquals(1, count($results));
 
         $results = iclicker_service::get_registrations_by_user($user_id, true);
         $this->assertNotNull($results);
-        $this->assertFalse($results);
+        $this->assertFalse(!empty($results));
         $this->assertEquals(0, count($results));
 
+        $this->setAdminUser(); // MUST be admin
         $results = iclicker_service::get_all_registrations();
-        $this->assertTrue($results);
+        $this->assertTrue(!empty($results));
         $this->assertTrue(count($results) >= 1);
 
         // remove registration
         $result = iclicker_service::remove_registration($reg_id);
-        $this->assertTrue($result);
+        $this->assertTrue(!empty($results));
 
         // try get registration
         $reg = iclicker_service::get_registration_by_id($reg_id);
@@ -479,6 +509,8 @@ class iclicker_services_test extends advanced_testcase {
     }
 
     function test_encode_decode() {
+        $this->resetAfterTest(true); // reset all changes automatically after this test
+
         $xml = <<<XML
 <Register>
   <S DisplayName="DisplayName-azeckoski-123456" FirstName="First" LastName="Lastazeckoski-123456"
@@ -573,6 +605,7 @@ XML;
     function test_save_grades() {
         global $DB;
         $this->resetAfterTest(true); // reset all changes automatically after this test
+        $this->setUser($this->studentid1);
 
         $test_item_name1 = 'testing-iclicker-item1';
 

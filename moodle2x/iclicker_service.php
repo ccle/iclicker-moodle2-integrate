@@ -777,7 +777,9 @@ class iclicker_service {
             } else {
                 self::$block_iclicker_sso_enabled = true;
                 self::$block_iclicker_sso_shared_key = $sharedKey;
-                error_log("i>clicker plugin SSO handling enabled by shared key, note that this will disable normal username/password handling");
+                if (!self::$test_mode) {
+                    error_log("i>clicker plugin SSO handling enabled by shared key, note that this will disable normal username/password handling");
+                }
             }
         }
     }
