@@ -88,9 +88,9 @@ class iclicker_gradebook_test extends advanced_testcase {
 
     protected function setUp() {
         // setup the test data (users and course)
-        $student1 = $this->getDataGenerator()->create_user(array('email'=>'user1@iclicker.com', 'username'=>'user1'));
+        $student1 = $this->getDataGenerator()->create_user(array('email'=>'guser1@iclicker.com', 'username'=>'guser1'));
         $this->studentid1 = $student1->id;
-        $student2 = $this->getDataGenerator()->create_user(array('email'=>'user2@iclicker.com', 'username'=>'user2'));
+        $student2 = $this->getDataGenerator()->create_user(array('email'=>'guser2@iclicker.com', 'username'=>'guser2'));
         $this->studentid2 = $student2->id;
         $category1 = $this->getDataGenerator()->create_category();
         $course1 = $this->getDataGenerator()->create_course(array('name'=>'iclicker course', 'category'=>$category1->id));

@@ -66,7 +66,7 @@ To run the tests, please see the instructions here:
 http://docs.moodle.org/dev/PHPUnit
 
 To run only the tests for the iclicker plugin:
-vendor/bin/phpunit phpunit --group block_iclicker
+vendor/bin/phpunit --group block_iclicker
 
 
 Configuration

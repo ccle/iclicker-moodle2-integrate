@@ -82,14 +82,14 @@ class iclicker_services_test extends advanced_testcase {
 
     public function setUp() {
         // setup the test data (users and course)
-        $student1 = $this->getDataGenerator()->create_user(array('email'=>'user1@iclicker.com', 'username'=>'user1'));
+        $student1 = $this->getDataGenerator()->create_user(array('email'=>'user1@iclicker.com', 'username'=>'iuser1'));
         $this->studentid1 = $student1->id;
-        $student2 = $this->getDataGenerator()->create_user(array('email'=>'user2@iclicker.com', 'username'=>'user2'));
+        $student2 = $this->getDataGenerator()->create_user(array('email'=>'user2@iclicker.com', 'username'=>'iuser2'));
         $this->studentid2 = $student2->id;
-        $instructor = $this->getDataGenerator()->create_user(array('email'=>'inst1@iclicker.com', 'username'=>'inst1'));
+        $instructor = $this->getDataGenerator()->create_user(array('email'=>'inst1@iclicker.com', 'username'=>'iinst1'));
         $this->instructorid = $instructor->id;
         $category1 = $this->getDataGenerator()->create_category();
-        $course1 = $this->getDataGenerator()->create_course(array('name'=>'iclicker course', 'category'=>$category1->id));
+        $course1 = $this->getDataGenerator()->create_course(array('shortname'=>'ic_1', 'fullname'=>'iclicker course', 'summary'=>'iclicker course desc', 'category'=>$category1->id));
         $this->courseid = $course1->id;
         $this->getDataGenerator()->enrol_user($this->studentid1, $this->courseid);
         $this->getDataGenerator()->enrol_user($this->studentid1, $this->courseid);
@@ -605,10 +605,9 @@ XML;
     function test_save_grades() {
         global $DB;
         $this->resetAfterTest(true); // reset all changes automatically after this test
-        $this->setUser($this->studentid1);
+        $this->setUser($this->instructorid);
 
         $test_item_name1 = 'testing-iclicker-item1';
-
         $test_item_name2 = 'testing-iclicker-item2';
         $test_item_name3 = 'testing-iclicker-item3';
 

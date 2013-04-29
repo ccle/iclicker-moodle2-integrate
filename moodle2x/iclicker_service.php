@@ -1618,8 +1618,8 @@ class iclicker_service {
         } else {
             $context = get_context_instance(CONTEXT_COURSE, $course->id); // deprecated
         }
-        if (!has_capability('moodle/grade:manage', $context, $user_id)) {
-            throw new InvalidArgumentException("User ($user_id) cannot manage the gradebook in course $course->name (id: $course->id), content=$context");
+        if (!$context || !has_capability('moodle/grade:manage', $context, $user_id)) {
+            throw new InvalidArgumentException("User ($user_id) cannot manage the gradebook in course id=$course->id (".var_export($course, true)."), context: ".var_export($context, true));
         }
 
         // attempt to get the default iclicker category first
