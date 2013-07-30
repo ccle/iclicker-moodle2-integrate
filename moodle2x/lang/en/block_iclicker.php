@@ -168,6 +168,8 @@ $string['config_shared_key'] = 'SSO Shared Key';
 $string['config_shared_key_desc'] = 'Enable Single Sign On support by setting a shared key (must be at least 10 chars long). Set this to blank to disable SSO support';
 $string['config_enable_shortname'] = 'Enable Course Short Name';
 $string['config_enable_shortname_desc'] = 'Enable use of the course short name as part of the displayed course name in the iclicker app';
+$string['config_max_courses'] = 'Control Maximum Courses Fetched';
+$string['config_max_courses_desc'] = 'Controls the maximum number of courses that are fetched for an instructor by the iclicker app.  WARNING: Increasing this value may result in performance issues';
 
 // Main block
 $string['leaveblanktohide'] = 'leave blank to hide';

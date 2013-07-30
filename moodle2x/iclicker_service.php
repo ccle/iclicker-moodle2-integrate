@@ -118,8 +118,8 @@ class ClickerWebservicesException extends Exception {
 class iclicker_service {
 
     // CONSTANTS
-    const VERSION = '1.5'; // MUST match version.php
-    const BLOCK_VERSION = 2013051500; // MUST match version.php
+    const VERSION = '1.6'; // MUST match version.php
+    const BLOCK_VERSION = 2013072900; // MUST match version.php
 
     // Moodle version - 2.0 = 2010112400; 2.1 = 2011070100; 2.2 = 2011120100; 2.3 = 2012062500; 2.4 = 2012120300
 
@@ -163,6 +163,7 @@ class iclicker_service {
     public static $webservices_URL = self::NATIONAL_WS_URL;
     public static $webservices_username = self::NATIONAL_WS_AUTH_USERNAME;
     public static $webservices_password = self::NATIONAL_WS_AUTH_PASSWORD;
+    public static $max_courses_to_fetch = 100;
     public static $disable_sync_with_national = false;
     public static $block_iclicker_sso_enabled = false;
     public static $block_iclicker_sso_shared_key = null;
@@ -1328,7 +1329,7 @@ class iclicker_service {
     /**
      * Get the listing of all courses for an instructor
      * @param int $user_id [optional] the unique user id for an instructor (default to current user)
-     * @return array the list of courses (maybe be emtpy array)
+     * @return array the list of courses (maybe be empty array)
      */
     public static function get_courses_for_instructor($user_id = null) {
         // make this only get courses for this instructor
@@ -1337,6 +1338,7 @@ class iclicker_service {
             $user_id = self::get_current_user_id();
         }
         if (class_exists('context_course')) {
+            // NOTE: there is no maximum limit to this so self::$max_courses_to_fetch has no effect
             // for Moodle 2.2+
             $results = enrol_get_users_courses($user_id, true, array('fullname','summary','timecreated','visible'), null);
             foreach ($results as $id=>$course) {
@@ -1354,7 +1356,7 @@ class iclicker_service {
                 $accessinfo = get_user_access_sitewide($user_id);
             }
             $results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false,
-                'c.sortorder', array('fullname','summary','timecreated','visible'), 50);
+                'c.sortorder', array('fullname','summary','timecreated','visible'), self::$max_courses_to_fetch);
         }
         if (!$results) {
             $results = array();
@@ -2603,6 +2605,7 @@ $block_iclicker_webservices_url = get_config($block_name, 'block_iclicker_webser
 $block_iclicker_webservices_username = get_config($block_name, 'block_iclicker_webservices_username');
 $block_iclicker_webservices_password = get_config($block_name, 'block_iclicker_webservices_password');
 $block_iclicker_disable_sync = get_config($block_name, 'block_iclicker_disable_sync');
+$block_iclicker_max_courses_to_fetch = get_config($block_name, 'block_iclicker_max_courses_fetched');
 $block_iclicker_sso_shared_key = get_config($block_name, 'block_iclicker_sso_shared_key');
 $block_iclicker_enable_shortname = get_config($block_name, 'block_iclicker_enable_shortname');
 
@@ -2633,6 +2636,11 @@ if (!empty($block_iclicker_webservices_password)) {
 }
 if (!empty($block_iclicker_disable_sync)) {
     iclicker_service::$disable_sync_with_national = true;
+}
+if (!empty($block_iclicker_max_courses_to_fetch)
+        && is_numeric($block_iclicker_max_courses_to_fetch)
+        && $block_iclicker_max_courses_to_fetch > 0) {
+    iclicker_service::$max_courses_to_fetch = intval($block_iclicker_max_courses_to_fetch);
 }
 if (!empty($block_iclicker_sso_shared_key)) {
     iclicker_service::$block_iclicker_sso_enabled = true;

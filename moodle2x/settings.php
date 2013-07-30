@@ -63,6 +63,15 @@ if ($ADMIN->fulltree) {
             0
         )
     );
+    $settings->add(
+        new admin_setting_configtext(iclicker_service::BLOCK_NAME.'/block_iclicker_max_courses_fetched',
+            get_string('config_max_courses', $block_name),
+            get_string('config_max_courses_desc', $block_name),
+            '100',
+            PARAM_INT,
+            5
+        )
+    );
     // WS
 /** webservices code is currently disabled ********************
     $settings->add(
