@@ -1274,7 +1274,9 @@ class iclicker_service {
         } else {
             $context = get_context_instance(CONTEXT_COURSE, $course_id); // deprecated
         }
-        $results = get_users_by_capability($context, 'moodle/grade:view', 'u.id, u.username, u.firstname, u.lastname, u.email', 'u.lastname', '', '', '', '', false);
+        //$results = get_users_by_capability($context, 'moodle/grade:view', 'u.id, u.username, u.firstname, u.lastname, u.email', 'u.lastname', '', '', '', '', false);
+        // switched to ensure we only get students - patch from switlikm@gmail.com
+        $results = get_enrolled_users($context, 'moodle/grade:view', 0, 'u.id, u.username, u.firstname, u.lastname, u.email', 'u.lastname');
         if (isset($results) && !empty($results)) {
             // get the registrations related to these students
             $user_regs = array();
