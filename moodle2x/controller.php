@@ -421,7 +421,7 @@ class iclicker_controller {
 
             } else {
                 // invalid POST
-                error('WARN: Invalid POST: does not contain remove, purge, or activate, nothing to do');
+                error_log('WARN: Invalid POST: does not contain remove, purge, or activate, nothing to do');
             }
         }
 

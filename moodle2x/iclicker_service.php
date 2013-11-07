@@ -1239,14 +1239,14 @@ class iclicker_service {
             $clicker_registration->timecreated = time();
             if (!$reg_id = $DB->insert_record(self::REG_TABLENAME, $clicker_registration, true)) {
                 print_object($clicker_registration);
-                error(self::msg('inserterror'));
+                print_error('inserterror', self::BLOCK_NAME);
             }
         } else {
             // updating existing item
             if (self::can_write_registration($clicker_registration, $current_user_id)) {
                 if (!$DB->update_record(self::REG_TABLENAME, $clicker_registration)) {
                     print_object($clicker_registration);
-                    error(self::msg('updateerror'));
+                    print_error('updateerror', self::BLOCK_NAME);
                 }
                 $reg_id = $clicker_registration->id;
             } else {
