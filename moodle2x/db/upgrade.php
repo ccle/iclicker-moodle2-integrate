@@ -51,12 +51,19 @@ function xmldb_block_iclicker_upgrade($oldversion = 0) {
         upgrade_block_savepoint(true, 2012041700, 'iclicker');
     }
     if ($oldversion < 2014020900) {
-        // Changing precision of field clicker_id on table iclicker_registration to (12)
+        // Changing precision of field clicker_id on table iclicker_registration to (16)
         $table = new xmldb_table('iclicker_registration');
-        $field = new xmldb_field('clicker_id', XMLDB_TYPE_CHAR, '12', null, XMLDB_NOTNULL, null, null, 'timemodified');
+
+        $index = new xmldb_index('clicker_id_index', XMLDB_INDEX_NOTUNIQUE, array('clicker_id'));
+        if ($dbman->index_exists($table, $index)) {
+            $dbman->drop_index($table, $index);
+        }
 
         // Launch change of precision for field clicker_id
+        $field = new xmldb_field('clicker_id', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, null, 'timemodified');
         $dbman->change_field_precision($table, $field);
+
+        $dbman->add_index($table, $index);
 
         upgrade_block_savepoint(true, 2014020900, 'iclicker');
     }
