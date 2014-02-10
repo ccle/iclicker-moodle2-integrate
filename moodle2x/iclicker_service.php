@@ -22,8 +22,11 @@
 require_once (dirname(__FILE__).'/../../config.php');
 global $CFG,$USER,$COURSE;
 // link in external libraries
+/** @noinspection PhpIncludeInspection */
 require_once ($CFG->libdir.'/gradelib.php');
+/** @noinspection PhpIncludeInspection */
 require_once ($CFG->libdir.'/dmllib.php');
+/** @noinspection PhpIncludeInspection */
 require_once ($CFG->libdir.'/accesslib.php');
 
 /**
@@ -2018,10 +2021,12 @@ format.
 
     /**
      * This will handle the initial parsing of an XML string into a DOM document
-     * @param string $xml the xml string
+     *
+*@param string $xml the xml string
      * @return DOMDocument object
      * @throws InvalidArgumentException if the xml is not set
      * @throws DOMException if the xml fails to parse
+     * @throws Exception on xml load failure
      */
     private static function parse_xml_to_doc($xml) {
         if (! $xml) {
@@ -2046,6 +2051,7 @@ format.
      * @param string $xml the xml
      * @return stdClass the clicker_registration object
      * @throws InvalidArgumentException if the xml cannot be parsed
+     * @throws Exception
      */
     public static function decode_registration($xml) {
         /*
@@ -2094,6 +2100,7 @@ format.
      * @param string $xml the xml
      * @return stdClass the gradebook object
      * @throws InvalidArgumentException if the xml cannot be parsed or the data is invalid
+     * @throws Exception
      */
     public static function decode_gradebook($xml) {
         /*
@@ -2197,6 +2204,7 @@ format.
      * @param string $xml the xml from an iclicker webservice
      * @return array (clicker_registration object)
      * @throws InvalidArgumentException if the xml cannot be parsed or the data is invalid
+     * @throws Exception
      */
     public static function decode_ws_xml($xml) {
         /*
@@ -2323,6 +2331,7 @@ format.
      * Syncs all current clickers with the national services clickers for this site
      *
      * @return array results array('errors') with errors if any occurred, false if national ws is disabled
+     * @throws Exception
      */
     public static function ws_sync_all() {
         $results = array('errors' => array(), 'runner' => false);

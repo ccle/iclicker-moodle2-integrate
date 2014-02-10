@@ -20,7 +20,8 @@
 /* $Id: upgrade.php 107 2012-04-06 01:48:53Z azeckoski@gmail.com $ */
 
 global $CFG;
-require_once ($CFG->dirroot.'/blocks/iclicker/iclicker_service.php');
+/** @noinspection PhpIncludeInspection */
+require_once($CFG->dirroot . '/blocks/iclicker/iclicker_service.php');
 
 // This file keeps track of upgrades to this block
 function xmldb_block_iclicker_upgrade($oldversion = 0) {
