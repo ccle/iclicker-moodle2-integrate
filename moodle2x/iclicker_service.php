@@ -38,7 +38,9 @@ require_once ($CFG->libdir.'/accesslib.php');
  * @return bool
  * @throws DOMException
  */
-function iclicker_HandleXmlError($errno, $errstr, $errfile, $errline) {
+function iclicker_HandleXmlError($errno, $errstr, /** @noinspection PhpUnusedParameterInspection */
+                                 $errfile, /** @noinspection PhpUnusedParameterInspection */
+                                 $errline) {
     if ($errno==E_WARNING && (substr_count($errstr,"DOMDocument::loadXML()")>0)) {
         throw new DOMException($errstr);
     } else {
@@ -122,7 +124,7 @@ class iclicker_service {
 
     // CONSTANTS
     const VERSION = '1.7'; // MUST match version.php
-    const BLOCK_VERSION = 2013102900; // MUST match version.php
+    const BLOCK_VERSION = 2014020900; // MUST match version.php
 
     // Moodle version - 2.0 = 2010112400; 2.1 = 2011070100; 2.2 = 2011120100; 2.3 = 2012062500; 2.4 = 2012120300
 
@@ -567,6 +569,7 @@ class iclicker_service {
             } else {
                 $accessinfo = get_user_access_sitewide($user_id);
             }
+            /** @noinspection PhpDeprecationInspection */
             $results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false, 'c.sortorder', array(), 1);
             $result = count($results) > 0;
         }
@@ -586,32 +589,38 @@ class iclicker_service {
         if (!isset($clicker_id) || strlen($clicker_id) == 0) {
             throw new ClickerIdInvalidException("empty or null clicker_id", ClickerIdInvalidException::F_EMPTY, $clicker_id);
         }
-        if (strlen($clicker_id) > 8) {
-            throw new ClickerIdInvalidException("clicker_id is an invalid length", ClickerIdInvalidException::F_LENGTH, $clicker_id);
-        }
-        $clicker_id = strtoupper(trim($clicker_id));
-        if (!preg_match('/^[0-9A-F]+$/', $clicker_id)) {
-            throw new ClickerIdInvalidException("clicker_id can only contains A-F and 0-9", ClickerIdInvalidException::F_CHARS, $clicker_id);
-        }
-        while (strlen($clicker_id) < 8) {
-            $clicker_id = "0".$clicker_id;
-        }
-        if (self::CLICKERID_SAMPLE == $clicker_id) {
-            throw new ClickerIdInvalidException("clicker_id cannot match the sample ID", ClickerIdInvalidException::F_SAMPLE, $clicker_id);
-        }
-        $idArray = array(
-        );
-        $idArray[0] = substr($clicker_id, 0, 2);
-        $idArray[1] = substr($clicker_id, 2, 2);
-        $idArray[2] = substr($clicker_id, 4, 2);
-        $idArray[3] = substr($clicker_id, 6, 2);
-        $checksum = 0;
-        foreach ($idArray as $piece) {
-            $hex = hexdec($piece);
-            $checksum = $checksum ^ $hex;
-        }
-        if ($checksum != 0) {
-            throw new ClickerIdInvalidException("clicker_id checksum (" . $checksum . ") validation failed", ClickerIdInvalidException::F_CHECKSUM, $clicker_id);
+        if (strlen($clicker_id) == 12) {
+            // support for new clicker go ids
+            // TODO
+
+        } else {
+            // support for old clicker device ids
+            if (strlen($clicker_id) > 8) {
+                throw new ClickerIdInvalidException("clicker_id is an invalid length", ClickerIdInvalidException::F_LENGTH, $clicker_id);
+            }
+            $clicker_id = strtoupper(trim($clicker_id));
+            if (!preg_match('/^[0-9A-F]+$/', $clicker_id)) {
+                throw new ClickerIdInvalidException("clicker_id can only contains A-F and 0-9", ClickerIdInvalidException::F_CHARS, $clicker_id);
+            }
+            while (strlen($clicker_id) < 8) {
+                $clicker_id = "0" . $clicker_id;
+            }
+            if (self::CLICKERID_SAMPLE == $clicker_id) {
+                throw new ClickerIdInvalidException("clicker_id cannot match the sample ID", ClickerIdInvalidException::F_SAMPLE, $clicker_id);
+            }
+            $idArray = array();
+            $idArray[0] = substr($clicker_id, 0, 2);
+            $idArray[1] = substr($clicker_id, 2, 2);
+            $idArray[2] = substr($clicker_id, 4, 2);
+            $idArray[3] = substr($clicker_id, 6, 2);
+            $checksum = 0;
+            foreach ($idArray as $piece) {
+                $hex = hexdec($piece);
+                $checksum = $checksum ^ $hex;
+            }
+            if ($checksum != 0) {
+                throw new ClickerIdInvalidException("clicker_id checksum (" . $checksum . ") validation failed", ClickerIdInvalidException::F_CHECKSUM, $clicker_id);
+            }
         }
         return $clicker_id;
     }
@@ -1275,6 +1284,7 @@ class iclicker_service {
             // for Moodle 2.2+
             $context = context_course::instance($course_id);
         } else {
+            /** @noinspection PhpDeprecationInspection */
             $context = get_context_instance(CONTEXT_COURSE, $course_id); // deprecated
         }
         //$results = get_users_by_capability($context, 'moodle/grade:view', 'u.id, u.username, u.firstname, u.lastname, u.email', 'u.lastname', '', '', '', '', false);
@@ -1360,6 +1370,7 @@ class iclicker_service {
             } else {
                 $accessinfo = get_user_access_sitewide($user_id);
             }
+            /** @noinspection PhpDeprecationInspection */
             $results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false,
                 'c.sortorder', array('fullname','summary','timecreated','visible'), self::$max_courses_to_fetch);
         }
@@ -1548,6 +1559,7 @@ class iclicker_service {
                         $grade_tosave->finalgrade = $score->score;
                         $grade_tosave->rawgrade = $score->score;
                         $grade_tosave->timemodified = time();
+                        /** @noinspection PhpUndefinedMethodInspection */
                         $grade_tosave->update(self::GRADE_LOCATION_STR);
                     } else {
                         // new score
@@ -1562,7 +1574,8 @@ class iclicker_service {
                         $grade_tosave->timemodified = $now;
                         $grade_tosave->insert(self::GRADE_LOCATION_STR);
                     }
-                    $grade_tosave->user_id = $score->user_id; // TODO invalid field?
+                    /** @noinspection PhpUndefinedFieldInspection */
+                    $grade_tosave->user_id = $score->user_id;
                     $processed_scores[] = $grade_tosave;
                 } catch (Exception $e) {
                     // General errors, caused while performing updates (Tag: generalerrors)
@@ -1571,6 +1584,7 @@ class iclicker_service {
                     $errors_count++;
                 }
             }
+            /** @noinspection PhpUndefinedFieldInspection */
             $grade_item_tosave->scores = $processed_scores;
             // put the errors in the item
             if ($errors_count > 0) {
@@ -1580,6 +1594,7 @@ class iclicker_service {
                         $errors[$score->user_id] = $score->error;
                     }
                 }
+                /** @noinspection PhpUndefinedFieldInspection */
                 $grade_item_tosave->errors = $errors;
             }
             $grade_item_tosave->force_regrading();
@@ -1623,6 +1638,7 @@ class iclicker_service {
             // for Moodle 2.2+
             $context = context_course::instance($course->id);
         } else {
+            /** @noinspection PhpDeprecationInspection */
             $context = get_context_instance(CONTEXT_COURSE, $course->id); // deprecated
         }
         if (!$context || !has_capability('moodle/grade:manage', $context, $user_id)) {
@@ -2069,10 +2085,12 @@ format.
             }
             $user_node = $users->item(0);
             if ($user_node->nodeType == XML_ELEMENT_NODE) {
+                /** @noinspection PhpUndefinedMethodInspection */
                 $clicker_id = $user_node->getAttribute("ClickerID");
                 if (! $clicker_id) {
                     throw new InvalidArgumentException("Invalid XML for registration, no id in the ClickerID element (Cannot process)");
                 }
+                /** @noinspection PhpUndefinedMethodInspection */
                 $user_id = $user_node->getAttribute("StudentID"); // this is the username
                 if (! $user_id) {
                     throw new InvalidArgumentException("Invalid XML for registration, no id in the StudentID element (Cannot process)");
@@ -2084,6 +2102,7 @@ format.
                 }
                 $clicker_reg->user_username = $user->username;
                 $clicker_reg->owner_id = $user->id;
+                /** @noinspection PhpUndefinedMethodInspection */
                 $clicker_reg->user_display_name = $user_node->getAttribute("DisplayName");
             } else {
                 throw new InvalidArgumentException("Invalid user node in XML: $user_node");
@@ -2130,11 +2149,13 @@ format.
             $gradebook->course_id = $course_id;
             foreach ($users as $user_node) {
                 if ($user_node->nodeType == XML_ELEMENT_NODE) {
+                    /** @noinspection PhpUndefinedMethodInspection */
                     $user_type = $user_node->getAttribute("usertype");
                     if (strcasecmp('s', $user_type) != 0) {
                         continue; // skip this one
                     }
                     // valid user to process
+                    /** @noinspection PhpUndefinedMethodInspection */
                     $user_id = $user_node->getAttribute("id"); // this is the user id (not username)
                     if (! $user_id) {
                         error_log("WARN: Gradebook import failure for course ($course_id), Invalid XML for user, no id in the user element (skipping this entry): ".var_export($user_node));
@@ -2148,8 +2169,10 @@ format.
                     $user_id = $user->id;
                     */
                     $gradebook->students[$user_id] = $user_id;
+                    /** @noinspection PhpUndefinedMethodInspection */
                     $lineitems = $user_node->getElementsByTagName("lineitem");
                     foreach ($lineitems as $lineitem) {
+                        /** @noinspection PhpUndefinedMethodInspection */
                         $li_name = $lineitem->getAttribute("name");
                         if (! $li_name) {
                             throw new InvalidArgumentException("Invalid XML, no name in the lineitem xml element: $lineitem");
@@ -2157,8 +2180,10 @@ format.
                         $grade_item = null;
                         if (! isset($gradebook->items[$li_name])) {
                             // only add lineitem from the first item
+                            /** @noinspection PhpUndefinedMethodInspection */
                             $li_type = $lineitem->getAttribute("type");
                             $li_pp = 100.0;
+                            /** @noinspection PhpUndefinedMethodInspection */
                             $lipptext = $lineitem->getAttribute("pointspossible");
                             if (isset($lipptext) && $lipptext != '') {
                                 if (! is_numeric($lipptext)) {
@@ -2176,6 +2201,7 @@ format.
                         } else {
                             $grade_item = $gradebook->items[$li_name];
                         }
+                        /** @noinspection PhpUndefinedMethodInspection */
                         $li_score = $lineitem->getAttribute("score");
                         if (! isset($li_score) || '' == $li_score) {
                             error_log("WARN: Gradebook import failure for course ($course_id) and user ($user_id), Invalid score ($li_score), skipping this entry: ".var_export($lineitem));
@@ -2221,6 +2247,7 @@ format.
             if ($users->length > 0) {
                 foreach ($users as $user_node) {
                     if ($user_node->nodeType == XML_ELEMENT_NODE) {
+                        /** @noinspection PhpUndefinedMethodInspection */
                         $student_id = $user_node->getAttribute("StudentID"); // this is the user eid
                         if (! isset($student_id) || '' == $student_id) {
                             throw new InvalidArgumentException("Invalid XML for registration, no id in the StudentID element (Cannot process)");
@@ -2232,15 +2259,18 @@ format.
                             continue;
                         }
                         $user_id = $user->id;
+                        /** @noinspection PhpUndefinedMethodInspection */
                         $reg_nodes = $user_node->getElementsByTagName("Registration");
                         if ($reg_nodes->length > 0) {
                             foreach ($reg_nodes as $reg_node) {
                                 if ($reg_node->nodeType == XML_ELEMENT_NODE) {
+                                    /** @noinspection PhpUndefinedMethodInspection */
                                     $clicker_id = $reg_node->getAttribute("ClickerId");
                                     if (! $clicker_id) {
                                         //log.warn("Missing clickerId in webservices registration XML line, skipping this registration for user: $user_id");
                                         continue;
                                     }
+                                    /** @noinspection PhpUndefinedMethodInspection */
                                     $when_added = $reg_node->getAttribute("WhenAdded"); // "yyyy-MM-dd"
                                     $date_created = time();
                                     if (isset($when_added)) {
@@ -2249,6 +2279,7 @@ format.
                                             $date_created = $time;
                                         }
                                     }
+                                    /** @noinspection PhpUndefinedMethodInspection */
                                     $enabled = $reg_node->getAttribute("Enabled");
                                     $activated = true;
                                     if (isset($enabled)) {
@@ -2374,8 +2405,10 @@ format.
                         $national_reg = array_key_exists($key, $national_regs_both) ? $national_regs_both[$key] : null;
                         if ($national_reg != null) {
                             // compare these for diffs
+                            /** @noinspection PhpUndefinedFieldInspection */
                             if ($local_reg->activated != $national_reg->activated) {
                                 try {
+                                    /** @noinspection PhpUndefinedFieldInspection */
                                     $national_reg->activated = $local_reg->activated;
                                     self::ws_save_clicker($national_reg);
                                 } catch (Exception $e) {
@@ -2399,7 +2432,7 @@ format.
                             self::save_registration($reg);
                         } catch (Exception $e) {
                             // this is ok, we will continue anyway
-                            $msg = "Failed during local push all sync while syncing i>clicker registration ($reg): $e";
+                            $msg = "Failed during local push all sync while syncing i>clicker registration ({$national_reg->clicker_id}): $e";
                             $results['errors'][] = $key;
                             self::send_notifications($msg, $e);
                             //log.warn(msg);
@@ -2416,7 +2449,7 @@ format.
                             self::ws_save_clicker($reg);
                         } catch (Exception $e) {
                             // this is ok, we will continue anyway
-                            $msg = "Failed during national push all sync while syncing i>clicker registration ($reg): $e";
+                            $msg = "Failed during national push all sync while syncing i>clicker registration ({$local_reg->clicker_id}): $e";
                             $results['errors'][] = $key;
                             self::send_notifications($msg, $e);
                             //log.warn(msg);
@@ -2507,15 +2540,15 @@ format.
      * @throws ClickerWebservicesException if the call fails
      */
     private static function ws_soap_call($ws_operation, $ws_arguments) {
-        try {
-            $client = new SoapClient(self::$webservices_URL, array(
-                    'login' => self::$webservices_username,
-                    'password' => self::$webservices_password,
-                    'encoding' => 'UTF-8',
-                    'trace' => 1,
-                    'exceptions' => 1,
+        $client = new SoapClient(self::$webservices_URL, array(
+                        'login' => self::$webservices_username,
+                        'password' => self::$webservices_password,
+                        'encoding' => 'UTF-8',
+                        'trace' => 1,
+                        'exceptions' => 1,
                 )
-            );
+        );
+        try {
             $result = $client->__soapCall($ws_operation, $ws_arguments);
             if ($result instanceof SoapFault) {
                 $msg = 'SoapFault occured: '.var_export($result,true);

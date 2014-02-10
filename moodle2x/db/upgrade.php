@@ -32,9 +32,9 @@ function xmldb_block_iclicker_upgrade($oldversion = 0) {
         $table = new xmldb_table('iclicker_user_key');
 
         // Adding fields to table iclicker_user_key
-        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
-        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '20', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0');
-        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '20', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '20', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '20', null, XMLDB_NOTNULL, null, '0');
         $table->add_field('user_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
         $table->add_field('user_key', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
 
@@ -49,6 +49,16 @@ function xmldb_block_iclicker_upgrade($oldversion = 0) {
 
         // iclicker savepoint reached
         upgrade_block_savepoint(true, 2012041700, 'iclicker');
+    }
+    if ($oldversion < 2014020900) {
+        // Changing precision of field clicker_id on table iclicker_registration to (12)
+        $table = new xmldb_table('iclicker_registration');
+        $field = new xmldb_field('clicker_id', XMLDB_TYPE_CHAR, '12', null, XMLDB_NOTNULL, null, null, 'timemodified');
+
+        // Launch change of precision for field clicker_id
+        $dbman->change_field_precision($table, $field);
+
+        upgrade_block_savepoint(true, 2014020900, 'iclicker');
     }
     return true;
 }
