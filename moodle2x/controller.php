@@ -437,7 +437,7 @@ class iclicker_controller {
         $this->results['sso_enabled'] = iclicker_service::$block_iclicker_sso_enabled;
         $this->results['sso_shared_key'] = iclicker_service::$block_iclicker_sso_shared_key;
         $this->results['domainURL'] = iclicker_service::$domain_URL;
-        $this->results['adminEmailAddress'] = $CFG->block_iclicker_notify_emails;
+        $this->results['adminEmailAddress'] = empty($CFG->block_iclicker_notify_emails) ? '' : $CFG->block_iclicker_notify_emails;
 
         // put error data into page
         $this->results['recent_failures'] = iclicker_service::get_failures();
@@ -485,7 +485,7 @@ class iclicker_controller {
     }
 
     public function processAdminCSV() {
-        global $CFG;
+        //global $CFG;
         // admin check
         if (!iclicker_service::is_admin()) {
             throw new ClickerSecurityException("Current user is not an admin and cannot make CSV of all regs");
