@@ -79,9 +79,13 @@ echo $OUTPUT->header();
                     <input name="search" value="<?php echo $search ?>" class="clicker_id_filter" type="text" size="8" maxlength="12" />
 
                     <span><?php echo iclicker_service::msg('admin.search.start') ?></span>
-                    <input name="start_date" value="<?php echo $startDate ?>" class="datepicker startdate date_picker_marker" type="text" size="8" maxlength="12" title="yyyy-mm-dd" />
+                    <input name="start_date" value="<?php echo $startDateText ?>"
+                           class="datepicker startdate date_picker_marker" type="text" size="8" maxlength="12"
+                           title="yyyy-mm-dd"/>
                     <span><?php echo iclicker_service::msg('admin.search.end') ?></span>
-                    <input name="end_date" value="<?php echo $endDate ?>" class="datepicker enddate date_picker_marker" type="text" size="8" maxlength="12" title="yyyy-mm-dd" />
+                    <input name="end_date" value="<?php echo $endDateText ?>"
+                           class="datepicker enddate date_picker_marker" type="text" size="8" maxlength="12"
+                           title="yyyy-mm-dd"/>
 
                     <input type="submit" class="small" value="<?php echo iclicker_service::msg('admin.search.search') ?>" alt="<?php echo iclicker_service::msg('admin.search.search') ?>" />
                     <input name="purge" id="purgeFormSubmit" type="submit" class="small" value="<?php echo iclicker_service::msg('admin.search.purge') ?>" alt="<?php echo iclicker_service::msg('admin.search.purge') ?>" />

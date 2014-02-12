@@ -428,7 +428,9 @@ class iclicker_controller {
         // put search and sort data into the page
         $this->results['search'] = $search;
         $this->results['startDate'] = $startDate;
+        $this->results['startDateText'] = $startDateText;
         $this->results['endDate'] = $endDate;
+        $this->results['endDateText'] = $endDateText;
         $this->results['page'] = $pageNum;
         $this->results['perPage'] = $perPageNum;
         $this->results['sort'] = $sort;
