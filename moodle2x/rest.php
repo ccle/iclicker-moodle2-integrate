@@ -156,6 +156,7 @@ if ($valid) {
     $parts = explode('/', $cntlr->path);
     $pathSeg0 = count($parts) > 0 ? $parts[0] : NULL;
     $pathSeg1 = count($parts) > 1 ? $parts[1] : NULL;
+    $pathSeg2 = count($parts) > 2 ? $parts[2] : null;
     try {
         if ($pathSeg0 == 'verifykey') {
             // SPECIAL case handling (no authn handling)
@@ -170,6 +171,17 @@ if ($valid) {
             $cntlr->setContentType("text/plain");
             $cntlr->sendResponse($output);
             return;
+
+        } else if ('verify_go_ws' == $pathSeg0) {
+            // TODO comment this out
+            // test the go webservices
+            $clicker_id = $pathSeg1;
+            $last_name = $pathSeg2;
+            $output = iclicker_service::ws_go_verify_clickerid($clicker_id, $last_name);
+            $cntlr->setContentType("text/plain");
+            $cntlr->sendResponse($output);
+            return;
+
         } else {
             // NORMAL case handling
             // handle the request authn if needed

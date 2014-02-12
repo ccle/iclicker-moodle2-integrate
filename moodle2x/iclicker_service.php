@@ -61,6 +61,7 @@ class ClickerIdInvalidException extends Exception {
     const F_EMPTY = 'EMPTY';
     const F_LENGTH = 'LENGTH';
     const F_CHARS = 'CHARS';
+    const GO_CHARS = 'GO_CHARS';
     const F_CHECKSUM = 'CHECKSUM';
     const F_SAMPLE = 'SAMPLE';
     public $type = "UNKNOWN";
@@ -589,20 +590,29 @@ class iclicker_service {
         if (!isset($clicker_id) || strlen($clicker_id) == 0) {
             throw new ClickerIdInvalidException("empty or null clicker_id", ClickerIdInvalidException::F_EMPTY, $clicker_id);
         }
-        if (strlen($clicker_id) == 12) {
+        $clickerIdLength = strlen($clicker_id);
+        if ($clickerIdLength > 12) {
+            throw new ClickerIdInvalidException("clicker_id is an invalid length", ClickerIdInvalidException::F_LENGTH, $clicker_id);
+        } else if ($clickerIdLength > 8) {
             // support for new clicker go ids
+            $clicker_id = strtoupper(trim($clicker_id));
+            if (!preg_match('/^[0-9A-Z]+$/', $clicker_id)) {
+                throw new ClickerIdInvalidException("clicker_id can only contains A-Z and 0-9", ClickerIdInvalidException::GO_CHARS, $clicker_id);
+            }
+            while (strlen($clicker_id) < 12) {
+                // front pad with zeros
+                $clicker_id = "0" . $clicker_id;
+            }
             // TODO
 
         } else {
-            // support for old clicker device ids
-            if (strlen($clicker_id) > 8) {
-                throw new ClickerIdInvalidException("clicker_id is an invalid length", ClickerIdInvalidException::F_LENGTH, $clicker_id);
-            }
+            // length < 8, support for old clicker device ids
             $clicker_id = strtoupper(trim($clicker_id));
             if (!preg_match('/^[0-9A-F]+$/', $clicker_id)) {
                 throw new ClickerIdInvalidException("clicker_id can only contains A-F and 0-9", ClickerIdInvalidException::F_CHARS, $clicker_id);
             }
             while (strlen($clicker_id) < 8) {
+                // front pad with zeros
                 $clicker_id = "0" . $clicker_id;
             }
             if (self::CLICKERID_SAMPLE == $clicker_id) {
@@ -2309,6 +2319,84 @@ format.
             throw new Exception("XML DOM parsing failure: $e :: $xml");
         }
         return $regs;
+    }
+
+
+    // GO WEBSERVICES
+
+    /**
+     * Register a new clicker with the GO webservices server,
+     * Returns true on success
+     * TODO http://localhost/moodle24/blocks/iclicker/rest.php/verify_go_ws/A9410B691E97/ahmed
+     *
+     * @static
+     * @param string $clickerGOId 12 char clicker go id
+     * @param string $studentLastName
+     * @return bool|string true if the clicker id is valid and linked to the provided user lastname,
+     *      false if the clicker id is not valid,
+     *      string with the actual lastname this clicker is registered to if the name does not match
+     */
+    public static function ws_go_verify_clickerid($clickerGOId, $studentLastName) {
+        $verified = false;
+        $ws_operation = 'GetRegisteredForClickerMAC';
+        $arguments = array(
+                'pVarClickerID' => base64_encode($clickerGOId),
+        );
+        //echo 'args: '.var_export(array($ws_operation, $arguments),true).''.PHP_EOL;
+        $result = self::ws_go_soap_call($ws_operation, $arguments);
+        echo 'result: ' . var_export($result, true) . '' . PHP_EOL;
+        $xml = $result['GetRegisteredForClickerMACResult'];
+        if (empty($xml)) {
+            // no registration matches
+        } else {
+            // <StudentEnrol><S StudentId="testgoqait99" FirstName="testgoqait99" LastName="testgoqait99" MiddleName="" WebClickerId="C570BF0C2154"/></StudentEnrol>
+            $xml = base64_decode($xml);
+            echo 'XML: ' . var_export($xml, true) . '' . PHP_EOL;
+            $enrollment = simplexml_load_string($xml);
+            echo 'enrollment: ' . var_export($enrollment, true) . '' . PHP_EOL;
+            // TODO compare the lastname
+            $lastName = $enrollment->S->attributes()->LastName;
+            $verified = strcasecmp($studentLastName, $lastName) == 0;
+            echo "verified: $studentLastName == $lastName: " . var_export($verified, true) . '' . PHP_EOL;
+        }
+        return $verified;
+    }
+
+    /**
+     * Handles the soap call to the GO webservices server
+     * TODO
+     *
+     * @static
+     * @param string $ws_operation the operation to perform (e.g. 'StudentsReport')
+     * @param array $ws_arguments the SOAP arguments to send
+     * @return array the results of the SOAP call
+     * @throws ClickerWebservicesException if the call fails
+     */
+    private static function ws_go_soap_call($ws_operation, $ws_arguments) {
+        $client = new SoapClient('https://www.iclickergo.com/webservice/webvoting.asmx?WSDL', array(
+                        'soap_version' => SOAP_1_2,
+                        'encoding' => 'UTF-8',
+                        'trace' => 1,
+                        'exceptions' => 1,
+                )
+        );
+        try {
+            $result = $client->__soapCall($ws_operation, array('parameters' => $ws_arguments));
+            if ($result instanceof SoapFault) {
+                $msg = 'SoapFault occured: ' . var_export($result, true);
+                error_log($msg);
+                throw new Exception($msg);
+            }
+        } catch (Exception $e) {
+            $msg = 'Failure in the i>clicker GO webservices: ' . var_export($client, true);
+            error_log($msg);
+            throw new ClickerWebservicesException($msg);
+        }
+        // convert result to an array
+        $result = json_decode(json_encode($result), true);
+        //echo '<pre>SOAP: '.var_export($client,true).'</pre>'.PHP_EOL;
+        unset($client);
+        return $result;
     }
 
 
