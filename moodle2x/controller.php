@@ -466,7 +466,7 @@ class iclicker_controller {
                     $pagerHTML .= '<span class="paging_current paging_item">'.$marker.'</span>'."\n";
                 } else {
                     // make it a link
-                    $pagingURL = $adminPath.'&page='.$currentPage.'&sort='.$sort;
+                    $pagingURL = $adminPath.'?page='.$currentPage.'&sort='.$sort;
                     if (isset($search)) {
                         $pagingURL .= '&search='.urlencode($search);
                     }

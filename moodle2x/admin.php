@@ -44,12 +44,9 @@ $PAGE->navbar->add(iclicker_service::msg('admin.title'));
 $PAGE->set_focuscontrol('');
 $PAGE->set_cacheable(false);
 // NOTE: switching over to locally hosted JS and CSS files
-$PAGE->requires->js(iclicker_service::BLOCK_PATH.'/js/jquery-1.5.2.min.js', true);
-$PAGE->requires->js(iclicker_service::BLOCK_PATH.'/js/jquery-ui-1.8.min.js', true);
-//$PAGE->requires->js( new moodle_url('https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js'), true);
-//$PAGE->requires->js( new moodle_url('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js'), true);
-$PAGE->requires->css(iclicker_service::BLOCK_PATH.'/css/jquery-ui-1.8.css');
-//$PAGE->requires->css( new moodle_url('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css'), true);
+$PAGE->requires->js(iclicker_service::BLOCK_PATH.'/js/jquery-1.11.0.min.js', true);
+$PAGE->requires->js(iclicker_service::BLOCK_PATH.'/js/jquery-ui-1.10.4.custom.min.js', true);
+$PAGE->requires->css(iclicker_service::BLOCK_PATH.'/css/jquery-ui-1.10.4.custom.min.css');
 $PAGE->requires->css(iclicker_service::BLOCK_PATH.'/css/iclicker.css');
 $PAGE->set_url(iclicker_service::BLOCK_PATH.'/admin.php');
 echo $OUTPUT->header();
@@ -104,13 +101,13 @@ echo $OUTPUT->header();
                     <?php echo iclicker_service::msg('admin.username.header') ?>
                 </th>
                 <th width="20%" scope="col" height="25" valign="middle" bgcolor="#e8e8e8" class="style5">
-                    <a href="<?php echo $adminPath.'&sort=clicker_id&page='.$page ?>"><?php echo iclicker_service::msg('reg.remote.id.header') ?></a>
+                    <a href="<?php echo $adminPath.'?sort=clicker_id&page='.$page ?>"><?php echo iclicker_service::msg('reg.remote.id.header') ?></a>
                 </th>
                 <th width="20%" scope="col" height="25" valign="middle" bgcolor="#e8e8e8" class="style5">
-                    <a href="<?php echo $adminPath.'&sort=timecreated&page='.$page ?>"><?php echo iclicker_service::msg('reg.registered.date.header') ?></a>
+                    <a href="<?php echo $adminPath.'?sort=timecreated&page='.$page ?>"><?php echo iclicker_service::msg('reg.registered.date.header') ?></a>
                 </th>
                 <th width="30%" scope="col" height="25" valign="middle" bgcolor="#e8e8e8" class="style5" nowrap="nowrap">
-                    <a href="<?php echo $adminPath.'&sort=activated&page='.$page ?>"><?php echo iclicker_service::msg('admin.controls.header') ?></a>
+                    <a href="<?php echo $adminPath.'?sort=activated&page='.$page ?>"><?php echo iclicker_service::msg('admin.controls.header') ?></a>
                 </th>
             </tr>
             </thead>
