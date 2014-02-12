@@ -252,14 +252,14 @@
 }
 
 /*jQUERY OVERRIDES*/
-.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default,
-.ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active, .ui-widget-content {
+#accordion .ui-state-default, #accordion .ui-widget-content .ui-state-default, #accordion .ui-widget-header .ui-state-default,
+#accordion .ui-state-active, #accordion .ui-widget-content .ui-state-active, #accordion .ui-widget-header .ui-state-active, #accordion .ui-widget-content {
     border: 0 !important;
     background: none !important;
 }
 
-.ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited,
-.ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited {
+#accordion .ui-state-active a, #accordion .ui-state-active a:link, #accordion .ui-state-active a:visited,
+#accordion .ui-state-default a, #accordion .ui-state-default a:link, #accordion .ui-state-default a:visited {
     text-decoration: underline;
     color: #0F197B;
 }
