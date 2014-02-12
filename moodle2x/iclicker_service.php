@@ -2327,44 +2327,50 @@ format.
     /**
      * Register a new clicker with the GO webservices server,
      * Returns true on success
-     * TODO http://localhost/moodle24/blocks/iclicker/rest.php/verify_go_ws/A9410B691E97/ahmed
      *
      * @static
      * @param string $clickerGOId 12 char clicker go id
      * @param string $studentLastName
-     * @return bool|string true if the clicker id is valid and linked to the provided user lastname,
-     *      false if the clicker id is not valid,
-     *      string with the actual lastname this clicker is registered to if the name does not match
+     * @return bool true if the clicker id is valid and linked to the provided user lastname,
+     *      false if the clicker id is not valid
+     * @throws ClickerRegisteredException if the lastname does not match
+     * @throws InvalidArgumentException if the params are not set
      */
     public static function ws_go_verify_clickerid($clickerGOId, $studentLastName) {
         $verified = false;
+        if (!isset($clickerGOId) || !isset($studentLastName)) {
+            throw new InvalidArgumentException("clickerGOId=$clickerGOId and studentLastName=$studentLastName must both be set");
+        }
         $ws_operation = 'GetRegisteredForClickerMAC';
         $arguments = array(
                 'pVarClickerID' => base64_encode($clickerGOId),
         );
         //echo 'args: '.var_export(array($ws_operation, $arguments),true).''.PHP_EOL;
         $result = self::ws_go_soap_call($ws_operation, $arguments);
-        echo 'result: ' . var_export($result, true) . '' . PHP_EOL;
+        //echo 'result: ' . var_export($result, true) . '' . PHP_EOL;
         $xml = $result['GetRegisteredForClickerMACResult'];
         if (empty($xml)) {
             // no registration matches
         } else {
             // <StudentEnrol><S StudentId="testgoqait99" FirstName="testgoqait99" LastName="testgoqait99" MiddleName="" WebClickerId="C570BF0C2154"/></StudentEnrol>
             $xml = base64_decode($xml);
-            echo 'XML: ' . var_export($xml, true) . '' . PHP_EOL;
-            $enrollment = simplexml_load_string($xml);
-            echo 'enrollment: ' . var_export($enrollment, true) . '' . PHP_EOL;
-            // TODO compare the lastname
-            $lastName = $enrollment->S->attributes()->LastName;
-            $verified = strcasecmp($studentLastName, $lastName) == 0;
-            echo "verified: $studentLastName == $lastName: " . var_export($verified, true) . '' . PHP_EOL;
+            //echo 'XML: ' . var_export($xml, true) . '' . PHP_EOL;
+            $enrollment = @simplexml_load_string($xml);
+            //echo 'enrollment: ' . var_export($enrollment, true) . '' . PHP_EOL;
+            if ($enrollment && isset($enrollment->S) && isset($enrollment->S->attributes()->LastName)) {
+                $lastName = $enrollment->S->attributes()->LastName;
+                $verified = strcasecmp($studentLastName, $lastName) == 0;
+                //echo "verified: $studentLastName == $lastName: " . var_export($verified, true) . '' . PHP_EOL;
+                if (!$verified) {
+                    throw new ClickerRegisteredException("Lastname ($studentLastName) does not match with registered lastname ($lastName) for clicker ($clickerGOId)", $studentLastName, $clickerGOId, $lastName);
+                }
+            }
         }
         return $verified;
     }
 
     /**
      * Handles the soap call to the GO webservices server
-     * TODO
      *
      * @static
      * @param string $ws_operation the operation to perform (e.g. 'StudentsReport')
