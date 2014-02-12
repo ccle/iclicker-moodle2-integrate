@@ -44,7 +44,6 @@ $PAGE->set_focuscontrol('');
 $PAGE->set_cacheable(false);
 // NOTE: switching over to locally hosted JS and CSS files
 $PAGE->requires->js(iclicker_service::BLOCK_PATH.'/js/jquery-1.11.0.min.js', true);
-$PAGE->requires->js( new moodle_url('http://code.jquery.com/jquery-migrate-1.2.1.js'), true); // TODO remove this
 $PAGE->requires->js(iclicker_service::BLOCK_PATH.'/js/jquery-ui-1.10.4.custom.min.js', true);
 $PAGE->requires->css(iclicker_service::BLOCK_PATH.'/css/jquery-ui-1.10.4.custom.min.css');
 $PAGE->requires->css(iclicker_service::BLOCK_PATH.'/css/iclicker.css');
@@ -178,7 +177,9 @@ echo $OUTPUT->header();
             alwaysOpen: false,
             animated: false,
             autoHeight: false,
-            collapsible: true });
+            collapsible: true,
+            heightStyle: "content"
+        });
     });
 </script>
 
