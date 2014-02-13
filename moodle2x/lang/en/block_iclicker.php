@@ -37,14 +37,13 @@ $string['app.remove']       = 'Remove';
 $string['app.allowed']      = 'Allowed';
 
 // for the main registration page
-$string['reg.title'] = 'Remote Registration';
-$string['reg.remote.instructions'] = 'Enter the 8-character remote ID below to register your i>clicker remote. You may register multiple remotes or remove a remote at any time.';
-$string['reg.remote.id.enter'] = 'Enter Your i>clicker Remote ID';
-$string['reg.remote.id.header'] = 'i>clicker Remote ID';
+$string['reg.title'] = 'Student Registration';
+$string['reg.remote.instructions'] = 'Enter your 8-character i>clicker Remote ID or 12-character i>clicker GO ID below. You may register multiple remotes/i>clicker GO accounts or remove a registration entry at any time.';
+$string['reg.remote.id.enter'] = 'Your i>clicker Remote/GO ID';
+$string['reg.remote.id.header'] = 'i>clicker ID';
 $string['reg.registered.date.header'] = 'Registered';
 $string['reg.register.clickers'] = 'Register additional clickers';
 $string['reg.registration.table.summary'] = 'Lists the registered clickers for the current user; clickerId, date registered, and controls';
-$string['reg.iclicker.image.alt'] = 'I-clicker Sample Remote showing the back of the remote with the location of the ID';
 $string['reg.register.submit.alt'] = 'Register the clickerId';
 $string['reg.disable.submit.alt'] = 'Disable this registration';
 $string['reg.remove.submit.alt'] = 'Remove this registration';
@@ -64,23 +63,33 @@ $string['reg.activate.success.false'] = 'Disabled clicker ({$a}) registration';
 $string['reg.remove.success'] = 'Removed clicker ({$a}) registration';
 $string['reg.activate.registrationId.empty'] = 'The registrationId cannot be empty, internal error in the form';
 // FAQs
-$string['reg.remote.faqs'] = 'Remote Registration FAQs';
-$string['reg.remote.faq1.question'] = 'Where do I find my remote ID?';
-$string['reg.remote.faq1.answer'] = 'Your i>clicker remote ID is printed on a sticker located on the back of your remote. The ID is the 8-character code below the barcode. Newer i>clicker 1 remotes and all i>clicker 2 remotes also have a secondary location for the remote ID (see illustration).';
+$string['reg.remote.faqs'] = 'Student Registration FAQs';
+$string['reg.remote.faq1.question'] = 'Where do I find my remote ID?'; // image
+$string['reg.remote.faq1.answer'] = 'Your i>clicker remote ID is printed on a sticker located on the back of your remote. The ID is the 8-character code below the barcode. Newer original i>clicker remotes have a secondary ID location behind the batter compartment and i>clicker 2 remotes display the ID upon power up. The remote ID will only contain letters A-F and numbers 0-9.';
+$string['reg.remote.faq1.image.alt'] = 'I-clicker Sample Remote showing the back of the remote with the location of the ID';
 $string['reg.remote.faq2.question'] = 'What do I do if I cannot read the ID printed on my remote?';
-$string['reg.remote.faq2.answer'] = 'If your remote ID has rubbed off or is illegible and you do not have a secondary ID location on your remote, go to the iclicker.com website for troubleshooting instructions.';
+$string['reg.remote.faq2.answer'] = 'If your remote ID has rubbed off or is illegible and you do not have a secondary ID location on your remote, go to support.iclicker.com for troubleshooting instructions.';
 $string['reg.remote.faq3.question'] = 'Why do I get an "Invalid Remote ID" error when I try to register?';
 $string['reg.remote.faq3.answer'] = 'Your remote ID is an 8-character code that should only contain letters A-F and numbers 0-9. Make sure you are not entering the letter "O" for the number "0" or the letter "I" for the number "1."';
-$string['reg.remote.faq4.question'] = 'I registered my remote, why is my registration still not appearing in class?';
-$string['reg.remote.faq4.answer'] = 'Your instructor needs to synchronize their gradebook to get the latest registration information. It may be that your instructor has not done this since you registered.';
-$string['reg.remote.faq5.question'] = 'I\'ve lost/broken my remote. Can I register another remote?';
-$string['reg.remote.faq5.answer'] = 'Yes, you may register multiple remotes for any reason. i>clicker will link both remotes to your name so that you receive credit for votes you made with either remote.';
-$string['reg.remote.faq6.question'] = 'I use my i>clicker remote for multiple classes. Do I need to register my remote for each class?';
-$string['reg.remote.faq6.answer'] = 'No, you only need to register once. Once registered, your information will automatically apply to all of the classes in which you are enrolled and using i>clicker.';
-$string['reg.remote.faq7.question'] = 'What do I do if I accidentally registered the wrong remote ID?';
-$string['reg.remote.faq7.answer'] = 'If you register a wrong remote ID, simply remove the incorrect entry and register again with the correct information.';
-$string['reg.remote.faq8.question'] = 'I\'ve already used my i>clicker remote in class before registering it. Will I still receive credit for my votes?';
-$string['reg.remote.faq8.answer'] = 'Yes, your votes still count. Your in-class votes were recorded by i>clicker and once you register your remote, these votes will be associated with you the next time your instructor syncs their gradebook or roster.';
+$string['reg.remote.faq4.question'] = 'I\'ve lost/broken my remote. Can I register another remote?';
+$string['reg.remote.faq4.answer'] = 'Yes, you may register multiple remotes for any reason. i>clicker will link both remotes to your name so that you receive credit for votes you made with either remote.';
+// GO FAQS
+$string['reg.remote.faq5.question'] = 'Where do I find my i>clicker GO ID?'; // image
+$string['reg.remote.faq5.answer'] = 'Your i>clicker GO ID is assigned to you when you create an i>clicker GO account. To view your ID, log into your account at www.iclickergo.com or www.iclickergo.ca and navigate to the Account page. Your i>clicker GO ID is the 12-character code listed by your username and password information. Copy and paste your i>clicker GO ID into the registration page to minimize entry errors.';
+$string['reg.remote.faq5.image.alt'] = 'I-clicker Sample screenshot of the GO interface';
+$string['reg.remote.faq6.question'] = 'Why do I get a message that my i>clicker GO ID is assigned to a student with a different name when I try to register my i>clicker GO account?';
+$string['reg.remote.faq6.answer'] = 'Your i>clicker GO ID is a 12-character code found on your i>clicker GO Account page. Make sure that you are accurately transferring the code when registering your account. As an additional check, the student name in the i>clicker GO account must match the name in your LMS profile. Verify that your i>clicker GO account information matches your LMS information.';
+$string['reg.remote.faq7.question'] = 'If I register i>clicker GO in my LMS, does that automatically mean I can use it in all my classes?';
+$string['reg.remote.faq7.answer'] = 'No, registering i>clicker GO does not automatically mean you will be able to use it in your classes. Your instructor must allow i>clicker GO and register his or her course to communicate with i>clicker GO servers. Also, some campuses or classrooms may not have the infrastructure to support i>clicker GO use. Check with your instructor to be sure that i>clicker GO is allowed and supported for your course.';
+// General FAQS
+$string['reg.remote.faq8.question'] = 'I registered my remote/i>clicker GO account, why is my registration still not appearing in class?';
+$string['reg.remote.faq8.answer'] = 'Your instructor needs to synchronize his or her gradebook to get the latest registration information. It may be that your instructor has not done this since you registered. Your in-class votes were recorded by i>clicker and, once you register your remote/i>clicker GO account, these votes will be associated with you the next time your instructor syncs the course gradebook or roster.';
+$string['reg.remote.faq9.question'] = 'I use my remote/i>clicker GO account for multiple classes. Do I need to register my information for each class?';
+$string['reg.remote.faq9.answer'] = 'No, you only need to register in one location. Once registered, your information will automatically apply to all of the classes in which you are enrolled and using i>clicker.';
+$string['reg.remote.faq10.question'] = 'What do I do if I accidentally registered the wrong remote/i>clicker GO ID?';
+$string['reg.remote.faq10.answer'] = 'If you register a wrong i>clicker ID, simply remove the incorrect entry and register again with the correct information.';
+$string['reg.remote.faq11.question'] = 'I\'ve already used my remote/i>clicker GO account in class before registering it in my LMS. Will I still receive credit for my votes?';
+$string['reg.remote.faq11.answer'] = 'Yes, your votes still count. Your in-class votes were recorded by i>clicker and, once you register your remote/i>clicker GO account, these votes will be associated with you the next time your instructor syncs the course gradebook or roster.';
 
 // for the instructor page
 $string['inst.title'] = 'Instructor Report';
@@ -111,7 +120,7 @@ $string['inst.sso.disabled'] = 'SSO is not enabled, you cannot access or generat
 // for the admin page
 $string['admin.title'] = 'Admin Control';
 $string['admin.paging'] = 'Paging:';
-$string['admin.search.id'] = 'Remote ID:';
+$string['admin.search.id'] = 'Remote/GO ID:';
 $string['admin.search.start'] = 'Start:';
 $string['admin.search.end'] = 'End:';
 $string['admin.search.search'] = 'Search';

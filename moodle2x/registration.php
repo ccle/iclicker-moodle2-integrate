@@ -114,13 +114,14 @@ echo $OUTPUT->header();
             </div>
 
             <div class="right_column">
-                <h3><?php echo iclicker_service::msg('reg.remote.faqs') ?></h3>
+                <h2><?php echo iclicker_service::msg('reg.remote.faqs') ?></h2>
 
                 <div id="accordion">
                     <h3><a href="#"><?php echo iclicker_service::msg('reg.remote.faq1.question') ?></a></h3>
                     <div>
                         <?php echo iclicker_service::msg('reg.remote.faq1.answer') ?>
-                        <img src="img/clickers.png" alt="<?php echo iclicker_service::msg('reg.iclicker.image.alt') ?>" />
+                        <img src="img/clickers.png"
+                             alt="<?php echo iclicker_service::msg('reg.remote.faq1.image.alt') ?>"/>
                     </div>
 
                     <h3><a href="#"><?php echo iclicker_service::msg('reg.remote.faq2.question') ?></a></h3>
@@ -133,7 +134,12 @@ echo $OUTPUT->header();
                     <div><?php echo iclicker_service::msg('reg.remote.faq4.answer') ?></div>
 
                     <h3><a href="#"><?php echo iclicker_service::msg('reg.remote.faq5.question') ?></a></h3>
-                    <div><?php echo iclicker_service::msg('reg.remote.faq5.answer') ?></div>
+
+                    <div>
+                        <?php echo iclicker_service::msg('reg.remote.faq5.answer') ?>
+                        <img src="img/iclicker_go.png"
+                             alt="<?php echo iclicker_service::msg('reg.remote.faq5.image.alt') ?>"/>
+                    </div>
 
                     <h3><a href="#"><?php echo iclicker_service::msg('reg.remote.faq6.question') ?></a></h3>
                     <div><?php echo iclicker_service::msg('reg.remote.faq6.answer') ?></div>
@@ -144,6 +150,17 @@ echo $OUTPUT->header();
                     <h3><a href="#"><?php echo iclicker_service::msg('reg.remote.faq8.question') ?></a></h3>
                     <div><?php echo iclicker_service::msg('reg.remote.faq8.answer') ?></div>
 
+                    <h3><a href="#"><?php echo iclicker_service::msg('reg.remote.faq9.question') ?></a></h3>
+
+                    <div><?php echo iclicker_service::msg('reg.remote.faq9.answer') ?></div>
+
+                    <h3><a href="#"><?php echo iclicker_service::msg('reg.remote.faq10.question') ?></a></h3>
+
+                    <div><?php echo iclicker_service::msg('reg.remote.faq10.answer') ?></div>
+
+                    <h3><a href="#"><?php echo iclicker_service::msg('reg.remote.faq11.question') ?></a></h3>
+
+                    <div><?php echo iclicker_service::msg('reg.remote.faq11.answer') ?></div>
                 </div>
 
             </div>
