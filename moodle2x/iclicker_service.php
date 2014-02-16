@@ -64,7 +64,10 @@ class ClickerIdInvalidException extends Exception {
     const GO_CHARS = 'GO_CHARS';
     const F_CHECKSUM = 'CHECKSUM';
     const F_SAMPLE = 'SAMPLE';
-    public $type = "UNKNOWN";
+    const GO_NO_USER = 'GO_NO_USER';
+    const GO_LASTNAME = 'GO_LASTNAME';
+    const GO_NO_MATCH = 'GO_NO_MATCH';
+    public $type = 'UNKNOWN';
     public $clicker_id = null;
     /**
      * @param string $message the error message
@@ -580,33 +583,38 @@ class iclicker_service {
     const CLICKERID_SAMPLE = '11A4C277';
     /**
      * Cleans up and validates a given clicker_id
+     *
+     * @static
      * @param string $clicker_id a remote clicker ID
+     * @param string $userLastName [OPTIONAL] the last name of the user, only applies for GO IDs
      * @return string the cleaned up and valid clicker ID
      * @throws ClickerIdInvalidException if the id is invalid for some reason,
      * the exception will indicate the type of validation failure
-     * @static
      */
-    public static function validate_clicker_id($clicker_id) {
+    public static function validate_clicker_id($clicker_id, $userLastName = null) {
+        global $USER;
         if (!isset($clicker_id) || strlen($clicker_id) == 0) {
             throw new ClickerIdInvalidException("empty or null clicker_id", ClickerIdInvalidException::F_EMPTY, $clicker_id);
         }
         $clickerIdLength = strlen($clicker_id);
-        if ($clickerIdLength > 12) {
-            throw new ClickerIdInvalidException("clicker_id is an invalid length", ClickerIdInvalidException::F_LENGTH, $clicker_id);
-        } else if ($clickerIdLength > 8) {
+        if ($clickerIdLength == 12) {
             // support for new clicker go ids
             $clicker_id = strtoupper(trim($clicker_id));
             if (!preg_match('/^[0-9A-Z]+$/', $clicker_id)) {
                 throw new ClickerIdInvalidException("clicker_id can only contains A-Z and 0-9", ClickerIdInvalidException::GO_CHARS, $clicker_id);
             }
-            while (strlen($clicker_id) < 12) {
-                // front pad with zeros
-                $clicker_id = "0" . $clicker_id;
+            if (!isset($userLastName) || empty($userLastName)) {
+                // fetch last name from current user
+                if (self::get_current_user_id() === false) {
+                    $userLastName = $USER->lastname;
+                } else {
+                    throw new ClickerIdInvalidException("No current user available, cannot validate GO clickerid: $clicker_id", ClickerIdInvalidException::GO_NO_USER, $clicker_id);
+                }
             }
-            // TODO
+            self::ws_go_verify_clickerid($clicker_id, $userLastName); // ClickerIdInvalidException exception if invalid (or WS exception)
 
-        } else {
-            // length < 8, support for old clicker device ids
+        } else if ($clickerIdLength <= 8) {
+            // length <= 8, support for old clicker device ids
             $clicker_id = strtoupper(trim($clicker_id));
             if (!preg_match('/^[0-9A-F]+$/', $clicker_id)) {
                 throw new ClickerIdInvalidException("clicker_id can only contains A-F and 0-9", ClickerIdInvalidException::F_CHARS, $clicker_id);
@@ -631,6 +639,10 @@ class iclicker_service {
             if ($checksum != 0) {
                 throw new ClickerIdInvalidException("clicker_id checksum (" . $checksum . ") validation failed", ClickerIdInvalidException::F_CHECKSUM, $clicker_id);
             }
+
+        } else {
+            // totally invalid clicker length
+            throw new ClickerIdInvalidException("clicker_id is an invalid length ($clickerIdLength), must be 8 or 12 chars", ClickerIdInvalidException::F_LENGTH, $clicker_id);
         }
         return $clicker_id;
     }
@@ -2325,19 +2337,18 @@ format.
     // GO WEBSERVICES
 
     /**
-     * Register a new clicker with the GO webservices server,
-     * Returns true on success
+     * Verify a clicker id with the GO webservices server,
+     * Returns true on success OR ClickerIdInvalidException on failure
      *
      * @static
      * @param string $clickerGOId 12 char clicker go id
      * @param string $studentLastName
-     * @return bool true if the clicker id is valid and linked to the provided user lastname,
-     *      false if the clicker id is not valid
-     * @throws ClickerRegisteredException if the lastname does not match
+     * @return bool true if the clicker id is valid and linked to the provided user lastname (or throws exception)
+     * @throws ClickerIdInvalidException (GO_LASTNAME) if the lastname does not match OR GO_NO_MATCH if it does not match
+     * @throws ClickerWebservicesException if the format does not match or a failure occurs
      * @throws InvalidArgumentException if the params are not set
      */
     public static function ws_go_verify_clickerid($clickerGOId, $studentLastName) {
-        $verified = false;
         if (!isset($clickerGOId) || !isset($studentLastName)) {
             throw new InvalidArgumentException("clickerGOId=$clickerGOId and studentLastName=$studentLastName must both be set");
         }
@@ -2351,6 +2362,7 @@ format.
         $xml = $result['GetRegisteredForClickerMACResult'];
         if (empty($xml)) {
             // no registration matches
+            throw new ClickerIdInvalidException("No match found on the server for clicker ($clickerGOId)", ClickerIdInvalidException::GO_NO_MATCH, $clickerGOId);
         } else {
             // <StudentEnrol><S StudentId="testgoqait99" FirstName="testgoqait99" LastName="testgoqait99" MiddleName="" WebClickerId="C570BF0C2154"/></StudentEnrol>
             $xml = base64_decode($xml);
@@ -2362,8 +2374,14 @@ format.
                 $verified = strcasecmp($studentLastName, $lastName) == 0;
                 //echo "verified: $studentLastName == $lastName: " . var_export($verified, true) . '' . PHP_EOL;
                 if (!$verified) {
-                    throw new ClickerRegisteredException("Lastname ($studentLastName) does not match with registered lastname ($lastName) for clicker ($clickerGOId)", $studentLastName, $clickerGOId, $lastName);
+                    // should we log a warning here? -AZ
+                    throw new ClickerIdInvalidException("Lastname ($studentLastName) does not match with registered lastname ($lastName) for clicker ($clickerGOId)", ClickerIdInvalidException::GO_LASTNAME, $clickerGOId);
                 }
+            } else {
+                // structure did not properly match
+                $msg = "i>clicker Webservices return structure does not match expected format (please contact support): $xml";
+                error_log($msg);
+                throw new ClickerWebservicesException($msg);
             }
         }
         return $verified;
@@ -2389,7 +2407,7 @@ format.
         try {
             $result = $client->__soapCall($ws_operation, array('parameters' => $ws_arguments));
             if ($result instanceof SoapFault) {
-                $msg = 'SoapFault occured: ' . var_export($result, true);
+                $msg = 'SoapFault occurred: ' . var_export($result, true);
                 error_log($msg);
                 throw new Exception($msg);
             }
