@@ -172,8 +172,8 @@ if ($valid) {
             $cntlr->sendResponse($output);
             return;
 
+            /*
         } else if ('verify_go_ws' == $pathSeg0) {
-            // TODO comment this out
             // test the go webservices
             $clicker_id = $pathSeg1;
             $last_name = $pathSeg2;
@@ -181,6 +181,7 @@ if ($valid) {
             $cntlr->setContentType("text/plain");
             $cntlr->sendResponse($output);
             return;
+            */
 
         } else {
             // NORMAL case handling
