@@ -67,7 +67,8 @@ echo $OUTPUT->header();
                     <input type="hidden" name="register" value="true" />
                     <p class="highlighted">
                         <strong><?php echo iclicker_service::msg('reg.remote.id.enter') ?>:</strong>
-                        <input name="clickerId" type="text" size="10" maxlength="8" value="<?php echo $clicker_id_val ?>" />
+                        <input name="clickerId" type="text" size="12" maxlength="12"
+                               value="<?php echo $clicker_id_val ?>"/>
                         <input type="submit" class="registerButton" value="<?php echo iclicker_service::msg('app.register') ?>"
                                alt="<?php echo iclicker_service::msg('reg.register.submit.alt') ?>" />
                     </p>

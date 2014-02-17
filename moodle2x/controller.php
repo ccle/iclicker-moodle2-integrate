@@ -208,16 +208,16 @@ class iclicker_controller {
                             $this->addMessage(self::KEY_BELOW, 'reg.registered.below.duplicate.noshare', $clicker_id);
                         }
                     } catch (ClickerWebservicesException $e) {
-                        $this->addMessage(self::KEY_ERROR, 'reg.registered.clickerId.failure', $clicker_id);
+                        $this->addMessage(self::KEY_ERROR, 'reg.registered.clickerId.failure', $clicker_id, $e);
                     } catch (ClickerIdInvalidException $e) {
                         if (ClickerIdInvalidException::F_EMPTY == $e->type) {
                             $this->addMessage(self::KEY_ERROR, 'reg.registered.clickerId.empty');
                         } else if (ClickerIdInvalidException::F_LENGTH == $e->type) {
                             $this->addMessage(self::KEY_ERROR, 'reg.registered.clickerId.wrong.length');
                         } else if (ClickerIdInvalidException::GO_NO_USER == $e->type) {
-                            $this->addMessage(self::KEY_ERROR, 'reg.registered.clickerId.failure', $clicker_id);
+                            $this->addMessage(self::KEY_ERROR, 'reg.registered.clickerId.failure', $clicker_id, $e);
                         } else if (ClickerIdInvalidException::GO_LASTNAME == $e->type) {
-                            $this->addMessage(self::KEY_ERROR, 'reg.registered.clickerId.go.wrong.lastname');
+                            $this->addMessage(self::KEY_ERROR, 'reg.registered.clickerId.go.wrong.lastname', $e);
                         } else if (ClickerIdInvalidException::GO_NO_MATCH == $e->type) {
                             $this->addMessage(self::KEY_ERROR, 'reg.registered.clickerId.go.invalid', $clicker_id);
                         } else {
@@ -518,9 +518,10 @@ class iclicker_controller {
      *
      * @param string $key the KEY const
      * @param string $message the message to add
+     * @param string $extra [OPTIONAL] extra string to include hidden on the page with the message
      * @throws Exception if the key is invalid
      */
-    public function addMessageStr($key, $message) {
+    public function addMessageStr($key, $message, $extra = null) {
         if ($key == null) {
             throw new Exception("key (".$key.") must not be null");
         }
@@ -529,7 +530,15 @@ class iclicker_controller {
                 $this->messages[$key] = array(
                 );
             }
-            $this->messages[$key][] = $message;
+            if (isset($extra)) {
+                if (!is_string($extra)) {
+                    $extra = var_export($extra, true);
+                }
+                $extra = PHP_EOL . '<div style="display:none;">' . $extra . '</div>' . PHP_EOL;
+            } else {
+                $extra = '';
+            }
+            $this->messages[$key][] = $message . $extra;
         }
     }
 
@@ -538,16 +547,17 @@ class iclicker_controller {
      *
      * @param string $key the KEY const
      * @param string $messageKey the i18n message key
-     * @param object $args [optional] args to include
+     * @param object $args [OPTIONAL] args to include
+     * @param string $extra [OPTIONAL] extra string to include hidden on the page with the message
      * @throws Exception if the key is invalid
      */
-    public function addMessage($key, $messageKey, $args = null) {
+    public function addMessage($key, $messageKey, $args = null, $extra = null) {
         if ($key == null) {
             throw new Exception("key (".$key.") must not be null");
         }
         if ($messageKey) {
             $message = iclicker_service::msg($messageKey, $args);
-            $this->addMessageStr($key, $message);
+            $this->addMessageStr($key, $message, $extra);
         }
     }
 

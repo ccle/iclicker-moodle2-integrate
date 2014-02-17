@@ -606,10 +606,9 @@ class iclicker_service {
             if (!isset($userLastName) || empty($userLastName)) {
                 // fetch last name from current user
                 if (self::get_current_user_id() === false) {
-                    $userLastName = $USER->lastname;
-                } else {
                     throw new ClickerIdInvalidException("No current user available, cannot validate GO clickerid: $clicker_id", ClickerIdInvalidException::GO_NO_USER, $clicker_id);
                 }
+                $userLastName = $USER->lastname;
             }
             self::ws_go_verify_clickerid($clicker_id, $userLastName); // ClickerIdInvalidException exception if invalid (or WS exception)
 
