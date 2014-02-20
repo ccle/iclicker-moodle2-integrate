@@ -375,6 +375,11 @@ class iclicker_controller {
             $endDate = required_param('end_date', PARAM_ALPHANUMEXT);
             $endDate = strtotime($endDate);
             if ($endDate) {
+                // need to make this the end of the day
+                $endDT = new DateTime('@' . $endDate);
+                $endDT->setTimezone(new DateTimeZone(date_default_timezone_get()));
+                $endDT->setTime(23, 59, 59);
+                $endDate = $endDT->getTimestamp();
                 $endDateText = date('Y-m-d', $endDate);
             } else {
                 $endDate = null;
