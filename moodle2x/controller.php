@@ -471,7 +471,7 @@ class iclicker_controller {
             $timestamp = microtime();
             for ($i = 0; $i < $pageCount; $i++) {
                 $currentPage = $i + 1;
-                $currentStart = $currentPage + ($i * $perPageNum);
+                $currentStart = ($i * $perPageNum) + 1;
                 $currentEnd = $currentStart + $perPageNum - 1;
                 if ($currentEnd > $totalCount) {
                     $currentEnd = $totalCount;
