@@ -64,7 +64,7 @@ $string['reg.registered.clickerId.invalid'] = 'This i>clicker Remote ID ({$a}) i
 $string['reg.registered.clickerId.failure'] = 'General error trying to verify i>clicker Remote ID ({$a}). Please contact support';
 $string['reg.activate.success.true'] = 'Reactivated clicker ({$a}) registration';
 $string['reg.activate.success.false'] = 'Disabled clicker ({$a}) registration';
-$string['reg.remove.success'] = 'Removed clicker ({$a}) registration';
+$string['reg.remove.success'] = 'Removed i>clicker ID ({$a}) registration';
 $string['reg.activate.registrationId.empty'] = 'The registrationId cannot be empty, internal error in the form';
 // FAQs
 $string['reg.remote.faqs'] = 'Student Registration FAQs';
