@@ -69,7 +69,7 @@ $string['reg.activate.registrationId.empty'] = 'The registrationId cannot be emp
 // FAQs
 $string['reg.remote.faqs'] = 'Student Registration FAQs';
 $string['reg.remote.faq1.question'] = 'Where do I find my remote ID?'; // image
-$string['reg.remote.faq1.answer'] = 'Your i>clicker remote ID is printed on a sticker located on the back of your remote. The ID is the 8-character code below the barcode. Newer original i>clicker remotes have a secondary ID location behind the batter compartment and i>clicker 2 remotes display the ID upon power up. The remote ID will only contain letters A-F and numbers 0-9.';
+$string['reg.remote.faq1.answer'] = 'Your i>clicker remote ID is printed on a sticker located on the back of your remote. The ID is the 8-character code below the barcode. Newer original i>clicker remotes have a secondary ID location behind the battery compartment and i>clicker 2 remotes display the ID upon power up. The remote ID will only contain letters A-F and numbers 0-9.';
 $string['reg.remote.faq1.image.alt'] = 'I-clicker Sample Remote showing the back of the remote with the location of the ID';
 $string['reg.remote.faq2.question'] = 'What do I do if I cannot read the ID printed on my remote?';
 $string['reg.remote.faq2.answer'] = 'If your remote ID has rubbed off or is illegible and you do not have a secondary ID location on your remote, go to support.iclicker.com for troubleshooting instructions.';
