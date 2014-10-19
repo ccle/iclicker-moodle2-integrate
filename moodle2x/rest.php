@@ -83,7 +83,7 @@ function iclicker_handle_authn($cntlr) {
         // when SSO is enabled and the password is set it means this is not actually a user password so we can proceed without requiring SSL
     } else {
         // this is a user password so https must be used if the loginhttps option is enabled
-        $ssl_request = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+        $ssl_request = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443;
         $ssl_required = (isset($CFG->forcehttps) && $CFG->forcehttps == true) || (isset($CFG->loginhttps) && $CFG->loginhttps == true);
         if ($ssl_required && !$ssl_request) {
             throw new ClickerSSLRequiredException('SSL is required when performing a user login (and sending user passwords)');
