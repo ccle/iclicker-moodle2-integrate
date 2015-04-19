@@ -26,14 +26,14 @@ Download Binary
 ---------------
 The plugin can also be downloaded from the project site::
 
-    http://code.google.com/p/iclicker-moodle-integrate/
+    https://moodle.org/plugins/view.php?plugin=block_iclicker
 
 Source
 ------
 The source code for this plugin is located at::
 
-    - trunk (unstable): http://iclicker-moodle-integrate.googlecode.com/svn/trunk/moodle2x
-    - tags (stable): http://iclicker-moodle-integrate.googlecode.com/svn/tags/moodle2x
+    - trunk (unstable): https://github.com/azeckoski/iclicker-moodle-integrate/moodle2x
+    - tags (stable): https://github.com/azeckoski/iclicker-moodle-integrate/
 
 Install
 -------
