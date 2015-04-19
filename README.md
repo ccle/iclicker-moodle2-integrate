@@ -9,4 +9,4 @@ Download the current release of the plugin from the moodle plugins directory:
 [https://moodle.org/plugins/view.php?plugin=block_iclicker]
 The 1.9 version is available as a link to the left.
 
-[http://iclicker-moodle-integrate.googlecode.com/svn/trunk/moodle2x/README.txt README] (Installation and usage guide)
+[https://github.com/azeckoski/iclicker-moodle-integrate/blob/master/moodle2x/README.txt README] (Installation and usage guide)
