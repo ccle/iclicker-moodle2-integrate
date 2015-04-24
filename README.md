@@ -7,6 +7,6 @@ desktop applications and allows direct grade import and export from the Moodle c
 
 Download the current release of the plugin from the moodle plugins directory:
 [https://moodle.org/plugins/view.php?plugin=block_iclicker]
-The 1.9 version is available as a link to the left.
+The 1.9 version is available in [https://github.com/azeckoski/iclicker-moodle-integrate]
 
-[https://github.com/azeckoski/iclicker-moodle-integrate/blob/master/moodle2x/README.txt README] (Installation and usage guide)
+[https://github.com/azeckoski/iclicker-moodle2-integrate/blob/master/README.txt README] (Installation and usage guide)
