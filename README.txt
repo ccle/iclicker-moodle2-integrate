@@ -22,6 +22,23 @@ without SSO may use the previous version of the plug-in. Installations of Moodle
 
 This plugin should work with Moodle 2.1 or newer. It is developed as a Moodle plugin/block.
 
+If you are running Moodle 2.8 and installed a version of this plugin older than 26 April 2015 (1.8.1 or older) 
+you may see an issue when viewing grades in the gradebook which produces an error like this:
+
+  "Error reading from database"
+  Debug info: Table 'moodle28.mdl_iclicker' doesn't exist
+  SELECT c.* FROM mdl_iclicker instance
+  JOIN mdl_course c ON c.id = instance.course
+  WHERE instance.id = ?
+  Error code: dmlreadexception
+  ...
+
+To fix this issue, upgrade your plugin to version 1.8.2 or newer and then run the following SQL 
+(note that you may have to adjust the "mdl_grade_items" table name to match your local installation 
+- depending on the configured database table prefix):
+update mdl_grade_items set itemtype = 'manual', itemmodule = NULL where itemtype = "blocks" and itemmodule = "iclicker";
+
+
 Download Binary
 ---------------
 The plugin can also be downloaded from the project site::
