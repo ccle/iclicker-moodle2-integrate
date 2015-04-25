@@ -11,3 +11,24 @@ Download the current release of the plugin from the moodle plugins directory:
 The 1.9 version is available in [https://github.com/azeckoski/iclicker-moodle-integrate]
 
 [https://github.com/azeckoski/iclicker-moodle2-integrate/blob/master/README.txt README] (Installation and usage guide)
+
+
+**NOTE about database errors in Moodle 2.8:**
+
+If you are running Moodle 2.8 and installed a version of this plugin older than 26 April 2015 (1.8.1 or older) 
+you may see an issue when viewing grades in the gradebook which produces an error like this:
+
+    "Error reading from database"
+    Debug info: Table 'moodle28.mdl_iclicker' doesn't exist
+    SELECT c.* FROM mdl_iclicker instance
+    JOIN mdl_course c ON c.id = instance.course
+    WHERE instance.id = ?
+    Error code: dmlreadexception
+    ...
+
+To fix this issue, upgrade your plugin to version 1.8.2 or newer and then run the following SQL 
+(note that you may have to adjust the "mdl_grade_items" table name to match your local installation - depending on the configured database table prefix):
+
+    update mdl_grade_items set itemtype = 'manual', itemmodule = NULL 
+    where itemtype = "blocks" and itemmodule = "iclicker";
+
