@@ -139,7 +139,7 @@ class iclicker_service {
     const USER_KEY_TABLENAME = 'iclicker_user_key';
     const GRADE_CATEGORY_NAME = 'iclicker polling scores'; // default category
     const GRADE_ITEM_TYPE = 'manual';
-    const GRADE_ITEM_MODULE = 'iclicker';
+    const GRADE_ITEM_MODULE = null; //'iclicker'; - Moodle 2.8 fix
     const GRADE_LOCATION_STR = 'manual';
     const DEFAULT_SYNC_HOUR = 3;
     const BLOCK_RUNNER_KEY = 'block_iclicker_runner';
