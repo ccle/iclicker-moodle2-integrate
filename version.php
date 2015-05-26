@@ -23,9 +23,9 @@ defined('MOODLE_INTERNAL') || die();
 
 // http://docs.moodle.org/dev/version.php
 /** @noinspection PhpUndefinedVariableInspection */
-$plugin->version = 2015041900; // The current plugin version (Date: YYYYMMDDXX) - must match iclicker_service constant
+$plugin->version = 2015052500; // The current plugin version (Date: YYYYMMDDXX) - must match iclicker_service constant
 $plugin->requires   = 2011120100;        // moodle 2.0 - Requires this Moodle version - 2.0 = 2010112400; 2.1 = 2011070100; 2.2 = 2011120100; 2.3 = 2012062500; 2.4 = 2012120300
 $plugin->cron       = 86400;
 $plugin->component  = 'block_iclicker';    // Full name of the plugin (used for diagnostics)
 $plugin->maturity   = MATURITY_STABLE;
-$plugin->release = '1.8.1 (Build: 2015041900)'; // visible version - must match iclicker_service constant
+$plugin->release = '1.8.2 (Build: 2015052500)'; // visible version - must match iclicker_service constant
