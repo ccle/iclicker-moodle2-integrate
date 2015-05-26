@@ -606,7 +606,7 @@ class iclicker_service {
             if (!isset($userLastName) || empty($userLastName)) {
                 // fetch last name from current user
                 if (self::get_current_user_id() === false) {
-                    throw new ClickerIdInvalidException("No current user available, cannot validate GO clickerid: $clicker_id", ClickerIdInvalidException::GO_NO_USER, $clicker_id);
+                    throw new ClickerIdInvalidException("No current user available, cannot validate clickerid: $clicker_id", ClickerIdInvalidException::GO_NO_USER, $clicker_id);
                 }
                 $userLastName = $USER->lastname;
             }
@@ -2411,7 +2411,7 @@ format.
                 throw new Exception($msg);
             }
         } catch (Exception $e) {
-            $msg = 'Failure in the i>clicker GO webservices: ' . var_export($client, true);
+            $msg = 'Failure in the i>clicker webservices: ' . var_export($client, true);
             error_log($msg);
             throw new ClickerWebservicesException($msg);
         }
