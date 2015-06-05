@@ -104,6 +104,10 @@ $string['inst.no.courses'] = 'No courses';
 $string['inst.courses.header'] = 'Courses Listing';
 $string['inst.courses.table.summary'] = 'Lists the courses taught by this instructor; title, link to students listing';
 $string['inst.course'] = 'Course';
+// START UCLA MOD: CCLE-5727 - Add MediaWiki URL to Instructor Report
+$string['inst.iclicker6.help'] = '<a href="https://docs.ccle.ucla.edu/w/Iclicker_block" target="_blank">documentation</a>';
+$string['inst.iclicker7.help'] = '<a href="https://docs.ccle.ucla.edu/w/Iclicker_block_Instructor_7.x_series,_Sept._2015" target="_blank">documentation</a>';
+// END UCLA MOD: CCLE-5727
 $string['inst.students'] = 'Students';
 $string['inst.students.table.summary'] = 'Lists the students in the selected course; name, email, registration status';
 $string['inst.student.name.header'] = 'Name';
