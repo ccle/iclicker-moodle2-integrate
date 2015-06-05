@@ -1298,7 +1298,7 @@ class iclicker_service {
      * @return array the list of user objects for the students in the course
      */
     public static function get_students_for_course_with_regs($course_id, $include_regs=true) {
-        global $DB;
+        global $CFG, $DB;
         // get_users_by_capability - accesslib - moodle/grade:view
         // search_users - datalib
         if (class_exists('context_course')) {
@@ -1308,9 +1308,13 @@ class iclicker_service {
             /** @noinspection PhpDeprecationInspection */
             $context = get_context_instance(CONTEXT_COURSE, $course_id); // deprecated
         }
-        //$results = get_users_by_capability($context, 'moodle/grade:view', 'u.id, u.username, u.firstname, u.lastname, u.email', 'u.lastname', '', '', '', '', false);
-        // switched to ensure we only get students - patch from switlikm@gmail.com
-        $results = get_enrolled_users($context, 'moodle/grade:view', 0, 'u.id, u.username, u.firstname, u.lastname, u.email', 'u.lastname');
+        $results = null;
+        if ($CFG->version >= 2013051400) {
+            // Moodle 2.5 included filter to only return active users.
+            $results = get_enrolled_users($context, 'moodle/grade:view', 0, 'u.*', 'u.lastname', 0, 0, true);
+        } else {
+            $results = get_enrolled_users($context, 'moodle/grade:view', 0, 'u.*', 'u.lastname');
+        }
         if (isset($results) && !empty($results)) {
             // get the registrations related to these students
             $user_regs = array();
