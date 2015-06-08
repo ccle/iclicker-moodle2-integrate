@@ -36,7 +36,7 @@ $alerts = $cntlr->getMessages(iclicker_controller::KEY_ERROR);
 <div class="alertMessage user_messages info_messages errorbox">
     <ul class="messages_list">
         <?php foreach ($alerts as $message) { ?>
-        <li class="user_message alert_message"><?php echo $message ?></li>
+        <li class="user_message alert_message error"><?php echo $message ?></li>
         <?php } ?>
     </ul>
 </div>

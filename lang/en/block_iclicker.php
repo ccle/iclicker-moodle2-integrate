@@ -38,7 +38,7 @@ $string['app.allowed']      = 'Allowed';
 
 // for the main registration page
 $string['reg.title'] = 'Student Registration';
-$string['reg.remote.instructions'] = 'Enter your 8-character i>clicker Remote ID or 12-character i>clicker ID below. You may register multiple remotes/i>clicker accounts or remove a registration entry at any time.';
+$string['reg.remote.instructions'] = 'Enter your 8-character i>clicker Remote ID below. You may register multiple remotes or remove a registration entry at any time.';
 $string['reg.remote.id.enter'] = 'Your i>clicker Remote ID';
 $string['reg.remote.id.header'] = 'i>clicker ID';
 $string['reg.registered.date.header'] = 'Registered';
