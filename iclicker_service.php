@@ -1635,6 +1635,7 @@ class iclicker_service {
      * @throws InvalidArgumentException
      */
     public static function save_gradebook($gradebook) {
+        global $CFG;
         if (! $gradebook) {
             throw new InvalidArgumentException("gradebook must be set");
         }
@@ -1695,6 +1696,8 @@ class iclicker_service {
                             'fullname' => $item_category_name,
                         );
                         $grade_category = new grade_category($params, false);
+                        // Use default aggregation type.
+                        $grade_category->aggregation = $CFG->grade_aggregation;
                         $grade_category->insert(self::GRADE_LOCATION_STR);
                         $item_category_id = $grade_category->id;
                     } else {
@@ -1709,6 +1712,8 @@ class iclicker_service {
                             'fullname' => self::GRADE_CATEGORY_NAME,
                         );
                         $grade_category = new grade_category($params, false);
+                        // Use default aggregation type.
+                        $grade_category->aggregation = $CFG->grade_aggregation;
                         $grade_category->insert(self::GRADE_LOCATION_STR);
                         $default_iclicker_category_id = $grade_category->id;
                     }
