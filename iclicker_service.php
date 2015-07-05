@@ -127,8 +127,8 @@ class ClickerWebservicesException extends Exception {
 class iclicker_service {
 
     // CONSTANTS
-    const VERSION = '1.8.2'; // MUST match version.php
-    const BLOCK_VERSION = 2015062800; // MUST match version.php
+    const VERSION = '1.8.3'; // MUST match version.php
+    const BLOCK_VERSION = 2015070400; // MUST match version.php
 
     // Moodle version - 2.0 = 2010112400; 2.1 = 2011070100; 2.2 = 2011120100; 2.3 = 2012062500; 2.4 = 2012120300
 
@@ -597,6 +597,9 @@ class iclicker_service {
             throw new ClickerIdInvalidException("empty or null clicker_id", ClickerIdInvalidException::F_EMPTY, $clicker_id);
         }
         $clickerIdLength = strlen($clicker_id);
+        /*
+        https://jira-mnv.atlassian.net/browse/ICL-2603 :
+        Taking out references to i>clicker GO, GO is going to see end of life mid Aug and we need to take out all references for it
         if ($clickerIdLength == 12) {
             // support for new clicker go ids
             $clicker_id = strtoupper(trim($clicker_id));
@@ -612,7 +615,9 @@ class iclicker_service {
             }
             self::ws_go_verify_clickerid($clicker_id, $userLastName); // ClickerIdInvalidException exception if invalid (or WS exception)
 
-        } else if ($clickerIdLength <= 8) {
+        } else
+        */
+        if ($clickerIdLength <= 8) {
             // length <= 8, support for old clicker device ids
             $clicker_id = strtoupper(trim($clicker_id));
             if (!preg_match('/^[0-9A-F]+$/', $clicker_id)) {
