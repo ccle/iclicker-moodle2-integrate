@@ -635,7 +635,7 @@ XML;
 
         // saving one with one valid item
         $score = new stdClass();
-        $score->user_id = 1;
+        $score->user_id = 101;
         $score->score = 75.0;
 
         $grade_item = new stdClass();
@@ -678,12 +678,12 @@ XML;
         $grade_item->scores[] = $score1;
 
         $score2 = new stdClass();
-        $score2->user_id = '2';
+        $score2->user_id = '102';
         $score2->score = 101; // POINTS_POSSIBLE_UPDATE_ERRORS
         $grade_item->scores[] = $score2;
 
         $score3 = new stdClass();
-        $score3->user_id = '3';
+        $score3->user_id = '103';
         $score3->score = 'XX'; // GENERAL_ERRORS
         $grade_item->scores[] = $score3;
 
@@ -717,7 +717,7 @@ XML;
         $this->assertEquals($result->items[0]->scores[2]->error, iclicker_service::POINTS_POSSIBLE_UPDATE_ERRORS);
         $this->assertNotNull($result->items[0]->scores[3]);
         $this->assertTrue(isset($result->items[0]->scores[3]->error));
-        $this->assertEquals($result->items[0]->scores[3]->error, 'SCORE_INVALID');
+        $this->assertEquals($result->items[0]->scores[3]->error, 'SCORE_INVALID');//iclicker_service::USER_DOES_NOT_EXIST_ERROR);
 
         $xml = iclicker_service::encode_gradebook_results($result);
         $this->assertNotNull($xml);
@@ -784,22 +784,22 @@ XML;
         $gradebook->items[] = $grade_item2;
 
         $score = new stdClass();
-        $score->user_id = 1;
+        $score->user_id = 101;
         $score->score = 80.0;
         $grade_item1->scores[] = $score;
 
         $score = new stdClass();
-        $score->user_id = 2;
+        $score->user_id = 102;
         $score->score = 90.0;
         $grade_item1->scores[] = $score;
 
         $score = new stdClass();
-        $score->user_id = 2;
+        $score->user_id = 102;
         $score->score = 45.0;
         $grade_item2->scores[] = $score;
 
         $score = new stdClass();
-        $score->user_id = 3;
+        $score->user_id = 103;
         $score->score = 40.0;
         $grade_item2->scores[] = $score;
 

@@ -127,8 +127,8 @@ class ClickerWebservicesException extends Exception {
 class iclicker_service {
 
     // CONSTANTS
-    const VERSION = '1.8.3'; // MUST match version.php
-    const BLOCK_VERSION = 2015070400; // MUST match version.php
+    const VERSION = '2.1'; // MUST match version.php
+    const BLOCK_VERSION = 2016072900; // MUST match version.php
 
     // Moodle version - 2.0 = 2010112400; 2.1 = 2011070100; 2.2 = 2011120100; 2.3 = 2012062500; 2.4 = 2012120300
 
@@ -306,8 +306,7 @@ class iclicker_service {
     }
 
     // USERS
-
-    const USER_FIELDS = 'id,username,firstname,lastname,email';
+    const USER_FIELDS = 'id,username,picture,firstname,lastname,firstnamephonetic,lastnamephonetic,middlename,alternatename,imagealt,email';
 
     /**
      * Authenticate a user by username and password
@@ -397,6 +396,10 @@ class iclicker_service {
                     $user->firstname = 'Student';
                     $user->lastname = 'One';
                     $user->email = 'one@fail.com';
+                    $user->firstnamephonetic='student';
+                    $user->lastnamephonetic='one';
+                    $user->middlename='s';
+                    $user->alternatename='student01';
                 } else if ($username == 'student02') {
                     $user = new stdClass();
                     $user->id = 102;
@@ -404,6 +407,10 @@ class iclicker_service {
                     $user->firstname = 'Student';
                     $user->lastname = 'Two';
                     $user->email = 'two@fail.com';
+                    $user->firstnamephonetic='Student';
+                    $user->lastnamephonetic='Two';
+                    $user->middlename='s';
+                    $user->alternatename='student02';
                 } else if ($username == 'student03') {
                     $user = new stdClass();
                     $user->id = 103;
@@ -411,6 +418,10 @@ class iclicker_service {
                     $user->firstname = 'Student';
                     $user->lastname = 'Three';
                     $user->email = 'three@fail.com';
+                    $user->firstnamephonetic='Student';
+                    $user->lastnamephonetic='Three';
+                    $user->middlename='s';
+                    $user->alternatename='student03';
                 } else if ($username == 'inst01') {
                     $user = new stdClass();
                     $user->id = 111;
@@ -418,6 +429,10 @@ class iclicker_service {
                     $user->firstname = 'Instructor';
                     $user->lastname = 'One';
                     $user->email = 'uno_inst@fail.com';
+                    $user->firstnamephonetic='Instructor';
+                    $user->lastnamephonetic='One';
+                    $user->middlename='I';
+                    $user->alternatename='inst01';
                 }
             }
         }
@@ -458,6 +473,10 @@ class iclicker_service {
                         $user->firstname = 'Student';
                         $user->lastname = 'One';
                         $user->email = 'one@fail.com';
+                        $user->firstnamephonetic='student';
+                        $user->lastnamephonetic='one';
+                        $user->middlename='s';
+                        $user->alternatename='student01';
                     } else if ($user_ids == 102) {
                         $user = new stdClass();
                         $user->id = 102;
@@ -465,6 +484,10 @@ class iclicker_service {
                         $user->firstname = 'Student';
                         $user->lastname = 'Two';
                         $user->email = 'two@fail.com';
+                        $user->firstnamephonetic='Student';
+                        $user->lastnamephonetic='Two';
+                        $user->middlename='s';
+                        $user->alternatename='student02';
                     } else if ($user_ids == 103) {
                         $user = new stdClass();
                         $user->id = 103;
@@ -472,6 +495,10 @@ class iclicker_service {
                         $user->firstname = 'Student';
                         $user->lastname = 'Three';
                         $user->email = 'three@fail.com';
+                        $user->firstnamephonetic='Student';
+                        $user->lastnamephonetic='Three';
+                        $user->middlename='s';
+                        $user->alternatename='student03';
                     } else if ($user_ids == 111) {
                         $user = new stdClass();
                         $user->id = 111;
@@ -479,6 +506,10 @@ class iclicker_service {
                         $user->firstname = 'Instructor';
                         $user->lastname = 'One';
                         $user->email = 'uno_inst@fail.com';
+                        $user->firstnamephonetic='Instructor';
+                        $user->lastnamephonetic='One';
+                        $user->middlename='I';
+                        $user->alternatename='inst01';
                     }
                 }
                 if ($user) {
@@ -573,8 +604,7 @@ class iclicker_service {
             } else {
                 $accessinfo = get_user_access_sitewide($user_id);
             }
-            /** @noinspection PhpDeprecationInspection */
-            $results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false, 'c.sortorder', array(), 1);
+            $results = enrol_get_users_courses($user_id, true, array(), 'c.sortorder');
             $result = count($results) > 0;
         }
         return $result;
@@ -1400,9 +1430,7 @@ class iclicker_service {
             } else {
                 $accessinfo = get_user_access_sitewide($user_id);
             }
-            /** @noinspection PhpDeprecationInspection */
-            $results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false,
-                'c.sortorder', array('fullname','summary','timecreated','visible'), self::$max_courses_to_fetch);
+            $results = enrol_get_users_courses($user_id, true, array('fullname','summary','timecreated','visible'), 'c.sortorder');
         }
         if (!$results) {
             $results = array();
