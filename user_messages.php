@@ -59,6 +59,8 @@ $alerts = $cntlr->getMessages(iclicker_controller::KEY_ERROR);
                             $package)), $description);
         }
         echo html_writer::alist($packages);
+        echo html_writer::tag('span', 'i>clicker 6.x is no longer available for download with the stable release of 
+                i>clicker 7.x. We will still support any instructors using 6.x, but we recommend using 7.x.');
         echo $OUTPUT->box_end();
     }
     // END UCLA MOD: CCLE-2203
