@@ -49,13 +49,13 @@ $alerts = $cntlr->getMessages(iclicker_controller::KEY_ERROR);
         // Do not display on remote registration page.
         echo $OUTPUT->box_start('noticebox');
         $packages = array('Win' => 'Windows version', 'Mac' => 'Mac version');
-        echo html_writer::tag('span', 'Download UCLA version of the i>clicker 7.20.0 software (');
+        echo html_writer::tag('span', 'Download UCLA version of the i>clicker 7.21.0 software (');
         echo iclicker_service::msg('inst.iclicker7.help');
         echo html_writer::tag('span', '):');
         $packages = array('win' => 'Windows version', 'mac' => 'Mac version');
         foreach ($packages as $package => $description) {
             $packages[$package] = html_writer::link(
-                    new moodle_url(sprintf('/blocks/iclicker/files/iclicker-7.20.0-%s.zip',
+                    new moodle_url(sprintf('/blocks/iclicker/files/iclicker-7.21.0-%s.zip',
                             $package)), $description);
         }
         echo html_writer::alist($packages);
