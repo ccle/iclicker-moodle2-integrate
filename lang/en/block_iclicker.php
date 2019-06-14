@@ -92,6 +92,9 @@ $string['reg.remote.faq6.question'] = 'I registered my remote, why is my registr
 $string['reg.remote.faq6.answer'] = 'Your instructor needs to synchronize his or her gradebook to get the latest registration information. It may be that your instructor has not done this since you registered. Your in-class votes were recorded by i>clicker and, once you register your remote, these votes will be associated with you the next time your instructor syncs the course gradebook or roster.';
 $string['reg.remote.faq7.question'] = 'I use my remote for multiple classes. Do I need to register my information for each class?';
 $string['reg.remote.faq7.answer'] = 'No, you only need to register in one location. Once registered, your information will automatically apply to all of the classes in which you are enrolled and using i>clicker.';
+// START UCLA MOD: CCLE-8445 - iClicker FAQ registration info (needs to factor in our 2 systems)
+$string['reg.remote.faq7.answer'] = 'Yes, you <b>SHOULD</b> register your i>clicker remote with <b>ALL</b> classes you are enrolled in at the start of the quarter.';
+// END UCLA MOD: CCLE-8445.
 $string['reg.remote.faq8.question'] = 'What do I do if I accidentally registered the wrong remote/i>clicker ID?';
 $string['reg.remote.faq8.answer'] = 'If you register a wrong i>clicker ID, simply remove the incorrect entry and register again with the correct information.';
 $string['reg.remote.faq9.question'] = 'I\'ve already used my remote/i>clicker account in class before registering it in my LMS. Will I still receive credit for my votes?';
