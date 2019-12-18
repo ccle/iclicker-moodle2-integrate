@@ -107,6 +107,9 @@ $string['inst.no.courses'] = 'No courses';
 $string['inst.courses.header'] = 'Courses Listing';
 $string['inst.courses.table.summary'] = 'Lists the courses taught by this instructor; title, link to students listing';
 $string['inst.course'] = 'Course';
+// START UCLA MOD: CCLE-9007 - Add MediaWiki URL to Instructor Report/iclicker Admin Control.
+$string['inst.iclicker7.help'] = '<a href="{$a->docsiteurl}" target="_blank">documentation</a>';
+// START UCLA MOD: CCLE-9007
 $string['inst.students'] = 'Students';
 $string['inst.students.table.summary'] = 'Lists the students in the selected course; name, email, registration status';
 $string['inst.student.name.header'] = 'Name';

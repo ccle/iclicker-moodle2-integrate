@@ -46,11 +46,14 @@ $alerts = $cntlr->getMessages(iclicker_controller::KEY_ERROR);
     // START UCLA MOD: CCLE-2203 - i>clicker integration
     // Add links to download UCLA specific i>clicker version.
     if (basename($_SERVER['PHP_SELF']) != 'registration.php') {
+        // CCLE-9007 - Redirect URL to mediawiki.
+        $helplink = new stdClass();
+        $helplink->docsiteurl = get_config('block_ucla_help', 'docs_wiki_url') . '/index.php?title=Iclicker';
         // Do not display on remote registration page.
         echo $OUTPUT->box_start('noticebox');
         $packages = array('Win' => 'Windows version', 'Mac' => 'Mac version');
         echo html_writer::tag('span', 'Download UCLA version of the i>clicker 7.22.0 software (');
-        echo iclicker_service::msg('inst.iclicker7.help');
+        echo iclicker_service::msg('inst.iclicker7.help', $helplink);
         echo html_writer::tag('span', '):');
         $packages = array('win' => 'Windows version', 'mac' => 'Mac version');
         foreach ($packages as $package => $description) {
